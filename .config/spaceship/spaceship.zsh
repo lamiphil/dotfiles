@@ -1,0 +1,1 @@
+/home/philippe/.config/spaceship/spaceship.zsh
