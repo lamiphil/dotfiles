@@ -17,10 +17,6 @@ map("n", "<leader>v", function()
   require("nvchad.term").toggle { pos = "vsp" }
 end, { desc = "terminal toggleable vertical term" })
 
-map({ "n", "t" }, "<leader>i", function()
-  require("nvchad.term").toggle { pos = "float", id = "floatTerm" }
-end, { desc = "terminal toggle floating term" })
-
 -- new
 map({ "n", "t" }, "<A-v>", function()
   require("nvchad.term").new { pos = "vsp", id = "vtoggleTerm" }
