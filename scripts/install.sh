@@ -14,6 +14,7 @@ PACKAGES=(
   "python3-pip"
   "lsd"
   "bat"
+  "tmux"
 )
 
 echo "Mise à jour de la liste des packages..."
