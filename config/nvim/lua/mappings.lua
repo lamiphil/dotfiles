@@ -7,6 +7,12 @@ local map = vim.keymap.set
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
 
+-- Vim Tmux Navigator
+map("n", "<C-h>", ":TmuxNavigateLeft<CR>", { silent = true })
+map("n", "<C-j>", ":TmuxNavigateDown<CR>", { silent = true })
+map("n", "<C-k>", ":TmuxNavigateUp<CR>", { silent = true })
+map("n", "<C-l>", ":TmuxNavigateRight<CR>", { silent = true })
+
 -- Switch toggleable and new terminal mappings
 -- toggleable
 map("n", "<leader>h", function()
@@ -26,4 +32,4 @@ map({ "n", "t" }, "<A-h>", function()
   require("nvchad.term").new { pos = "sp", id = "htoggleTerm" }
 end, { desc = "terminal new horizontal term" })
 
--- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
+map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")Up
