@@ -32,4 +32,4 @@ map({ "n", "t" }, "<A-h>", function()
   require("nvchad.term").new { pos = "sp", id = "htoggleTerm" }
 end, { desc = "terminal new horizontal term" })
 
-map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")Up
+map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
