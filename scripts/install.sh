@@ -12,6 +12,8 @@ PACKAGES=(
   "neovim"
   "tree"
   "python3-pip"
+  "python3-venv"
+  "unzip"
   "lsd"
   "bat"
   "tmux"
