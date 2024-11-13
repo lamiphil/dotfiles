@@ -22,3 +22,6 @@ alias home="cd ~"
 # bash
 alias rc="nvim ~/code/perso/dotfiles/home/.bashrc"
 alias aliases="nvim ~/code/perso/dotfiles/home/.bash_aliases"
+
+# kubectl
+alias k="kubectl"
