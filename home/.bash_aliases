@@ -25,3 +25,6 @@ alias aliases="nvim ~/code/perso/dotfiles/home/.bash_aliases"
 
 # kubectl
 alias k="kubectl"
+
+# minikube
+alias mini="minikube"
