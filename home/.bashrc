@@ -134,10 +134,12 @@ export PATH="$PATH:/opt/nvim-linux64/bin"
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
   exec tmux
 fi
-source /etc/profile.d/bash_completion.sh
 
 # make tab cycle through commands after listing
 bind '"\t":menu-complete'
 bind "set show-all-if-ambiguous on"
 bind "set completion-ignore-case on"
 bind "set menu-complete-display-prefix on"
+
+source /etc/profile.d/bash_completion.sh
+
