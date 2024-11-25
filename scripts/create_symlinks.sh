@@ -4,17 +4,13 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Définir les dossiers de configurations sources en fonction de l'emplacement du script
+REPO_ROOT_DIR="$(realpath "$SCRIPT_DIR/..")"
 REPO_HOME_DIR="$(realpath "$SCRIPT_DIR/../home")"
 REPO_CONFIG_DIR="$(realpath "$SCRIPT_DIR/../config")"
-
-echo $REPO_HOME_DIR
-echo $REPO_CONFIG_DIR
 
 # Définir les dossiers de destination
 SYSTEM_HOME_DIR="$HOME"
 SYSTEM_CONFIG_DIR="$HOME/.config"
-echo $SYSTEM_HOME_DIR
-echo $SYSTEM_CONFIG_DIR
 
 # Vérifier si --dry-run est utilisé
 DRY_RUN=false
@@ -69,5 +65,11 @@ for item in "$REPO_CONFIG_DIR"/{*,.*}; do
   # Créer le symlink
   create_symlink "$item" "$SYSTEM_CONFIG_DIR/$base_item"
 done
+
+# Créer le symlink pour le grammar highlighting des .conf logstash
+HIGHLIGHT_SOURCE="$REPO_ROOT_DIR/tree-sitter-logstash/queries/highlights.scm"
+HIGHLIGHT_DEST="$REPO_ROOT_DIR/nvim/queries/logstash/highlights.scm"
+
+create_symlink "$HIGHLIGHT_SOURCE" "$HIGHLIGHT_DEST"
 
 echo -e "\n---- Les symlinks ont été créés ! ----"
