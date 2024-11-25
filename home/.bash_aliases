@@ -10,13 +10,17 @@ alias v="nvim"
 # docker
 alias dcu="docker compose up"
 alias dcd="docker compose down"
+alias dcb="docker compose build"
 alias dcud="docker compose up -d"
+alias dcrd="docker compose down & docker compose up -d" # Restart in deamon
+alias dcr="docker compose down & docker compose up" # Restart
 
 # bat
 alias bat="batcat"
 
 # shorcuts
-alias dot="cd ~/code/perso/dotfiles/"
+alias dot="cd ~/code/perso/dotfiles/ && nvim"
+alias elk="cd ~/code/elk/ && nvim"
 alias home="cd ~"
 
 # bash
