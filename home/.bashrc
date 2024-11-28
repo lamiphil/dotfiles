@@ -143,3 +143,7 @@ bind "set menu-complete-display-prefix on"
 
 source /etc/profile.d/bash_completion.sh
 
+if [ -f ~/.bash_env ]; then
+    source ~/.bash_env
+fi
+
