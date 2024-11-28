@@ -1,0 +1,25 @@
+# /home/lamyphi/.config/tmuxinator/log-dev.yml
+
+name: log-dev
+root: ~/code/lq/elk/
+
+
+startup_pane: 1
+
+enable_pane_titles: true
+
+windows:
+  - editor: 
+      layout: main-vertical
+      panes:
+        - nvim
+  - logs:
+      layout: main-vertical
+      panes:
+        - logstash:
+            null
+        - docker-compose:
+            null
+        - edit:
+            null
+

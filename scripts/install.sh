@@ -17,6 +17,7 @@ PACKAGES=(
   "lsd"
   "bat"
   "tmux"
+  "tmuxinator"
 )
 
 echo "Mise à jour de la liste des packages..."

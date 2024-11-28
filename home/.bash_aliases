@@ -13,7 +13,8 @@ alias dcd="docker compose down"
 alias dcb="docker compose build"
 alias dcud="docker compose up -d"
 alias dcrd="docker compose down & docker compose up -d" # Restart in deamon
-alias dcr="docker compose down & docker compose up" # Restart
+alias dcr="docker compose down & docker compose up" # Restart filebeat
+alias dcrf="docker compose down filebeat ; docker compose up filebeat -d" # Restart filebeat
 
 # bat
 alias bat="batcat"
@@ -32,3 +33,6 @@ alias k="kubectl"
 
 # minikube
 alias mini="minikube"
+
+# tmuxinator
+alias mux="tmuxinator"
