@@ -1,5 +1,5 @@
 name: log-dev
-root: ~/code/lq/elk/
+root: ~/code/lq/local-opensearch/
 
 startup_pane: 1
 enable_pane_titles: true
