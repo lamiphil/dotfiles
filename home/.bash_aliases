@@ -1,7 +1,8 @@
 # cd
-alias cd2="cd ../../"
-alias cd3="cd ../../../"
-alias cd4="cd ../../../../"
+alias cd1="cd .. & ls"
+alias cd2="cd ../../ & ls"
+alias cd3="cd ../../../ & ls"
+alias cd4="cd ../../../../ & ls"
 
 # ls
 alias ls="lsd"
