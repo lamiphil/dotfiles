@@ -49,6 +49,28 @@ return {
 
   {
     require "configs.tailwind"
-  }
+  },
+
+  -- FZF lua
+  {
+    require "configs.fzf-lua"
+  },
+  -- {
+  --   "ibhagwan/fzf-lua",
+  --   -- optional for icon support
+  --   dependencies = { "nvim-tree/nvim-web-devicons" },
+  --   config = function()
+  --     -- calling `setup` is optional for customization
+  --     require("fzf-lua").setup({})
+  --   end
+  -- },
+
+  -- Rainbow brackets and parentheses
+  -- {
+  --   "HiPhish/rainbow-delimiters.nvim",
+  --   config = function()
+  --     require("configs.rainbow-delimiters")
+  --   end
+  -- }
 }
 
