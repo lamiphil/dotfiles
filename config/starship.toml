@@ -18,9 +18,16 @@ show_always = true
 
 [hostname]
 ssh_symbol = " "
-ssh_only = false
+ssh_only = true
 format = 'on [$hostname](bold yellow) '
 trim_at = "."
+disabled = false
+
+[kubernetes]
+contexts = [
+  { context_pattern = "*po", style = "bold red", context_alias = "prod"},
+  { context_pattern = "*ti", style = "purple", context_alias = "ti" },
+]
 disabled = false
 
 [aws]
