@@ -27,8 +27,8 @@ alias bat="batcat"
 
 # shorcuts
 alias dot="cd ~/code/perso/dotfiles/ && nvim"
-alias elk="cd ~/code/elk/ && nvim"
 alias home="cd ~"
+alias lq="cd ~/code/"
 
 # bash
 alias rc="nvim ~/code/perso/dotfiles/home/.bashrc"
