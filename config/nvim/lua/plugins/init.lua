@@ -55,16 +55,10 @@ return {
   {
     require "configs.fzf-lua"
   },
-  -- {
-  --   "ibhagwan/fzf-lua",
-  --   -- optional for icon support
-  --   dependencies = { "nvim-tree/nvim-web-devicons" },
-  --   config = function()
-  --     -- calling `setup` is optional for customization
-  --     require("fzf-lua").setup({})
-  --   end
-  -- },
 
+  {
+    require "configs.noice"
+  },
   -- Rainbow brackets and parentheses
   -- {
   --   "HiPhish/rainbow-delimiters.nvim",
