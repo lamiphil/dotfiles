@@ -59,6 +59,10 @@ return {
   {
     require "configs.noice"
   },
+
+  {
+    require "configs.render-markdown"
+  },
   -- Rainbow brackets and parentheses
   -- {
   --   "HiPhish/rainbow-delimiters.nvim",
