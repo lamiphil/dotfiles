@@ -124,6 +124,15 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+########
+# PATH #
+########
+
+# Go Environment
+export GOPATH="/usr/local/go/go"
+export PATH="$PATH:$GOPATH/bin:/usr/local/go/bin"
+
+# Additional Paths
 export PATH="$PATH:/opt/nvim-linux64/bin"
 
 # Run Tmux on start
@@ -152,3 +161,6 @@ function cd {
   builtin cd "$@" && ls -F
 }
 
+
+# FZF
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
