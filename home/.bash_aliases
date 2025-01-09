@@ -42,3 +42,6 @@ alias mini="minikube"
 
 # tmuxinator
 alias mux="tmuxinator"
+
+# fzf
+alias fzf="fzf --preview 'batcat --style=numbers --color=always {}'"
