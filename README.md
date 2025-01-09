@@ -1,5 +1,7 @@
 # dotfiles
 
+Ces instructions sont destinés à configurer un environnement WSL 2.0 Ubuntu dans Windows 11.
+
 ## 0. Créer la structure de dossiers
 
 ```bash
@@ -10,23 +12,20 @@ mkdir Downloads
 ```
 
 ## 1. Télécharger repos *dotfiles*
-- [ ] 1.1 Créer clé SSH
-	https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
-
+- [ ] 1.1 Créer clé SSH [doc](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
 ```bash
 ssh-keygen -t ed25519 -C "philippelamy98@outlook.com"
 ```
 
-- [ ] 1.2 Entrer les informations suivantes:
+- [ ] 1.1.1 Entrer les informations suivantes (modifier {user}):
 ```bash
 Generating public/private ed25519 key pair.
-Enter file in which to save the key (/home/REDACTED/.ssh/id_ed25519): /home/{user}/.ssh/github
+Enter file in which to save the key (/home/{user}/.ssh/id_ed25519): /home/{user}/.ssh/github
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
-
 ```
 
-- [ ] 1.3 Ajouter la clé publique dans Github https://github.com/settings/keys
+- [ ] 1.3 Ajouter la clé publique dans Github [keys](https://github.com/settings/keys)
 - [ ] 1.4 Créer la configuration SSH:
 ```bash
 touch ~/.ssh/config
@@ -67,11 +66,13 @@ wget https://github.com/lsd-rs/lsd/releases/download/v1.1.5/lsd-musl_1.1.5_amd64
 sudo dpkg -i lsd-musl_1.1.5_amd64.deb
 ```
 
-- [ ] 2.4 Installer [neovim 0.10.0](https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz)
+- [ ] 2.4 Installer [neovim 0.10.0](https://github.com/neovim/neovim/releases/) (ou une version plus récente)
 ```bash
+wget https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
 tar xzvf nvim-linux64.tar.gz
 sudo mv nvim-linux64 /opt/nvim sudo ln -s /opt/nvim/bin/nvim /usr/local/bin/nvim
 ```
+
 - [ ] 2.5 Installer Starship
 ```bash
 curl -sS https://starship.rs/install.sh | sh 
@@ -81,8 +82,8 @@ curl -sS https://starship.rs/install.sh | sh
 ```bash
 git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
 ```
-
 - [ ] 2.6.1 Exécuter :LazyInstall dans neovim
+
 - [ ] 2.7 Installer Tmux Package Manager
 ```bash
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
