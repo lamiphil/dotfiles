@@ -63,12 +63,5 @@ return {
   {
     require "configs.render-markdown"
   },
-  -- Rainbow brackets and parentheses
-  -- {
-  --   "HiPhish/rainbow-delimiters.nvim",
-  --   config = function()
-  --     require("configs.rainbow-delimiters")
-  --   end
-  -- }
 }
 
