@@ -63,5 +63,9 @@ return {
   {
     require "configs.render-markdown"
   },
+
+  {
+    require "configs.surround-nvim"
+  }
 }
 
