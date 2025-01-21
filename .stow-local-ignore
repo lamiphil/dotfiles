@@ -1,0 +1,15 @@
+# Comments and blank lines are allowed.
+
+^/README.*
+^/LICENSE.*
+^/COPYING
+
+# Ignore GIT files
+.git
+.gitignore
+
+# Ignore scripts folder
+scripts
+
+# Ignore repos folder
+repos
