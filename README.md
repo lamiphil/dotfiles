@@ -85,14 +85,9 @@ git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
 ```bash
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ```
+- [ ] 2.7.1 Dans Tmux, faire *PREFIX (CTRL + SPACE) + I (i majuscule)*  afin d'installer les plugins
 
-- [ ] 2.8 Installer Tmux Package Manager
-```bash
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-```
-- [ ] 2.8.1 Dans Tmux, faire *PREFIX (CTRL + SPACE) + I (i majuscule)*  afin d'installer les plugins
-
-- [ ] 2.9 Installer [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+- [ ] 2.8 Installer [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 ```bash
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
