@@ -26,13 +26,13 @@ alias dcrf="docker compose down filebeat ; docker compose up filebeat -d" # Rest
 alias bat="batcat"
 
 # shorcuts
-alias dot="cd ~/code/perso/dotfiles/ && nvim"
+alias dot="cd ~/dotfiles/ && nvim"
 alias home="cd ~"
 alias lq="cd ~/code/"
 
 # bash
-alias rc="nvim ~/code/perso/dotfiles/home/.bashrc"
-alias aliases="nvim ~/code/perso/dotfiles/home/.bash_aliases"
+alias rc="nvim ~/.bashrc"
+alias aliases="nvim ~/.bash_aliases"
 
 # kubectl
 alias k="kubectl"
@@ -45,3 +45,6 @@ alias mux="tmuxinator"
 
 # fzf
 alias fzf="fzf --preview 'batcat --style=numbers --color=always {}'"
+
+# systemctl
+alias sys="systemctl"
