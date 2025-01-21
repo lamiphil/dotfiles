@@ -1,37 +1,34 @@
 # dotfiles
 
-Ces instructions sont destinés à configurer un environnement WSL 2.0 Ubuntu dans Windows 11.
+Ces instructions sont destinés à la configuration d'un Ubuntu.
 
-## 0. Créer la structure de dossiers
+## 0. Création de la structure de fichiers
 
 ```bash
 cd ~
-mkdir code
-mkdir code/perso
+mkdir -p code/perso
 mkdir Downloads
 ```
 
-## 1. Télécharger repos *dotfiles*
+## 1. Configuration de l'environnement SSH
 - [ ] 1.1 Créer clé SSH [doc](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
 ```bash
 ssh-keygen -t ed25519 -C "philippelamy98@outlook.com"
 ```
 
-- [ ] 1.1.1 Entrer les informations suivantes (modifier {user}):
+- [ ] 1.1.1 Entrer les informations suivantes (modifier `{user}`):
 ```bash
 Generating public/private ed25519 key pair.
 Enter file in which to save the key (/home/{user}/.ssh/id_ed25519): /home/{user}/.ssh/github
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
 ```
-
-- [ ] 1.3 Ajouter la clé publique dans Github [keys](https://github.com/settings/keys)
-- [ ] 1.4 Créer la configuration SSH:
+- [ ] 1.1.2 Ajouter la clé publique dans Github [keys](https://github.com/settings/keys)
+- [ ] 1.1.3 Créer la configuration SSH:
 ```bash
 touch ~/.ssh/config
 ```
-
-- [ ] 1.5 Ajouter la configuration suivante:
+- [ ] 1.1.4 Ajouter la configuration suivante:
 ```
 Host github
     Hostname github.com
@@ -40,9 +37,9 @@ Host github
     AddKeysToAgent yes
 ```
 
-- [ ] 1.6 Cloner le dépôt [dotfiles](https://github.com/lamiphil/dotfiles):
+- [ ] 1.2 Cloner le dépôt [dotfiles](https://github.com/lamiphil/dotfiles):
 ```bash
-cd ~/code/perso
+cd ~
 git clone git@github.com:lamiphil/dotfiles.git
 ```
 
@@ -50,13 +47,13 @@ git clone git@github.com:lamiphil/dotfiles.git
 
 - [ ] 2.1 Exécuter le script *dotfiles/scripts/install.sh*
 ```bash
-cd ~/code/perso/dotfiles/scripts
-sudo ./install.sh
+cd ~/dotfiles/scripts
+sudo ./install_packages.sh
 ```
 
-- [ ] 2.2 Cloner [tree-sitter-logstash](https://github.com/Preston-PLB/tree-sitter-logstash.git)
+- [ ] 2.2 Cloner [tree-sitter-logstash](https://github.com/Preston-PLB/tree-sitter-logstash.git) (optionnel)
 ```bash
-cd ~/code/perso/dotfiles/repos
+cd ~/dotfiles/repos
 git clone https://github.com/Preston-PLB/tree-sitter-logstash.git
 ```
 
@@ -101,12 +98,12 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 ```
 
-## 3. Créer les symlinks
+## 3. Configuration des fichiers de configuration
 
-- [ ] 3.1 Exécuter le script *dotfiles/scripts/create_symlinks.sh*
+- [ ] 3.1 Exécuter stow 
 ```bash
-cd ~/code/perso/dotfiles/scripts
-./create_symlinks
+cd ~/dotfiles
+stow .
 ```
 
 ## 4. Configuration de l'interface de l'application *Terminal*

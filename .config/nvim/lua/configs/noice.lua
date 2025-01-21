@@ -2,8 +2,8 @@ return {
   "folke/noice.nvim",
   event = "VeryLazy",
   opts = {
-    -- add any options here
-        routes = {
+    -- Show notification when recording macro
+    routes = {
       {
         view = "notify",
         filter = { event = "msg_showmode" },
