@@ -7,7 +7,7 @@ Ces instructions sont destinés à la configuration d'un Ubuntu.
 ```bash
 cd ~
 mkdir -p code/perso
-mkdir Downloads
+mkdir downloads
 ```
 
 ## 1. Configuration de l'environnement SSH
