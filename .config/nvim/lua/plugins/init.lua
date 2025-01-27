@@ -47,6 +47,7 @@ return {
     end
   },
 
+  -- Tailwind colorizer
   {
     require "configs.tailwind"
   },
@@ -56,16 +57,19 @@ return {
     require "configs.fzf-lua"
   },
 
+  -- Noice notifications
   {
     require "configs.noice"
   },
 
+  -- Markdown rendering
   {
-    require "configs.render-markdown"
+    require "configs.markview"
   },
 
+  -- Change surrounding
   {
     require "configs.surround-nvim"
-  }
+  },
 }
 
