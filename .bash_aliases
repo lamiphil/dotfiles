@@ -48,3 +48,6 @@ alias fzf="fzf --preview 'batcat --style=numbers --color=always {}'"
 
 # systemctl
 alias sys="systemctl"
+
+# terraform
+alias tf="terraform"
