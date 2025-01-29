@@ -36,6 +36,8 @@ alias aliases="nvim ~/.bash_aliases"
 
 # kubectl
 alias k="kubectl"
+alias kpo="kubectl config use-context admin@k8s-REDACTED"
+alias kti="kubectl config use-context admin@k8s-REDACTED"
 
 # minikube
 alias mini="minikube"
