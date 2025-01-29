@@ -1,4 +1,8 @@
-local options = {
+return {
+  "stevearc/conform.nvim",
+  event = 'BufWritePre', -- uncomment for format on save
+  opts = {
+
   formatters_by_ft = {
     lua = { "stylua" },
     -- css = { "prettier" },
@@ -10,6 +14,5 @@ local options = {
   --   timeout_ms = 500,
   --   lsp_fallback = true,
   -- },
+  }
 }
-
-return options

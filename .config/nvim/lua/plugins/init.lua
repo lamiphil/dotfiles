@@ -1,75 +1,51 @@
 return {
+  -- Auto-formatting
   {
-    "stevearc/conform.nvim",
-    event = 'BufWritePre', -- uncomment for format on save
-    opts = require "configs.conform",
+    require "configs.conform"
   },
-
+  -- LSP servers
   {
-    "neovim/nvim-lspconfig",
-    config = function()
-      require "configs.lspconfig"
-    end,
+    require "configs.lspconfig"
   },
-
   -- LSP package manager
   {
-    "williamboman/mason.nvim",
-    opts = require("configs.mason-nvim")
+    require "configs.mason"
   },
-
   -- Syntax highlighting
   {
-  	"nvim-treesitter/nvim-treesitter",
-    opts = require("configs.nvim-treesitter")
+    require "configs.nvim-treesitter"
   },
-
   -- Vim Tmux Navigator
   {
-    "christoomey/vim-tmux-navigator",
-    lazy = false,
-    config = function()
-      require "configs.vim-tmux-navigator"
-    end,
+    require "configs.vim-tmux-navigator"
   },
-
   -- Auto closing HTML tags
   {
-    "windwp/nvim-ts-autotag",
-    ft = {
-      "javascript",
-      "javascriptreact",
-      "typescript",
-      "typescriptreact",
-    },
-    config = function()
-      require("nvim-ts-autotag").setup()
-    end
+    require "configs.nvim-ts-autotag"
   },
-
   -- Tailwind colorizer
   {
     require "configs.tailwind"
   },
-
   -- FZF lua
   {
     require "configs.fzf-lua"
   },
-
   -- Noice notifications
   {
     require "configs.noice"
   },
-
   -- Markdown rendering
   {
     require "configs.markview"
   },
-
   -- Change surrounding
   {
     require "configs.surround-nvim"
+  },
+  -- Obsidian
+  {
+    require "configs.obsidian"
   },
 }
 

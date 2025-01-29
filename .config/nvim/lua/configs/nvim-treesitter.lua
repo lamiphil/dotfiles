@@ -19,16 +19,21 @@ vim.filetype.add({
 vim.treesitter.language.register("logstash", "logstash")
 
 return {
-  ensure_installed = {
-    "vim",
-    "lua",
-    "vimdoc",
-    "html",
-    "css",
-    "python",
-    "javascript",
-    "typescript",
-    "tsx",
-    "logstash",
-  },
+  "nvim-treesitter/nvim-treesitter",
+  opt = {
+    ensure_installed = {
+      "vim",
+      "lua",
+      "vimdoc",
+      "html",
+      "css",
+      "python",
+      "javascript",
+      "typescript",
+      "tsx",
+      "logstash",
+      "terraform",
+    },
+
+  }
 }

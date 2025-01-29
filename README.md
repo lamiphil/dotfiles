@@ -29,7 +29,7 @@ Enter same passphrase again:
 touch ~/.ssh/config
 ```
 - [ ] 1.1.4 Ajouter la configuration suivante:
-```
+```ssh
 Host github
     Hostname github.com
     IdentityFile ~/.ssh/github
