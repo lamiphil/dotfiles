@@ -20,6 +20,7 @@ PACKAGES=(
   "tmuxinator"
   "fzf"
   "stow"
+  "ripgrep"
 )
 
 echo "Mise à jour de la liste des packages..."
