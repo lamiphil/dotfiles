@@ -1,0 +1,9 @@
+[user]
+  name = Philippe Lamy
+  email = REDACTED@example.com
+
+[alias]
+  st  = status -s
+  p   = push
+  cm  = commit -m
+  a   = add
