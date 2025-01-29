@@ -7,3 +7,4 @@
   p   = push
   cm  = commit -m
   a   = add
+  d   = diff
