@@ -29,6 +29,7 @@ alias bat="batcat"
 alias dot="cd ~/dotfiles/ && nvim"
 alias home="cd ~"
 alias lq="cd ~/code/"
+alias notes="cd ~/notes/lq/ && nvim"
 
 # bash
 alias rc="nvim ~/.bashrc"
