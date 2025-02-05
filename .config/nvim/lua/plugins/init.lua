@@ -47,5 +47,9 @@ return {
   {
     require "configs.obsidian"
   },
+  -- Todo
+  {
+    require "configs.todo"
+  },
 }
 
