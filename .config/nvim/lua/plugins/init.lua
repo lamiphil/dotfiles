@@ -27,10 +27,6 @@ return {
   {
     require "configs.tailwind"
   },
-  -- FZF lua
-  {
-    require "configs.fzf-lua"
-  },
   -- Noice notifications
   {
     require "configs.noice"
