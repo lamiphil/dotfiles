@@ -37,4 +37,8 @@ end, { desc = "terminal new horizontal term" })
 
 map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
+-- Dismiss Noice Message 
 map("n", "<leader>nd", "<cmd>NoiceDismiss<CR>", {desc = "Dismiss Noice Message"})
+
+-- Toggle Zen Mode
+map("n", "<leader>zm", "<cmd>ZenMode<CR>", {desc = "Toggle ZenMode"})

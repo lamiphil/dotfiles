@@ -41,11 +41,15 @@ return {
   },
   -- Obsidian
   {
-    require "configs.obsidian"
+    require "configs.obsidian.obsidian"
   },
   -- Todo
   {
     require "configs.todo"
+  },
+  -- Zen
+  {
+    require "configs.zen"
   },
 }
 

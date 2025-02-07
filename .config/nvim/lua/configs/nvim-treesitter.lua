@@ -33,6 +33,9 @@ return {
       "tsx",
       "logstash",
       "terraform",
+      "markdown",
+      "markdown_inline",
+      "marksman"
     },
 
   }
