@@ -1,5 +1,6 @@
 local substitutions = require("configs.obsidian.substitutions")
 local mappings = require("configs.obsidian.mappings")
+local callbacks = require("configs.obsidian.callbacks")
 
 return {
   "epwalsh/obsidian.nvim",
@@ -25,8 +26,8 @@ return {
         overrides = {
           templates = {
             substitutions = substitutions.lq_substitutions
-          }
-        }
+          },
+        },
       },
     },
 
@@ -34,8 +35,7 @@ return {
       folder = "config/templates",
       date_format = "%Y-%m-%d",
       time_format = "%H:%M",
-      substitutions = {
-      },
+      substitutions = {},
     },
 
     daily_notes = {
@@ -62,17 +62,6 @@ return {
       img_folder = "config/attachments"
     },
 
-    callbacks = {
-      enter_note = function(client, note)
-        local note_path = tostring(note.path)
-        opened_note_filename = note_path:match("([^/]+)%.md$")
-
-        if opened_note_filename then
-            print("📄 Entered note:", opened_note_filename)
-        else
-            print("⚠ Could not extract  note filename.")
-        end
-      end,
-    },
+    callbacks = callbacks.callbacks,
   },
 }

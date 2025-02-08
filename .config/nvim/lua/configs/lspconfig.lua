@@ -11,11 +11,9 @@ local servers = {
   "eslint",
   "terraformls",
   "gitlab-ci-ls",
-  "marksman",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"
-
 
 -- lsps with default config
 for _, lsp in ipairs(servers) do

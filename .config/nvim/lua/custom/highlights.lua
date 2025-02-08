@@ -10,8 +10,6 @@ M.add = {
   MarkviewPalette4 = { fg = "#a6e3a1", bg = "#3c4948", bold = true },
   MarkviewPalette5 = { fg = "#74c7ec", bg = "#314358", bold = true },
   MarkviewPalette6 = { fg = "#b4befe", bg = "#3c405b", bold = true },
-
 }
-
 
 return M
