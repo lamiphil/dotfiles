@@ -12,9 +12,8 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt.foldcolumn = "2"   -- Adds extra space on the left
 
     -- Adjust text width and virtual edit for better wrapping
-    vim.opt.textwidth = 80      -- Helps with soft wrapping
+    vim.opt.textwidth = 120      -- Helps with soft wrapping
     vim.opt.wrapmargin = 0      -- Prevents auto-adjusting the margin dynamically
-    vim.opt.colorcolumn = "80" -- Visual guide for reference
 
     -- Enable soft wrap movement
     vim.opt.breakindent = true

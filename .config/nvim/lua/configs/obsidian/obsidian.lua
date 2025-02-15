@@ -1,3 +1,4 @@
+require("configs.obsidian.options")
 local substitutions = require("configs.obsidian.substitutions")
 local mappings = require("configs.obsidian.mappings")
 local callbacks = require("configs.obsidian.callbacks")
