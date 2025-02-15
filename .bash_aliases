@@ -29,6 +29,8 @@ alias bat="batcat"
 alias dot="cd ~/dotfiles/ && nvim"
 alias home="cd ~"
 alias lq="cd ~/code/"
+alias ip="cd ~/code/ip/"
+alias obs="cd ~/code/obs/"
 alias notes="cd ~/notes/ && nvim"
 
 # bash
