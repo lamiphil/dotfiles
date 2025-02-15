@@ -82,5 +82,5 @@ contexts = [
   { context_pattern = "*po", style = "blink red", context_alias = "prod"},
   { context_pattern = "*ti", style = "green", context_alias = "ti" },
 ]
-format = '[☸ $context]($style) '
+format = ' [☸ $context]($style) '
 disabled = false
