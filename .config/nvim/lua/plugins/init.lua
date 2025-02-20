@@ -51,5 +51,8 @@ return {
   {
     require "configs.zen"
   },
+  {
+    require "configs.nvim-tree"
+  }
 }
 

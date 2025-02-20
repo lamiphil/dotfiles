@@ -1,4 +1,3 @@
-local nvimtree_highlights = require("configs.nvim-tree").highlights
 local M = {}
 
 M.override = {
