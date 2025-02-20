@@ -83,6 +83,7 @@ M.get_previous_day_filename = function(note_path)
 
   -- Get yesterday's date in the expected format
   local prev_date = os.date("%Y/%m - %B/%Y-%m-%d", os.time() - 86400) -- Subtract 1 day
+  -- TODO: If yesterday's note does not exist, check most recent previous note.
 
   -- Construct full path dynamically
   local prev_note_path = workspace_path .. "/journal/" .. prev_date .. ".md"
