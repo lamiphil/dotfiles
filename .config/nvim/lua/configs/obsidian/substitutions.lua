@@ -39,7 +39,42 @@ M.lq_substitutions = {
     end
   end,
 
-  todays_tasks = function ()
+  todos = function()
+    local utils = require("configs.obsidian.utils")
+
+    -- Get the path of the current note
+    local current_note_path = vim.fn.expand("%:p")
+    if not current_note_path or current_note_path == "" then
+      print("⚠ No current note detected.")
+      return "No reference note available."
+    end
+
+    if not utils.is_daily_note(current_note_path) then
+      print("⚠ Not a daily note. Skipping task retrieval.")
+      return "This note is not a daily note."
+    end
+
+    -- Retrieve the previous daily note path
+    local previous_note_path = utils.get_previous_day_filename(current_note_path)
+    if not previous_note_path then
+      print("⚠ No previous daily note found.")
+      return "No previous daily note available."
+    end
+
+    -- Extract unfinished todos from the previous note
+    local unfinished_todos = utils.get_unfinished_todos(previous_note_path)
+    if #unfinished_todos == 0 then
+      print("✅ No unfinished tasks from the previous day.")
+      return "No unfinished tasks from the previous day."
+    end
+
+    -- Append unfinished todos to today's note
+    utils.append_todos_to_today(current_note_path, unfinished_todos)
+    print("✅ Unfinished tasks appended to today's note.")
+    return table.concat(unfinished_todos, "\n")
+  end,
+
+  todays_tasks = function()
 
     if not opened_note_filename then
       print("⚠ No note detected yet.")
