@@ -56,9 +56,17 @@ M.mappings = {
   -- Create new meeting note
   ["<leader>crm"] = {
     action = function()
-      utils.createMeetingNote()
+      utils.create_meeting_note()
     end,
     opts = { noremap = true, silent = true, desc = "Create new meeting note" },
+  },
+
+  -- Create new task note
+  ["<leader>crt"] = {
+    action = function()
+      utils.create_task_note()
+    end,
+    opts = { noremap = true, silent = true, desc = "Create new task note" },
   },
 
   -- Add new TODO
