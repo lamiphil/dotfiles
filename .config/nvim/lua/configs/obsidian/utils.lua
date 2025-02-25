@@ -209,44 +209,84 @@ M.append_todos_to_today = function(current_note_path, todos)
   end
 end
 
--- FIX: Make this function work !
-M.createMeetingNote = function()
-  local TEMPLATE_FILENAME = "meeting"
+M.add_todo = function()
   local obsidian = require("obsidian").get_client()
   local utils = require("obsidian.util")
 
   -- prevent Obsidian.nvim from injecting it's own frontmatter table
   obsidian.opts.disable_frontmatter = false
 
-  -- prompt for note title
-  -- @see: borrowed from obsidian.command.new
-  local note
-  local title = utils.input("Enter meeting title: ")
-  if not title then
+  -- prompt for new todo
+  local new_todo = utils.input("Enter new TODO :")
+
+  if not new_todo or new_todo == "" then
+    print("⚠ No TODO entered.")
     return
-  elseif title == "" then
-    title = ""
   end
 
-  local current_date = os.date("%Y-%m-%d")
-  local note_name = current_date .. "-" .. title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower() .. ".md"
-
-  print(obsidian.opts.workspaces)
-  local meetings_folder = obsidian.opts.workspaces[1].path .. "/meetings/"
-  print(meetings_folder)
-  local full_note_path = meetings_folder .. note_name
-  --
-  -- Create the note file
-  if vim.fn.isdirectory(meetings_folder) == 0 then
-    vim.fn.mkdir(meetings_folder, "p")
+  local current_note_path = vim.fn.expand("%:p")
+  local workspace = M.get_current_workspace(current_note_path)
+  if not workspace then
+    print("⚠ No Obsidian workspace found.")
+    return
   end
 
-    -- Open the new note in a buffer
-  vim.cmd("e " .. full_note_path)
+  -- Ensure absolute path
+  local todos_file_path = tostring(workspace.path) .. "/tasks/_todos.md"
+  print("📂 Writing TODO to:", todos_file_path)
 
-  -- Write the template into the buffer
-  obsidian:write_note_to_buffer({ path = full_note_path }, { template = TEMPLATE_FILENAME })
+  -- Open the file for appending
+  local file = io.open(todos_file_path, "a")
+  if not file then
+    print("⚠ Could not open _todos.md for writing.")
+    return
+  end
 
+  -- Write the new TODO as a Markdown task
+  file:write("- [ ] " .. new_todo .. "\n")
+  file:close()
+
+  print("✅ TODO added: " .. new_todo)
 end
 
+-- FIX: Make this function work !
+-- M.createMeetingNote = function()
+--   local TEMPLATE_FILENAME = "meeting"
+--   local obsidian = require("obsidian").get_client()
+--   local utils = require("obsidian.util")
+--
+--   -- prevent Obsidian.nvim from injecting it's own frontmatter table
+--   obsidian.opts.disable_frontmatter = false
+--
+--   -- prompt for note title
+--   -- @see: borrowed from obsidian.command.new
+--   local note
+--   local title = utils.input("Enter meeting title: ")
+--   if not title then
+--     return
+--   elseif title == "" then
+--     title = ""
+--   end
+--
+--   local current_date = os.date("%Y-%m-%d")
+--   local note_name = current_date .. "-" .. title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower() .. ".md"
+--
+--   print(obsidian.opts.workspaces)
+--   local meetings_folder = obsidian.opts.workspaces[1].path .. "/meetings/"
+--   print(meetings_folder)
+--   local full_note_path = meetings_folder .. note_name
+--   --
+--   -- Create the note file
+--   if vim.fn.isdirectory(meetings_folder) == 0 then
+--     vim.fn.mkdir(meetings_folder, "p")
+--   end
+--
+--     -- Open the new note in a buffer
+--   vim.cmd("e " .. full_note_path)
+--
+--   -- Write the template into the buffer
+--   obsidian:write_note_to_buffer({ path = full_note_path }, { template = TEMPLATE_FILENAME })
+--
+-- end
+--
 return M
