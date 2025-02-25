@@ -49,6 +49,7 @@ M.get_current_workspace = function(note_path)
     return nil
   end
 end
+
 M.is_daily_note = function(note_path)
   -- Extract the filename from the path
   local filename = note_path:match("^.+/(.+)$")
@@ -133,26 +134,40 @@ M.get_previous_day_filename = function(note_path)
   end
 end
 
-M.get_unfinished_todos = function(previous_note_path)
+M.get_todos = function(note_path)
   local todos = {}
-  local file = io.open(previous_note_path, "r")
-  if file then
-    local in_todo_section = false
 
-    for line in file:lines() do
-      if line:match("^## À faire") then
-        in_todo_section = true
-      elseif in_todo_section and line:match("^## ") then
-        -- Stop capturing if we reach another header
-        break
-      elseif in_todo_section and line:match("^%- %[ %]") then
-        -- Collect only unfinished tasks under ## À faire aujourd'hui
-        table.insert(todos, line)
-      end
-    end
-
-    file:close()
+  local workspace = M.get_current_workspace(note_path)
+  if not workspace then
+    print("⚠ Could not determine current workspace")
+    return todos
   end
+
+  local todos_file_path = tostring(workspace.path) .. "/tasks/_todos.md"
+  print("📂 Retrieving todos from:", todos_file_path)
+
+  -- Open the file for reading
+  local file = io.open(todos_file_path, "r")
+  if not file then
+    print("⚠ Could not open TODOs file:", todos_file_path)
+    return todos
+  end
+
+  -- Read and collect unfinished tasks
+  for line in file:lines() do
+    if line:match("^%- %[ %]") then
+      print("TODO found :" .. line)
+      table.insert(todos, line)
+    end
+  end
+
+  file:close()
+
+  -- If no tasks were found, return a default message
+  if #todos == 0 then
+    return { "✅ No unfinished tasks in _todos.md" }
+  end
+
   return todos
 end
 
