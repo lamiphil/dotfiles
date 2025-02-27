@@ -33,6 +33,7 @@ return {
       "tsx",
       "logstash",
       "terraform",
+      "hcl",
       "markdown",
       "markdown_inline",
       "marksman"

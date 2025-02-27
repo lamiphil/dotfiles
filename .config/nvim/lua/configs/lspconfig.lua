@@ -10,7 +10,6 @@ local servers = {
   "tailwindcss",
   "eslint",
   "terraformls",
-  "gitlab-ci-ls",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"
