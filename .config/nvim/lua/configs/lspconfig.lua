@@ -23,6 +23,14 @@ for _, lsp in ipairs(servers) do
   }
 end
 
+-- Set commentstring for HCL (including .tftest.hcl)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "hcl", "terraform" },
+  callback = function()
+    vim.bo.commentstring = "# %s"
+  end,
+})
+
 return {
     "neovim/nvim-lspconfig",
 }

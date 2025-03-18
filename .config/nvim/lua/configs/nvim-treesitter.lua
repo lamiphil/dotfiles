@@ -13,6 +13,7 @@ parser_config.logstash = {
 vim.filetype.add({
   extension = {
     conf = "logstash", -- Assuming .conf files are for Logstash
+    tftest = "hcl",    -- Ensure .tftest.hcl is treated as HCL
   },
 })
 
@@ -38,6 +39,5 @@ return {
       "markdown_inline",
       "marksman"
     },
-
   }
 }
