@@ -38,6 +38,7 @@ M.mappings = {
   },
 
   -- Toggle check-boxes.
+  -- TODO: Make checking a todo in a daily note remove the todo from _todos.md
   ["<leader>ch"] = {
     action = function()
       return require("obsidian").util.toggle_checkbox()

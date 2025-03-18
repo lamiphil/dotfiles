@@ -1,7 +1,6 @@
 local M = {}
 
 -- TODO: Save .md file when leaving Insert mode
--- TODO: Create function to move daily todos from the previous day to the current.
 -- TODO: Create function to move to previous daily note
 -- TODO: Create function to move to next daily note
 
@@ -244,6 +243,22 @@ M.add_todo = function()
   file:close()
 
   print("✅ TODO added: " .. new_todo)
+end
+
+M.complete_todo = function() 
+
+  local current_note_path = vim.fn.expand("%:p")
+  local workspace = M.get_current_workspace(current_note_path)
+  if not workspace then
+    print("⚠ No Obsidian workspace found.")
+    return
+  end
+
+  -- Ensure absolute path
+  local todos_file_path = tostring(workspace.path) .. "/tasks/_todos.md"
+  print("📂 Writing TODO to:", todos_file_path)
+  M.is_daily_note()
+
 end
 
 M.create_meeting_note = function()
