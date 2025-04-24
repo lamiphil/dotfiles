@@ -4,13 +4,23 @@ local M = {}
 
 M.mappings = {
   -- Insert Datetime using <leader>dt
+  -- ["<leader>dt"] = {
+  --   action = function()
+  --     local datetime = "\n**" .. tostring(os.date("%Y-%m-%d %H:%M")) .. "**"
+  --     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  --     vim.api.nvim_buf_set_text(0, row - 1, col, row - 1, col, { datetime })
+  --   end,
+  --   opts = { noremap = true, silent = true, desc = "Insert Datetime" },
+  -- },
+  --
   ["<leader>dt"] = {
-    action = function()
-      local datetime = "**" .. tostring(os.date("%Y-%m-%d %H:%M")) .. "**"
-      local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-      vim.api.nvim_buf_set_text(0, row - 1, col, row - 1, col, { datetime })
-    end,
-    opts = { noremap = true, silent = true, desc = "Insert Datetime" },
+  action = function()
+    local datetime = "**" .. os.date("%Y-%m-%d %H:%M") .. "**"
+    local row = vim.api.nvim_win_get_cursor(0)[1]
+    -- Insert a new line below current line
+    vim.api.nvim_buf_set_lines(0, row, row, true, { "", datetime })
+  end,
+  opts = { noremap = true, silent = true, desc = "Insert Datetime with Newline" },
   },
 
   -- Open Daily note using <leader>od
@@ -41,6 +51,7 @@ M.mappings = {
   -- TODO: Make checking a todo in a daily note remove the todo from _todos.md
   ["<leader>ch"] = {
     action = function()
+      utils.check_todo()
       return require("obsidian").util.toggle_checkbox()
     end,
     opts = { buffer = true, desc = "Toggle check-boxes" },
