@@ -156,12 +156,16 @@ fi
 # Everything following will only be applied to interactive sessions
 [ -z "$PS1" ] && return
 
+# FZF
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+. "$HOME/.cargo/env"
+
 # Run ls after running cd 
 function cd {
   builtin cd "$@" && ls -F
 }
 
-
-# FZF
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-. "$HOME/.cargo/env"
+# Load custom functions
+if [ -f ~/.bash_functions ]; then
+  source ~/.bash_functions
+fi
