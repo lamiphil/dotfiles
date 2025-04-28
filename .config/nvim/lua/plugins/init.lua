@@ -53,6 +53,9 @@ return {
   },
   {
     require "configs.nvim-tree"
+  },
+  {
+    require "configs.yazi"
   }
 }
 
