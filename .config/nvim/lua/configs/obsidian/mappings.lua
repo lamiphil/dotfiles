@@ -4,24 +4,15 @@ local M = {}
 
 M.mappings = {
   -- Insert Datetime using <leader>dt
-  -- ["<leader>dt"] = {
-  --   action = function()
-  --     local datetime = "\n**" .. tostring(os.date("%Y-%m-%d %H:%M")) .. "**"
-  --     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-  --     vim.api.nvim_buf_set_text(0, row - 1, col, row - 1, col, { datetime })
-  --   end,
-  --   opts = { noremap = true, silent = true, desc = "Insert Datetime" },
-  -- },
-  --
   ["<leader>dt"] = {
   action = function()
     local datetime = "**" .. os.date("%Y-%m-%d %H:%M") .. "**"
-    local row = vim.api.nvim_win_get_cursor(0)[1]
-    -- Insert a new line below current line
-    vim.api.nvim_buf_set_lines(0, row, row, true, { "", datetime })
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    vim.api.nvim_buf_set_text(0, row - 1, col, row - 1, col, { datetime })
   end,
-  opts = { noremap = true, silent = true, desc = "Insert Datetime with Newline" },
-  },
+  opts = { noremap = true, silent = true, desc = "Insert Datetime at Cursor" },
+},
+
 
   -- Open Daily note using <leader>od
   ["<leader>od"] = {
