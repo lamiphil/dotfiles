@@ -66,6 +66,7 @@ return {
     callbacks = callbacks.callbacks,
 
 
+    -- TODO: Don't preprend task notes with current date
     -- Optional, customize how note file names are generated given the ID, target directory, and title.
     ---@param spec { id: string, dir: obsidian.Path, title: string|? }
     ---@return string|obsidian.Path The full path to the new note.

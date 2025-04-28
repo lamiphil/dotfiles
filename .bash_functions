@@ -38,3 +38,33 @@ function aws-switch-profile() {
     done
 }
 
+function aws-sso-login() {
+    local config_file="${AWS_CONFIG_FILE:-$HOME/.aws/config}"
+
+    if [[ ! -f "$config_file" ]]; then
+        echo "❌ Fichier de config introuvable à : $config_file"
+        return 1
+    fi
+
+    echo "📜 Profils AWS SSO disponibles :"
+    # Liste tous les profils ayant une configuration SSO
+    local profiles=($(grep -E '^\[profile ' "$config_file" | sed -E 's/^\[profile (.+)\]/\1/'))
+
+    if [ ${#profiles[@]} -eq 0 ]; then
+        echo "⚠️ Aucun profil SSO trouvé dans le fichier de config."
+        return 1
+    fi
+
+    select profile in "${profiles[@]}"; do
+        if [[ -n "$profile" ]]; then
+            echo "🔐 Connexion au profil SSO : $profile ..."
+            aws sso login --profile "$profile"
+            export AWS_PROFILE="$profile"
+            echo "✅ Connecté et profil actif : $AWS_PROFILE"
+            break
+        else
+            echo "⚠️ Sélection invalide. Réessaie."
+        fi
+    done
+}
+
