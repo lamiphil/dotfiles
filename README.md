@@ -43,7 +43,7 @@ cd ~
 git clone git@github.com:lamiphil/dotfiles.git
 ```
 
-## 2. Installation des packages
+## 2. Installation des packages (pour des systèmes Debian based)
 
 - [ ] 2.1 Exécuter le script *dotfiles/scripts/install.sh*
 ```bash
