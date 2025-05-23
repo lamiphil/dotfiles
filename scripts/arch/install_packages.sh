@@ -41,6 +41,10 @@ pacman -S yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide imagemagick
 echo "Installation de lazygit..."
 pacman -S lazygit
 
+# Installtion de kubectl
+echo "Installtion de kubectl..."
+pacman -S kubectl
+
 # Installer yay s'il n'existe pas déjà
 if ! command -v yay &>/dev/null; then
   echo "📦 Installation de yay (AUR helper)..."
