@@ -20,6 +20,7 @@ PACMAN_PKGS=(
   fzf
   stow
   ripgrep
+  wget
 )
 
 # Installer les paquets de base
