@@ -56,3 +56,6 @@ alias sys="systemctl"
 
 # terraform
 alias tf="terraform"
+
+# lazygit
+alias lg="lazygit"

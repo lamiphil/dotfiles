@@ -146,11 +146,15 @@ bind "set show-all-if-ambiguous on"
 bind "set completion-ignore-case on"
 bind "set menu-complete-display-prefix on"
 
-source /etc/profile.d/bash_completion.sh
-
 if [ -f ~/.bash_env ]; then
     source ~/.bash_env
 fi
+
+# Start ssh-agent
+eval $(ssh-agent -s) > /dev/null
+#
+# Load SSH key
+ssh-add ~/.ssh/github > /dev/null 2>&1
 
 # If Bash is running is not interactive mode, return here. 
 # Everything following will only be applied to interactive sessions
