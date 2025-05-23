@@ -41,3 +41,6 @@ map("n", "<leader>nd", "<cmd>NoiceDismiss<CR>", {desc = "Dismiss Noice Message"}
 
 -- Toggle Zen Mode
 map("n", "<leader>zm", "<cmd>ZenMode<CR>", {desc = "Toggle ZenMode"})
+
+-- Launch LazyGit
+map("n", "<leader>lg", "<cmd>LazyGit<CR>", {desc = "Launch LazyGit"})

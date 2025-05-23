@@ -1,4 +1,5 @@
 local M = {}
+local api = vim.api
 
 -- TODO: Save .md file when leaving Insert mode
 -- TODO: Create function to move to previous daily note
@@ -260,6 +261,65 @@ M.complete_todo = function()
   M.is_daily_note()
 
 end
+
+M.check_todo = function() 
+
+  local current_note_path = vim.fn.expand("%:p")
+  local workspace = M.get_current_workspace(current_note_path)
+  if not workspace then
+    print("⚠ No Obsidian workspace found.")
+    return
+  end
+
+  -- Ensure absolute path
+  local todos_file_path = tostring(workspace.path) .. "/tasks/_todos.md"
+  local current_buf = api.nvim_get_current_buf()
+  local lines = api.nvim_buf_get_lines(current_buf, 0, -1, false)
+
+  -- Get checked todos from daily note
+  local checked_todos = {}
+  for _, line in ipairs(lines) do
+    local todo = line:match("%- %[x%] (.+)")
+    if todo then
+      table.insert(checked_todos, todo)
+    end
+  end
+
+  -- Check current todos in _TODOS.md
+  local todos_file = io.open(todos_file_path, "r")
+  if not todos_file then 
+    print("❌ Could not open TODOs file")
+    return
+  end
+  local todos_line = {}
+  for line in todos_file:lines() do
+    table.insert(todos_line, line)
+  end
+  todos_file:close()
+
+  -- Remove TODOs that match with checked todos from daily note
+  local updated_lines = {}
+  for _, line in ipairs(todos_line) do
+    local todo = line:match("%- %[ %] (.+)") -- Only unchecked todos
+    if todo and vim.tbl_contains(checked_todos, todo) then
+      -- Skip this line
+    else
+      table.insert(updated_lines, line)
+    end
+  end
+  
+  -- Rewrite file
+  local out = io.open(todos_file_path, "w")
+  for _, line in ipairs(updated_lines) do
+    out:write(line .. "\n")
+  end
+  out:close()
+
+  print("✅ TODOs updated in _todos.md !")
+
+end
+
+
 
 M.create_meeting_note = function()
   local TEMPLATE_FILENAME = "meeting"

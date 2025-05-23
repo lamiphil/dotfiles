@@ -51,11 +51,17 @@ return {
   {
     require "configs.zen"
   },
+  -- NVIM tree
   {
     require "configs.nvim-tree"
   },
+  -- Yazi
   {
     require "configs.yazi"
+  },
+  -- Lazy git
+  {
+    require "configs.lazy-git"
   }
 }
 

@@ -6,6 +6,7 @@ return {
       "tailwindcss-language-server",
       "lua-language-server",
       "eslint-lsp",
+      "pyright",
       "terraform-ls",
       "hclfmt"
     }

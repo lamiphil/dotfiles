@@ -47,7 +47,6 @@ function aws-sso-login() {
     fi
 
     echo "📜 Profils AWS SSO disponibles :"
-    # Liste tous les profils ayant une configuration SSO
     local profiles=($(grep -E '^\[profile ' "$config_file" | sed -E 's/^\[profile (.+)\]/\1/'))
 
     if [ ${#profiles[@]} -eq 0 ]; then
@@ -59,6 +58,14 @@ function aws-sso-login() {
         if [[ -n "$profile" ]]; then
             echo "🔐 Connexion au profil SSO : $profile ..."
             aws sso login --profile "$profile"
+
+            # Vérification immédiate que tout est OK
+            aws sts get-caller-identity --profile "$profile" >/dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                echo "❌ Échec de la validation du profil AWS : $profile"
+                return 1
+            fi
+
             export AWS_PROFILE="$profile"
             echo "✅ Connecté et profil actif : $AWS_PROFILE"
             break
@@ -67,4 +74,3 @@ function aws-sso-login() {
         fi
     done
 }
-

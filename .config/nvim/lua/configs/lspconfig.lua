@@ -5,11 +5,13 @@ local lspconfig = require "lspconfig"
 local servers = {
   "html",
   "cssls",
-  "pyre",
+  "pyright",
   "ts_ls",
   "tailwindcss",
   "eslint",
   "terraformls",
+  "hclfmt",
+  "gitlab-ci-ls",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"
@@ -22,14 +24,6 @@ for _, lsp in ipairs(servers) do
     capabilities = nvlsp.capabilities,
   }
 end
-
--- Set commentstring for HCL (including .tftest.hcl)
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "hcl", "terraform" },
-  callback = function()
-    vim.bo.commentstring = "# %s"
-  end,
-})
 
 return {
     "neovim/nvim-lspconfig",

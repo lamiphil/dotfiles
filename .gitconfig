@@ -8,3 +8,5 @@
   cm  = commit -m
   a   = add
   d   = diff
+[credential]
+	helper = store
