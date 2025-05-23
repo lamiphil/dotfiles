@@ -1,4 +1,3 @@
-
 # Run ls after running cd 
 function cd {
   builtin cd "$@" && ls -F

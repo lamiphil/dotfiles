@@ -68,42 +68,47 @@ xterm*|rxvt*)
     ;;
 esac
 
-# enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
-fi
-
-# colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-# some more ls aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+###############
+# BASH FILES #
+###############
 
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
+if [ -f ~/.bash_env ]; then
+    source ~/.bash_env
+fi
+
+# Load custom functions
+if [ -f ~/.bash_functions ]; then
+  source ~/.bash_functions
+fi
+
+
+# Load SSH key
+ssh-add ~/.ssh/github > /dev/null 2>&1
+
+# Run Tmux on start
+if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
+  exec tmux
+fi
+
+# FZF
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+. "$HOME/.cargo/env"
+
+###################
+# AUTO-COMPLETION #
+###################
+
+# Kubectl bash completion
+source /usr/share/bash-completion/bash_completion
+source <(kubectl completion bash)
+complete -o default -F __start_kubectl k
+
+
+# Bash completion
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
@@ -112,13 +117,11 @@ if ! shopt -oq posix; then
   fi
 fi
 
-eval "$(starship init bash)"
-
-# Kubectl bash completion
-source /usr/share/bash-completion/bash_completion
-source <(kubectl completion bash)
-complete -o default -F __start_kubectl k
-
+# make tab cycle through commands after listing
+bind '"\t":menu-complete'
+bind "set show-all-if-ambiguous on"
+bind "set completion-ignore-case on"
+bind "set menu-complete-display-prefix on"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -133,43 +136,21 @@ export GOPATH="/usr/local/go/go"
 export PATH="$PATH:$GOPATH/bin:/usr/local/go/bin"
 
 # Additional Paths
-export PATH="$PATH:/opt/nvim-linux64/bin"
+export PATH="$HOME/.local/bin:/opt/nvim-linux64/bin:$PATH"
 
-# Run Tmux on start
-if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-  exec tmux
-fi
+######## 
+# INIT # 
+######## 
 
-# make tab cycle through commands after listing
-bind '"\t":menu-complete'
-bind "set show-all-if-ambiguous on"
-bind "set completion-ignore-case on"
-bind "set menu-complete-display-prefix on"
+# Starship
+eval "$(starship init bash)"
 
-if [ -f ~/.bash_env ]; then
-    source ~/.bash_env
-fi
+# zoxide
+eval "$(zoxide init --cmd cd bash)"
 
 # Start ssh-agent
 eval $(ssh-agent -s) > /dev/null
-#
-# Load SSH key
-ssh-add ~/.ssh/github > /dev/null 2>&1
 
 # If Bash is running is not interactive mode, return here. 
 # Everything following will only be applied to interactive sessions
 [ -z "$PS1" ] && return
-
-# FZF
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-. "$HOME/.cargo/env"
-
-# Run ls after running cd 
-function cd {
-  builtin cd "$@" && ls -F
-}
-
-# Load custom functions
-if [ -f ~/.bash_functions ]; then
-  source ~/.bash_functions
-fi
