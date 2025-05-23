@@ -8,17 +8,36 @@ fi
 
 # Liste des paquets à installer avec pacman
 PACMAN_PKGS=(
-  git neovim tree python python-pip unzip lsd bat tmux fzf stow ripgrep
+  git
+  neovim
+  tree
+  python
+  python-pip
+  unzip
+  lsd
+  bat
+  tmux
+  fzf
+  stow
+  ripgrep
 )
 
 # Installer les paquets de base
 echo "🔧 Mise à jour du système..."
 pacman -Syu --noconfirm
 
+# Installer les paquets principaux
 echo "📦 Installation des paquets principaux..."
 for pkg in "${PACMAN_PKGS[@]}"; do
   pacman -S --needed --noconfirm "$pkg"
 done
+
+# Installation de paquets supplementaires
+echo "Installation de yazi..."
+pacman -S yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide imagemagick
+
+echo "Installation de lazygit..."
+pacman -S lazygit
 
 # Installer yay s'il n'existe pas déjà
 if ! command -v yay &>/dev/null; then
