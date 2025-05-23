@@ -21,6 +21,7 @@ PACMAN_PKGS=(
   stow
   ripgrep
   wget
+  bash-completion
 )
 
 # Installer les paquets de base
