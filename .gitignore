@@ -1,2 +1,2 @@
-config/tmux/plugins
+config/tmux/plugins/*
 repos/tree-sitter-logstash
