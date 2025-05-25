@@ -86,9 +86,6 @@ if [ -f ~/.bash_functions ]; then
 fi
 
 
-# Load SSH key
-ssh-add ~/.ssh/github > /dev/null 2>&1
-
 # Run Tmux on start
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
   exec tmux
@@ -150,6 +147,9 @@ eval "$(zoxide init --cmd cd bash)"
 
 # Start ssh-agent
 eval $(ssh-agent -s) > /dev/null
+
+# Load SSH key
+ssh-add ~/.ssh/github > /dev/null 2>&1
 
 # If Bash is running is not interactive mode, return here. 
 # Everything following will only be applied to interactive sessions
