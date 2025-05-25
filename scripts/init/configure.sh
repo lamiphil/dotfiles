@@ -6,5 +6,3 @@ if ["$EUID" -ne 0]; then
   exit 1
 fi
 
-# Configurer la locale FR
-locale-gen fr_FR.UTF-8
