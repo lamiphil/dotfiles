@@ -88,3 +88,6 @@ alias tf="terraform"
 
 # lazygit
 alias lg="lazygit"
+
+# python3
+alias p="python3"
