@@ -1,4 +1,6 @@
-local utils = require("configs.obsidian.utils")
+local todos = require("configs.obsidian.utils.todos")
+local tasks = require("configs.obsidian.utils.tasks")
+local meetings = require("configs.obsidian.utils.meetings")
 
 local M = {}
 
@@ -22,6 +24,22 @@ M.mappings = {
     opts = { noremap = true, silent = true, desc = "Open daily note" },
   },
 
+  -- Open tomorrows note using <leader>ok
+  ["<leader>ok"] = {
+    action = function()
+      vim.cmd("ObsidianTomorrow")
+    end,
+    opts = { noremap = true, silent = true, desc = "Open tomorrow's note" },
+  },
+
+  -- Open yesterday's note using <leader>oj
+  ["<leader>oj"] = {
+    action = function()
+      vim.cmd("ObsidianYesterday")
+    end,
+    opts = { noremap = true, silent = true, desc = "Open yesterday's note" },
+  },
+
   -- Create new note from Template <leader>ct
   ["<leader>ct"] = {
     action = function()
@@ -42,7 +60,7 @@ M.mappings = {
   -- TODO: Make checking a todo in a daily note remove the todo from _todos.md
   ["<leader>ch"] = {
     action = function()
-      utils.check_todo()
+      todos.check_todo()
       return require("obsidian").util.toggle_checkbox()
     end,
     opts = { buffer = true, desc = "Toggle check-boxes" },
@@ -59,7 +77,7 @@ M.mappings = {
   -- Create new meeting note
   ["<leader>crm"] = {
     action = function()
-      utils.create_meeting_note()
+      meetings.create_meeting_note()
     end,
     opts = { noremap = true, silent = true, desc = "Create new meeting note" },
   },
@@ -67,7 +85,7 @@ M.mappings = {
   -- Create new task note
   ["<leader>crt"] = {
     action = function()
-      utils.create_task_note()
+      tasks.create_task_note()
     end,
     opts = { noremap = true, silent = true, desc = "Create new task note" },
   },
@@ -75,10 +93,19 @@ M.mappings = {
   -- Add new TODO
   ["<leader>td"] = {
     action = function()
-      utils.add_todo()
+      todos.add_todo()
     end,
     opts = {noremap = true, silent = true, desc = "Add new TODO" },
+  },
+
+  -- Show and select open task notes
+  ["<leader>ot"] = {
+    action = function()
+      vim.cmd("ObsidianSearch status: open")
+    end,
+    opts = { noremap = true, silent = true, desc = "Show and select open task notes" },
   }
+
 }
 
 return M
