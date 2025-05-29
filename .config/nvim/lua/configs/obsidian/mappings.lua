@@ -7,12 +7,12 @@ local M = {}
 M.mappings = {
   -- Insert Datetime using <leader>dt
   ["<leader>dt"] = {
-  action = function()
-    local datetime = "**" .. os.date("%Y-%m-%d %H:%M") .. "**"
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    vim.api.nvim_buf_set_text(0, row - 1, col, row - 1, col, { datetime })
-  end,
-  opts = { noremap = true, silent = true, desc = "Insert Datetime at Cursor" },
+    action = function()
+      local datetime = "**" .. os.date("%Y-%m-%d %H:%M") .. "**"
+      local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+      vim.api.nvim_buf_set_text(0, row - 1, col, row - 1, col, { datetime })
+    end,
+    opts = { noremap = true, silent = true, desc = "Insert Datetime at Cursor" },
 },
 
 

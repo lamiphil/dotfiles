@@ -1,4 +1,5 @@
 local M = {}
+
 M.lq_substitutions = {
   -- Returns date like "5 février 2025"
   long_date = function()
@@ -41,7 +42,7 @@ M.lq_substitutions = {
 
   todos = function()
 
-    local utils = require("configs.obsidian.utils")
+    local utils = require("configs.obsidian.utils.todos")
     local current_note_path = vim.fn.expand("%:p")
 
     -- Extract unfinished todos from the previous note
