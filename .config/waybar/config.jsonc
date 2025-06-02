@@ -21,13 +21,9 @@
   // Right modules
   "modules-right": [
     "network",
-    "battery",
     "bluetooth",
     "pulseaudio",
-    "backlight",
-    "custom/temperature",
-    "memory",
-    "cpu",
+    "battery",
     "custom/lock",
     "custom/reboot",
     "custom/power"
