@@ -4,3 +4,5 @@ export LC_ALL=en_US.UTF-8
 
 export AWS_CA_BUNDLE=~/.aws/aws.pem
 export NODE_EXTRA_CA_CERTS=~/.aws/aws.pem
+
+export HYPRSHOT_DIR=~/Pictures/
