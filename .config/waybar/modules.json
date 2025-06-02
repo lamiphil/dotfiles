@@ -25,7 +25,7 @@
 
   "custom/power": {
     "format": "<span color='#FF4040'>  </span>",
-    "on-click": "systemctl poweroff",
+    "on-click": "wlogout",
     "tooltip": true,
     "tooltip-format": "关机"
   },

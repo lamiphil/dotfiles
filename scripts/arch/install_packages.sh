@@ -57,6 +57,9 @@ fi
 # Installer tmuxinator depuis l'AUR
 sudo -u "$SUDO_USER" yay -S --noconfirm tmuxinator
 
+# Installer wlogout depuis l'AUR
+sudo -u "$SUDO_USER" yay -S --noconfirm wlogout
+
 # Installer Starship
 echo "🚀 Installation de Starship..."
 sudo -u "$SUDO_USER" sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- --yes

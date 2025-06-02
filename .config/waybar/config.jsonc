@@ -24,8 +24,6 @@
     "bluetooth",
     "pulseaudio",
     "battery",
-    "custom/lock",
-    "custom/reboot",
     "custom/power"
   ]
 }
