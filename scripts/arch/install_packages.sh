@@ -22,6 +22,7 @@ PACMAN_PKGS=(
   ripgrep
   wget
   bash-completion
+  pavucontrol
 )
 
 # Installer les paquets de base
