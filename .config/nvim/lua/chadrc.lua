@@ -8,7 +8,7 @@ local M = {}
 local highlights = require "custom.highlights"
 
 M.base46 = {
-	theme = "onedark",
+	-- theme = "onedark",
   hl_add = highlights.add
 }
 
