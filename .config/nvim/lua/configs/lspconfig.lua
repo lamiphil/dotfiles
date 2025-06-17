@@ -10,8 +10,6 @@ local servers = {
   "tailwindcss",
   "eslint",
   "terraformls",
-  -- "hclfmt",
-  -- "gitlab-ci-ls",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"
@@ -25,16 +23,6 @@ for _, lsp in ipairs(servers) do
   }
 end
 
--- Manual configuration for gitlab-ci-ls
--- lspconfig["gitlab-ci-ls"].setup {
---   cmd = { "gitlab-ci-language-server", "--stdio" },
---   filetypes = { "yaml", "yml" },
---   root_dir = lspconfig.util.root_pattern(".gitlab-ci.yml", ".git"),
---   on_attach = nvlsp.on_attach,
---   on_init = nvlsp.on_init,
---   capabilities = nvlsp.capabilities,
--- }
---
 return {
     "neovim/nvim-lspconfig",
 }
