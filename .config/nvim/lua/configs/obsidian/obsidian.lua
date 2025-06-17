@@ -72,10 +72,11 @@ return {
     ---@return string|obsidian.Path The full path to the new note.
     note_path_func = function(spec)
       -- Get the current date in YYYY-MM-DD format
-      local date_prefix = os.date("%Y-%m-%d")
+      -- local date_prefix = os.date("%Y-%m-%d")
 
       -- Combine date with the note ID (or title if available)
-      local filename = date_prefix .. "-" .. (spec.title or spec.id)
+      -- local filename = date_prefix .. "-" .. (spec.title or spec.id)
+      local filename = (spec.title or spec.id)
       -- Construct the full path
       local path = spec.dir / tostring(filename)
       return path:with_suffix(".md")
