@@ -21,6 +21,10 @@ vim.treesitter.language.register("logstash", "logstash")
 
 return {
   "nvim-treesitter/nvim-treesitter",
+  lazy = false,
+  dependencies = {
+    "OXY2DEV/markview.nvim"
+  },
   opt = {
     ensure_installed = {
       "vim",
