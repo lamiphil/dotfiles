@@ -60,7 +60,7 @@ alias home="cd ~"
 alias lq="cd ~/code/"
 alias ip="cd ~/code/ip/"
 alias obs="cd ~/code/obs/"
-alias notes="cd ~/notes/ && nvim"
+alias notes="cd ~/notes/ && nvim +ObsidianToday"
 
 # bash
 alias rc="nvim ~/.bashrc"
