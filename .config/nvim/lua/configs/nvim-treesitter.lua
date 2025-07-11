@@ -41,7 +41,6 @@ return {
       "hcl",
       "markdown",
       "markdown_inline",
-      "marksman"
     },
   }
 }
