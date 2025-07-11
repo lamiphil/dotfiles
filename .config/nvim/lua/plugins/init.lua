@@ -62,6 +62,10 @@ return {
   -- Lazy git
   {
     require "configs.lazy-git"
-  }
+  },
+  -- Neovim debugger
+  {
+    require "configs.nvim-dap"
+  },
 }
 

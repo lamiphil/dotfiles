@@ -7,6 +7,7 @@ return {
       "lua-language-server",
       "eslint-lsp",
       "pyright",
+      "debugpy",
       "terraform-ls",
       "hclfmt"
     }
