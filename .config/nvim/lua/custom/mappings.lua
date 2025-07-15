@@ -1,6 +1,8 @@
 require "nvchad.mappings"
 
 local map = vim.keymap.set
+local dap = require("dap")
+local dapui = require("dapui")
 
 map("i", "jk", "<ESC>")
 
@@ -16,26 +18,6 @@ map("n", "<C-l>", ":TmuxNavigateRight<CR>", { silent = true })
 -- Switch toggleable and new terminal mappings --
 -------------------------------------------------
 
--- toggleable -- 
-map("n", "<leader>h", function()
-  require("nvchad.term").toggle { pos = "sp" }
-end, { desc = "terminal toggleable horizontal term" })
-
-map("n", "<leader>v", function()
-  require("nvchad.term").toggle { pos = "vsp" }
-end, { desc = "terminal toggleable vertical term" })
-
--- new --
-map({ "n", "t" }, "<A-v>", function()
-  require("nvchad.term").new { pos = "vsp", id = "vtoggleTerm" }
-end, { desc = "terminal new vertical term" })
-
-map({ "n", "t" }, "<A-h>", function()
-  require("nvchad.term").new { pos = "sp", id = "htoggleTerm" }
-end, { desc = "terminal new horizontal term" })
-
-map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
-
 -- Dismiss Noice Message 
 map("n", "<leader>nd", "<cmd>NoiceDismiss<CR>", {desc = "Dismiss Noice Message"})
 
@@ -44,3 +26,48 @@ map("n", "<leader>zm", "<cmd>ZenMode<CR>", {desc = "Toggle ZenMode"})
 
 -- Launch LazyGit
 map("n", "<leader>lg", "<cmd>LazyGit<CR>", {desc = "Launch LazyGit"})
+
+--------------
+-- NVIM DAP --
+--------------
+
+-- Toggle breakpoint
+map("n", "<leader>db", function()
+  dap.toggle_breakpoint()
+end, { noremap = true, silent = true, desc = " Toggle breakpoint" })
+
+-- Continue / Start
+map("n", "<leader>dc", function()
+  dap.continue()
+end, { noremap = true, silent = true, desc = " Start or continue debugging" })
+
+-- Step Over
+map("n", "<leader>do", function()
+  dap.step_over()
+end, { noremap = true, silent = true, desc = " Step over" })
+
+-- Step Into
+map("n", "<leader>di", function()
+  dap.step_into()
+end, { noremap = true, silent = true, desc = " Step into function" })
+
+-- Step Out
+map("n", "<leader>dO", function()
+  dap.step_out()
+end, { noremap = true, silent = true, desc = " Step out of function" })
+
+-- Continue to cursor
+map("n", "<leader>dm", function()
+  dap.run_to_cursor()
+end, { noremap = true, silent = true, desc = "Continue to cursor" })
+
+-- Terminate debugging
+map("n", "<leader>dq", function()
+  dap.terminate()
+end, { noremap = true, silent = true, desc = " Terminate debugging session" })
+
+-- Toggle DAP UI
+map("n", "<leader>du", function()
+  dapui.toggle()
+end, { noremap = true, silent = true, desc = "Toggle DAP UI" })
+

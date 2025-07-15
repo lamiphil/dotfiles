@@ -81,51 +81,6 @@ return {
       dap.listeners.after.event_initialized["dapui_config"] = function()
         dapui.open()
       end
-
-      -- Toggle breakpoint
-      map("n", "<leader>db", function()
-        dap.toggle_breakpoint()
-      end, { noremap = true, silent = true, desc = " Toggle breakpoint" })
-
-      -- Continue / Start
-      map("n", "<leader>dc", function()
-        dap.continue()
-      end, { noremap = true, silent = true, desc = " Start or continue debugging" })
-
-      -- Step Over
-      map("n", "<leader>do", function()
-        dap.step_over()
-      end, { noremap = true, silent = true, desc = " Step over" })
-
-      -- Step Into
-      map("n", "<leader>di", function()
-        dap.step_into()
-      end, { noremap = true, silent = true, desc = " Step into function" })
-
-      -- Step Out
-      map("n", "<leader>dO", function()
-        dap.step_out()
-      end, { noremap = true, silent = true, desc = " Step out of function" })
-
-      -- Continue to next breakpoint
-      map("n", "<leader>dn", function()
-        require("dap").continue()
-      end, { noremap = true, silent = true, desc = "Continue to next breakpoint" })
-
-      -- Continue to cursor
-      map("n", "<leader>dm", function()
-        require("dap").run_to_cursor()
-      end, { noremap = true, silent = true, desc = "Continue to cursor" })
-
-      -- Terminate debugging
-      map("n", "<leader>dq", function()
-        dap.terminate()
-      end, { noremap = true, silent = true, desc = " Terminate debugging session" })
-
-      -- Toggle DAP UI
-      map("n", "<leader>du", function()
-        dapui.toggle()
-      end, { noremap = true, silent = true, desc = "Toggle DAP UI" })
     end,
   },
 }
