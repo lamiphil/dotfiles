@@ -27,6 +27,8 @@ PACMAN_PKGS=(
   waybar
   hyprpaper
   hypridle
+  greetd
+  tuigreet
 )
 
 # Installer les paquets de base
