@@ -23,6 +23,10 @@ PACMAN_PKGS=(
   wget
   bash-completion
   pavucontrol
+  hyprlock
+  waybar
+  hyprpaper
+  hypridle
 )
 
 # Installer les paquets de base
@@ -37,14 +41,10 @@ done
 
 # Installation de paquets supplementaires
 echo "Installation de yazi..."
-pacman -S yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide imagemagick
+pacman -S --noconfirm yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide imagemagick
 
 echo "Installation de lazygit..."
-pacman -S lazygit
-
-# Installtion de kubectl
-echo "Installtion de kubectl..."
-pacman -S kubectl
+pacman -S --noconfirm lazygit
 
 # Installer yay s'il n'existe pas déjà
 if ! command -v yay &>/dev/null; then
@@ -60,25 +60,16 @@ sudo -u "$SUDO_USER" yay -S --noconfirm tmuxinator
 # Installer wlogout depuis l'AUR
 sudo -u "$SUDO_USER" yay -S --noconfirm wlogout
 
+# Installer swaync depuis l'AUR
+sudo -u "$SUDO_USER" yay -S --noconfirm swaync
+
 # Installer Starship
 echo "🚀 Installation de Starship..."
 sudo -u "$SUDO_USER" sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- --yes
 
-# Installer NVChad
-# echo "🧠 Installation de NVChad..."
-# sudo -u "$SUDO_USER" git clone https://github.com/NvChad/starter.git /home/$SUDO_USER/.config/nvim
-
 # Installer Tmux Plugin Manager (TPM)
 echo "🔌 Installation de Tmux Plugin Manager..."
 sudo -u "$SUDO_USER" git clone https://github.com/tmux-plugins/tpm /home/$SUDO_USER/.tmux/plugins/tpm
-
-# Télécharger et installer kubectl
-echo "☸️ Installation de kubectl..."
-ARCH=$(uname -m)
-URL="https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/$ARCH/kubectl"
-curl -LO "$URL"
-install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-rm kubectl
 
 echo "✅ Installation terminée. N'oublie pas :"
 echo "1. Lance Neovim et exécute :LazyInstall"
