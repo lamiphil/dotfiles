@@ -100,9 +100,9 @@ fi
 ###################
 
 # Kubectl bash completion
-source /usr/share/bash-completion/bash_completion
-source <(kubectl completion bash)
-complete -o default -F __start_kubectl k
+# source /usr/share/bash-completion/bash_completion
+# source <(kubectl completion bash)
+# complete -o default -F __start_kubectl k
 
 
 # Bash completion
