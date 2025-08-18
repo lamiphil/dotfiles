@@ -29,24 +29,21 @@ PACMAN_PKGS=(
   hypridle
   greetd
   tuigreet
+  wl-clipboard
+  lazygit
+)
+
+# Listes des paquets à installer avec l'AUR
+YAY_PKGS=(
+  tmuxinator
+  wlogout
+  swaync
+  hyprshot
 )
 
 # Installer les paquets de base
 echo "🔧 Mise à jour du système..."
 pacman -Syu --noconfirm
-
-# Installer les paquets principaux
-echo "📦 Installation des paquets principaux..."
-for pkg in "${PACMAN_PKGS[@]}"; do
-  pacman -S --needed --noconfirm "$pkg"
-done
-
-# Installation de paquets supplementaires
-echo "Installation de yazi..."
-pacman -S --noconfirm yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide imagemagick
-
-echo "Installation de lazygit..."
-pacman -S --noconfirm lazygit
 
 # Installer yay s'il n'existe pas déjà
 if ! command -v yay &>/dev/null; then
@@ -56,14 +53,21 @@ if ! command -v yay &>/dev/null; then
   cd yay && sudo -u "$SUDO_USER" makepkg -si --noconfirm
 fi
 
-# Installer tmuxinator depuis l'AUR
-sudo -u "$SUDO_USER" yay -S --noconfirm tmuxinator
+# Installer les paquets principaux
+echo "📦 Installation des paquets principaux..."
+for pkg in "${PACMAN_PKGS[@]}"; do
+  pacman -S --needed --noconfirm "$pkg"
+done
 
-# Installer wlogout depuis l'AUR
-sudo -u "$SUDO_USER" yay -S --noconfirm wlogout
+# Installer les paquets secondaires via l'AUR
+echo "📦 Installation des paquets secondaires..."
+for pkg in "${YAY_PKGS[@]}"; do
+  yay -S --noconfirm "$pkg"
+done
 
-# Installer swaync depuis l'AUR
-sudo -u "$SUDO_USER" yay -S --noconfirm swaync
+# Installation de paquets supplementaires
+echo "Installation de yazi..."
+pacman -S --noconfirm yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide imagemagick
 
 # Installer Starship
 echo "🚀 Installation de Starship..."
