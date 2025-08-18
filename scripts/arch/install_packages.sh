@@ -31,6 +31,7 @@ PACMAN_PKGS=(
   tuigreet
   wl-clipboard
   lazygit
+  rofi-wayland
 )
 
 # Listes des paquets à installer avec l'AUR
