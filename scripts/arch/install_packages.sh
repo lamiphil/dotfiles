@@ -34,6 +34,10 @@ PACMAN_PKGS=(
   rofi-wayland
   nicotine+
   vlc
+  wine
+  wine-mono
+  wine-gecko
+  winetricks
 )
 
 # Listes des paquets à installer avec l'AUR
