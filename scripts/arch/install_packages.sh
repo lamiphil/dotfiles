@@ -32,6 +32,8 @@ PACMAN_PKGS=(
   wl-clipboard
   lazygit
   rofi-wayland
+  nicotine+
+  vlc
 )
 
 # Listes des paquets à installer avec l'AUR
@@ -40,6 +42,8 @@ YAY_PKGS=(
   wlogout
   swaync
   hyprshot
+  hyprcursor
+  rose-pine-hyprcursor
 )
 
 # Installer les paquets de base
