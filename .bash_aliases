@@ -58,9 +58,13 @@ alias bat="batcat"
 alias dot="cd ~/dotfiles/ && nvim"
 alias home="cd ~"
 alias lq="cd ~/code/"
-alias ip="cd ~/code/ip/"
 alias obs="cd ~/code/obs/"
-alias notes="cd ~/notes/ && nvim +ObsidianToday"
+
+if [[ $DOTFILES_ENV == "perso" ]]; then
+  alias notes="cd ~/notes/perso/ && nvim +ObsidianToday"
+else
+  alias notes="cd ~/notes/ && nvim +ObsidianToday"
+fi
 
 # bash
 alias rc="nvim ~/.bashrc"
