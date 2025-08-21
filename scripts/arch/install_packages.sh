@@ -38,6 +38,7 @@ PACMAN_PKGS=(
   wine-mono
   wine-gecko
   winetricks
+  nautilus
 )
 
 # Listes des paquets à installer avec l'AUR
