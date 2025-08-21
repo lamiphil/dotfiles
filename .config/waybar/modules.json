@@ -6,6 +6,12 @@
     "on-click": "activate",
     "persistent-workspaces": {
     "*":[1,2,3]
+    },
+    "format-icons": {
+      "1": "",   // Terminal
+      "2": "",   // Firefox
+      "3": "",   // Discord
+      "default": "" // Fallback si non défini
     }
   },
 
@@ -35,7 +41,7 @@
     "format-ethernet": "<span color='#7FFF00'> </span>Wired ",
     "tooltip-format": "<span color='#FF1493'> 󰅧 </span>{bandwidthUpBytes}  <span color='#00BFFF'> 󰅢 </span>{bandwidthDownBytes}",
     "format-linked": "<span color='#FFA500'> 󱘖 </span>{ifname} (No IP) ",
-    "format-disconnected": "<span color='#FF4040'>  </span>Disconnected ",
+    "format-disconnected": "<span color='#FF4040'>  </span> ",
     "format-alt": "<span color='#00FFFF'> 󰤨 </span>{signalStrength}% ",
     "interval": 1
   },
@@ -95,8 +101,12 @@
 
   "custom/clock": {
     "exec": "echo '  '$(date +'%H:%M')'  '",
-    "interval": 1
+    "interval": 1,
+    "tooltip": true,
+    "tooltip-format": "echo '  '$(date + %Y/%m/%d)'  "
   },
+
+
 
   "tray": {
     "icon-size": 17,
