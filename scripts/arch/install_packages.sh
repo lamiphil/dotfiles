@@ -39,6 +39,8 @@ PACMAN_PKGS=(
   wine-gecko
   winetricks
   nautilus
+  noto-fonts-emoji
+  gnome-calculator
 )
 
 # Listes des paquets à installer avec l'AUR
