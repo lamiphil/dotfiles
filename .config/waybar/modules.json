@@ -5,12 +5,14 @@
     "format": "{icon}",
     "on-click": "activate",
     "persistent-workspaces": {
-    "*":[1,2,3]
+    "*":[1,2,3,4,5]
     },
     "format-icons": {
       "1": "",   // Terminal
       "2": "",   // Browser
       "3": "",   // Discord
+      "4": "󰇮",   // Emails
+      "5": "",   // Steam
       "default": "" // Fallback si non défini
     }
   },

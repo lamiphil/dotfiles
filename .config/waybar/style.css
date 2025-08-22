@@ -17,7 +17,7 @@
 
 #workspaces {
   background-color: @background;
-  padding: 5px 8px;
+  padding: 8px 5px;
   border-width: 0px;
   border-top-right-radius: 8px;
 }
@@ -40,6 +40,7 @@
 
 #custom-power{
   background-color: @background;
+  color: #FFFFFF;
   padding: 8px 5px;
   border-width: 0px;
 }
@@ -94,22 +95,27 @@
 #workspaces button:hover{
   background-color: @foreground;
   color: @background;
-  border-radius: 8px;
+  box-shadow: none;
+  border: none;
 }
 
 #workspaces button.active {
   background-color: @color6;
   color: @background;
-  border-radius: 8px;
+  box-shadow: none;
+  border: none;
 }
 
 #workspaces button {
   background: transparent;
   color: #FFFFFF;
   font-weight: bold;
-  min-width: 28px;
-  min-height: 28px;
-  font-size: 18px;
+  box-shadow: none;
+  margin: 0px 2px;
+  border: none;
+  min-width: 32px;
+  min-height: 32px;
+  font-size: 32px;
 }
 
 #window {
