@@ -1,9 +1,9 @@
 {
   // General
   "layer": "top",
-  "position": "top",
+  "position": "bottom",
   "height": 42,
-  "margin-top": 8,
+  // "margin-top": 8,
   "spacing": 0,
 
   // Load modules
@@ -11,8 +11,7 @@
 
   // Left modules
   "modules-left": [
-    "hyprland/workspaces",
-    "tray"
+    "hyprland/workspaces"
   ],
 
   // Center modules
@@ -20,6 +19,7 @@
 
   // Right modules
   "modules-right": [
+    "tray",
     "network",
     "bluetooth",
     "pulseaudio",
