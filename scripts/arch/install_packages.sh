@@ -49,6 +49,8 @@ YAY_PKGS=(
   hyprshot
   hyprcursor
   rose-pine-hyprcursor
+  thunderbird
+  vivaldi
 )
 
 # Installer les paquets de base
