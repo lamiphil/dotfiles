@@ -1,7 +1,7 @@
 {
   // General
   "layer": "top",
-  "position": "bottom",
+  "position": "top",
   "height": 42,
   "spacing": 0,
 
