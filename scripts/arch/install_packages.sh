@@ -43,6 +43,7 @@ PACMAN_PKGS=(
   gnome-calculator
   inetutils
   ripgrep
+  obsidian
 )
 
 # Listes des paquets à installer avec l'AUR
