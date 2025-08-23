@@ -42,6 +42,7 @@ PACMAN_PKGS=(
   noto-fonts-emoji
   gnome-calculator
   inetutils
+  ripgrep
 )
 
 # Listes des paquets à installer avec l'AUR
