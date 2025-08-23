@@ -33,7 +33,7 @@
 
   "custom/power": {
     "format": "<span>  </span>",
-    "on-click": "wlogout",
+    "on-click": "/home/lamiphil/dotfiles/.config/rofi/powermenu/type-1/powermenu.sh",
     "tooltip": true,
     "tooltip-format": "关机"
   },

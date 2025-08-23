@@ -15,4 +15,12 @@
 
 /* Import color-scheme from `colors` directory */
 
-@import "~/.config/rofi/colors/onedark.rasi"
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+/* Alias pour les variables attendues par le thème powermenu */
+* {
+  selected:        @selected-normal-background;
+  background-alt:  @alternate-normal-background;
+  urgent:          @urgent-background;
+  active:          @active-background;
+}
