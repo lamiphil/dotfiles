@@ -41,6 +41,7 @@ PACMAN_PKGS=(
   nautilus
   noto-fonts-emoji
   gnome-calculator
+  inetutils
 )
 
 # Listes des paquets à installer avec l'AUR
@@ -51,8 +52,10 @@ YAY_PKGS=(
   hyprshot
   hyprcursor
   rose-pine-hyprcursor
+  rose-pine-cursor
   thunderbird
   vivaldi
+  btop
 )
 
 # Installer les paquets de base
