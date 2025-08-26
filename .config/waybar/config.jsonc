@@ -14,7 +14,7 @@
   ],
 
   // Center modules
-  "modules-center": ["custom/clock"],
+  "modules-center": ["clock"],
 
   // Right modules
   "modules-right": [

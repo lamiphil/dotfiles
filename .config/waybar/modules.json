@@ -21,22 +21,19 @@
   "custom/lock": {
   "format": "<span color='#00FFFF'>  </span>",
   "on-click": "hyprlock",
-  "tooltip": true,
-  "tooltip-format": "锁屏"
+  "tooltip": true
   },
 
   "custom/reboot": {
     "format": "<span color='#FFD700'>  </span>",
     "on-click": "systemctl reboot",
-    "tooltip": true,
-    "tooltip-format": "重启"
+    "tooltip": true
   },
 
   "custom/power": {
     "format": "<span>  </span>",
     "on-click": "/home/lamiphil/dotfiles/.config/rofi/powermenu/type-1/powermenu.sh",
-    "tooltip": true,
-    "tooltip-format": "关机"
+    "tooltip": true
   },
 
   "network": {
@@ -102,13 +99,10 @@
     "tooltip": true
   },
 
-  "custom/clock": {
-    "exec": "echo '  '$(date +'%H:%M')'  '",
-    "interval": 1,
-    "tooltip": true,
-    "tooltip-format": "echo '  '$(date + %Y/%m/%d)'  "
+  "clock": {
+      "format": "{:%Y/%m/%d - %H:%M}",
+      "interval": 1
   },
-
 
 
   "tray": {
