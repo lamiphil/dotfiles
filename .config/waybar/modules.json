@@ -18,18 +18,12 @@
     }
   },
 
-  "custom/lock": {
-  "format": "<span color='#00FFFF'>  </span>",
-  "on-click": "hyprlock",
-  "tooltip": true
+  "custom/notification": {
+      "tooltip": false,
+      "format": "",
+      "on-click": "swaync-client -t -sw",
+      "escape": true
   },
-
-  "custom/reboot": {
-    "format": "<span color='#FFD700'>  </span>",
-    "on-click": "systemctl reboot",
-    "tooltip": true
-  },
-
   "custom/power": {
     "format": "<span>  </span>",
     "on-click": "/home/lamiphil/dotfiles/.config/rofi/powermenu/type-1/powermenu.sh",
@@ -37,13 +31,13 @@
   },
 
   "network": {
-    "format-wifi": "<span color='#FFFFFF'> 󰤨 </span>{essid} ",
-    "format-ethernet": "<span color='#7FFF00'> </span>Wired ",
-    "tooltip-format": "<span color='#FF1493'> 󰅧 </span>{bandwidthUpBytes}  <span color='#00BFFF'> 󰅢 </span>{bandwidthDownBytes}",
-    "format-linked": "<span color='#FFA500'> 󱘖 </span>{ifname} (No IP) ",
-    "format-disconnected": "<span color='#FF4040'>  </span> ",
-    "format-alt": "<span color='#00FFFF'> 󰤨 </span>{signalStrength}% ",
-    "interval": 1
+      "format-wifi": "",
+      "format-ethernet":"",
+      "format-disconnected": "",
+      "tooltip-format-disconnected": "Error",
+      "tooltip-format-wifi": "{essid} ({signalStrength}%) ",
+      "tooltip-format-ethernet": "{ifname} 🖧 ",
+      "on-click": "kitty nmtui"
   },
 
   "battery": {
@@ -62,12 +56,12 @@
     "format": "<span>{icon}</span> {volume}% ",
     "format-muted": "<span> 󰖁 </span>0% ",
     "format-icons": {
-      "headphone": "<span color='#BF00FF'>  </span>",
-      "hands-free": "<span color='#BF00FF'>  </span>",
-      "headset": "<span color='#BF00FF'>  </span>",
-      "phone": "<span color='#00FFFF'>  </span>",
-      "portable": "<span color='#00FFFF'>  </span>",
-      "car": "<span color='#FFA500'>  </span>",
+      "headphone": "<span>  </span>",
+      "hands-free": "<span>  </span>",
+      "headset": "<span>  </span>",
+      "phone": "<span>  </span>",
+      "portable": "<span>  </span>",
+      "car": "<span>  </span>",
       "default": [
         "<span>  </span>",
         "<span>  </span>",
@@ -75,23 +69,17 @@
       ]
     },
     "on-click-right": "pavucontrol -t 3",
-    "on-click": "pactl -- set-sink-mute 0 toggle",
-    "tooltip": true,
-    "tooltip-format": "当前系统声音: {volume}%"
+    "on-click": "pactl -- set-sink-mute 0 toggle"
   },
 
   "custom/temperature": {
     "exec": "sensors | awk '/^Package id 0:/ {print int($4)}'",
     "format": "<span color='#FFA500'> </span>{}°C ",
-    "interval": 5,
-    "tooltip": true,
-    "tooltip-format": "当前 CPU 温度: {}°C"
+    "interval": 5
   },
 
   "memory": {
-    "format": "<span color='#8A2BE2'>  </span>{used:0.1f}G/{total:0.1f}G ",
-    "tooltip": true,
-    "tooltip-format": "当前内存占比: {used:0.2f}G/{total:0.2f}G"
+    "format": "<span color='#8A2BE2'>  </span>{used:0.1f}G/{total:0.1f}G "
   },
 
   "cpu": {
@@ -100,7 +88,7 @@
   },
 
   "clock": {
-      "format": "{:%Y/%m/%d - %H:%M}",
+      "format": "{:%m/%d - %H:%M}",
       "interval": 1
   },
 
