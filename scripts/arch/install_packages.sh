@@ -44,6 +44,7 @@ PACMAN_PKGS=(
   inetutils
   ripgrep
   obsidian
+  wine
 )
 
 # Listes des paquets à installer avec l'AUR
