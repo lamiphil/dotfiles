@@ -49,7 +49,7 @@ return {
   },
   -- Zen
   {
-    require "configs.zen"
+    require "configs.zenmode"
   },
   -- NVIM tree
   {
