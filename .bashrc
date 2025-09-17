@@ -163,3 +163,5 @@ source ~/.cache/wal/colors-tty.sh
 # If Bash is running is not interactive mode, return here. 
 # Everything following will only be applied to interactive sessions
 [ -z "$PS1" ] && return
+export PATH="$HOME/.tfenv/bin:$PATH"
+export PATH="$HOME/.tfenv/bin:$PATH"
