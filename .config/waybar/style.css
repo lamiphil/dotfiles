@@ -1,123 +1,16 @@
 @import url("file:///home/lamiphil/.cache/wal/colors-waybar.css");
 
-/* General */
+/* ------- */
+/* GENERAL */
+/* ------- */
 * {
   font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
   font-weight: bold;
   font-size: 16px;
 }
 
-/* Waybar */
-#waybar {
-  background-color: rgba(0, 0, 0, 0);
-  border: none;
-  box-shadow: none;
-}
-
-#workspaces,
-#window,
-#tray{
-  background-color: @background;
-  padding: 4px 6px; 
-  margin-top: 6px; 
-  margin-left: 6px;
-  margin-right: 6px;
-  border-radius: 8px;
-  border-width: 0px;
-}
-
-#custom-clock{
-  background-color: @background;
-  color: #ffffff;
-  margin-top: 5px; 
-  margin: 5px;
-  padding: 3px 8px;
-  border-radius: 8px;
-  border-width: 0px;
-}
-
-#custom-power{
-  background-color: @background;
-  margin-top: 6px; 
-  margin-right: 6px;
-  padding: 4px 2px;
-  border-radius: 0 8px 8px 0;
-  border-width: 0px;
-}
-
-#network,
-#custom-lock{
-  background-color: @background;
-  color: #ffffff;
-  margin-top: 6px;
-  margin-left: 6px;
-  padding: 4px 2px;
-  border-radius: 8px 0 0 8px;
-  border-width: 0px;
-}
-
-#custom-reboot,
-#bluetooth,
-#battery,
-#pulseaudio,
-#backlight,
-#custom-temperature,
-#memory,
-#cpu{
-  color: #ffffff;
-  background-color: @background;
-  margin-top: 6px;
-  padding: 4px 2px;
-  border-width: 0px;
-}
-
-#custpm-temperature.critical,
-#pulseaudio.muted {
-  color: #FF0000;
-  padding-top: 0;
-}
-
-#bluetooth:hover,
-#network:hover,
-/*#tray:hover,*/
-#backlight:hover,
-#battery:hover,
-#pulseaudio:hover,
-#custom-temperature:hover,
-#memory:hover,
-#cpu:hover,
-#clock:hover,
-#custom-lock:hover,
-#custom-reboot:hover,
-#custom-power:hover,
-#window:hover {
-  background-color: @foreground;
-  color: @background
-}
-
-#workspaces button:hover{
-  background-color: @foreground;
-  color: @background;
-  padding: 2px 8px;
-  margin: 0 2px;
-  border-radius: 8px;
-}
-
-#workspaces button.active {
-  background-color: @color6;
-  color: @background;
-  padding: 2px 8px;
-  margin: 0 2px;
-  border-radius: 8px;
-}
-
-#workspaces button {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  padding: 2px 8px;
-  margin: 0 2px;
-  font-weight: bold;
+window#waybar{
+    all:unset;
 }
 
 #window {
@@ -125,3 +18,104 @@
   font-style: italic;
 }
 
+tooltip {
+    background:@background;
+    color: @color7;
+}
+
+.modules-left {
+    padding:8px;
+    margin:8px 0px 5px 8px;
+    background: alpha(@background,.6);
+    border-radius:8px;
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, .6);
+}
+
+.modules-center {
+    padding:8px;
+    margin:8px 0px 5px 0px;
+    border-radius:8px;
+    background: alpha(@background,.6);
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, .6);
+}
+
+.modules-right {
+    padding: 8px;
+    margin: 8px 8px 5px 0px;
+    border-radius:8px;
+    background: alpha(@background,.6);
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, .6);
+}
+
+/* ------------ */
+/* MODULES LEFT */
+/* ------------ */
+/**/
+/* #workspaces button { */
+/*   all:unset; */
+/*   padding: 0px 5px; */
+/*   color: alpha(@color9,.4); */
+/*   transition: all .3s ease; */
+/*   color: #FFFFFF; */
+/*   min-width: 32px; */
+/*   min-height: 32px; */
+/*   font-size: 32px; */
+/* } */
+
+#workspaces button {
+  all: unset;
+  padding: 0 6px;
+  min-width: 22px;
+  min-height: 22px;
+  font-size: 16px;
+}
+#workspaces button:hover {
+    color:@color9;
+    border: none;
+    text-shadow: 0px 0px 1.5px rgba(0, 0, 0, .5);
+    transition: all 0.3s ease;
+}
+
+#workspaces button.active {
+    color: @color6;
+    border: none;
+    text-shadow: 0px 0px 2px rgba(0, 0, 0, .5);
+}
+
+/* -------------- */
+/* MODULES CENTER */
+/* -------------- */
+
+#clock:hover{
+    transition: all .3s ease;
+    color:@color9;
+}
+
+/* ------------- */
+/* MODULES RIGHT */
+/* ------------- */
+
+#custom-power:hover,
+#battery:hover,
+#pulseaudio:hover,
+#bluetooth:hover,
+#network:hover,
+#tray:hover,
+#custom-notification:hover{
+    transition: all .3s ease;
+    color:@color9;
+}
+
+#pulseaudior,
+#network{
+  margin-right: 8px;
+  padding: 8px;
+}
+
+#pulseaudio.muted {
+  color: #FFFFFF;
+}
+
+#tray{
+  padding: 8px; 
+}

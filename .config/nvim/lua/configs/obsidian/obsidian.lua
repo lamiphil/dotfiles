@@ -3,6 +3,23 @@ local substitutions = require("configs.obsidian.substitutions")
 local mappings = require("configs.obsidian.mappings")
 local callbacks = require("configs.obsidian.callbacks")
 
+-- Constuire l'objet workspaces dynamiquement
+local workspaces = {
+  {
+    name = "perso",
+    path = "~/notes/perso"
+  },
+}
+
+if vim.env.DOTFILES_ENV == "work" then
+  table.insert(workspaces, {
+    {
+      name = "work",
+      path = "~/notes"
+    },
+  })
+end
+
 return {
   "epwalsh/obsidian.nvim",
   version = "*",  -- recommended, use latest release instead of latest commit
@@ -16,27 +33,12 @@ return {
     "hrsh7th/nvim-cmp"
   },
   opts = {
-    workspaces = {
-      {
-        name = "perso",
-        path = "~/notes/perso"
-      },
-      {
-        name = "work",
-        path = "~/notes",
-        overrides = {
-          templates = {
-            substitutions = substitutions.lq_substitutions
-          },
-        },
-      },
-    },
-
+    workspaces = workspaces,
     templates = {
       folder = "config/templates",
       date_format = "%Y-%m-%d",
       time_format = "%H:%M",
-      substitutions = {},
+      substitutions = substitutions.substitutions
     },
 
     daily_notes = {

@@ -6,3 +6,5 @@ export AWS_CA_BUNDLE=~/.aws/aws.pem
 export NODE_EXTRA_CA_CERTS=~/.aws/aws.pem
 
 export HYPRSHOT_DIR=~/Pictures/
+
+export DOTFILES_ENV=perso

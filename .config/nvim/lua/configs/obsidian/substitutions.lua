@@ -8,9 +8,14 @@ M.lq_substitutions = {
 
   -- Returns list of active tasks in form of wiki links
   active_tasks = function()
+    local tasks_dir = ""
 
-    local tasks_dir = "~/notes/tasks/"
-
+    if vim.env.DOTFILES_ENV == "work" then
+      tasks_dir  = "~/notes/tasks/"
+    else 
+      tasks_dir  = "~/notes/tasks/"
+    end
+      
     local handle = io.popen("rg 'status: open' " .. tasks_dir)
     local results = handle:read("*a")
     handle:close()
@@ -243,4 +248,6 @@ M.substitutions = {
   end
 
 }
+
 return M
+

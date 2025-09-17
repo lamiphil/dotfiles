@@ -3,7 +3,6 @@
   "layer": "top",
   "position": "top",
   "height": 42,
-  "margin-top": 8,
   "spacing": 0,
 
   // Load modules
@@ -11,15 +10,15 @@
 
   // Left modules
   "modules-left": [
-    "hyprland/workspaces",
-    "tray"
+    "hyprland/workspaces"
   ],
 
   // Center modules
-  "modules-center": ["custom/clock"],
+  "modules-center": ["clock"],
 
   // Right modules
   "modules-right": [
+    "tray",
     "network",
     "bluetooth",
     "pulseaudio",

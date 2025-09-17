@@ -38,6 +38,13 @@ PACMAN_PKGS=(
   wine-mono
   wine-gecko
   winetricks
+  nautilus
+  noto-fonts-emoji
+  gnome-calculator
+  inetutils
+  ripgrep
+  obsidian
+  wine
 )
 
 # Listes des paquets à installer avec l'AUR
@@ -48,6 +55,10 @@ YAY_PKGS=(
   hyprshot
   hyprcursor
   rose-pine-hyprcursor
+  rose-pine-cursor
+  thunderbird
+  vivaldi
+  btop
 )
 
 # Installer les paquets de base

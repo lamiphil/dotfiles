@@ -72,12 +72,12 @@ esac
 # BASH FILES #
 ###############
 
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
 if [ -f ~/.bash_env ]; then
     source ~/.bash_env
+fi
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
 fi
 
 # Load custom functions
