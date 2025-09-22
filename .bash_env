@@ -8,3 +8,8 @@ export NODE_EXTRA_CA_CERTS=~/.aws/aws.pem
 export HYPRSHOT_DIR=~/Pictures/
 
 export DOTFILES_ENV=perso
+
+if [ "$DOTFILES_ENV" = "perso" ]; then
+  export GTK_THEME=Adwaita:dark
+fi
+
