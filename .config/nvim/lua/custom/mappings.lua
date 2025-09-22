@@ -14,9 +14,10 @@ map("n", "<C-j>", ":TmuxNavigateDown<CR>", { silent = true })
 map("n", "<C-k>", ":TmuxNavigateUp<CR>", { silent = true })
 map("n", "<C-l>", ":TmuxNavigateRight<CR>", { silent = true })
 
--------------------------------------------------
--- Switch toggleable and new terminal mappings --
--------------------------------------------------
+-- Show LSP error in floating windows
+map("n", "<leader>e", function()
+  vim.diagnostic.open_float()
+end)
 
 -- Dismiss Noice Message 
 map("n", "<leader>nd", "<cmd>NoiceDismiss<CR>", {desc = "Dismiss Noice Message"})
