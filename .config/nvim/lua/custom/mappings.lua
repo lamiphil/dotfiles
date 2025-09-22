@@ -14,19 +14,17 @@ map("n", "<C-j>", ":TmuxNavigateDown<CR>", { silent = true })
 map("n", "<C-k>", ":TmuxNavigateUp<CR>", { silent = true })
 map("n", "<C-l>", ":TmuxNavigateRight<CR>", { silent = true })
 
--- Show LSP error in floating windows
-map("n", "<leader>e", function()
+------------------
+--  Diagnostics --
+------------------
+
+-- Popup flottant pour l’erreur sous le curseur
+vim.keymap.set("n", "<leader>e", function()
   vim.diagnostic.open_float()
-end)
+end, { desc = "Show diagnostic in floating window" })
 
--- Dismiss Noice Message 
-map("n", "<leader>nd", "<cmd>NoiceDismiss<CR>", {desc = "Dismiss Noice Message"})
-
--- Toggle Zen Mode
-map("n", "<leader>zm", "<cmd>ZenMode<CR>", {desc = "Toggle ZenMode"})
-
--- Launch LazyGit
-map("n", "<leader>lg", "<cmd>LazyGit<CR>", {desc = "Launch LazyGit"})
+-- Liste navigable de tous les diagnostics
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
 
 --------------
 -- NVIM DAP --
@@ -71,4 +69,17 @@ end, { noremap = true, silent = true, desc = " Terminate debugging session" }
 map("n", "<leader>du", function()
   dapui.toggle()
 end, { noremap = true, silent = true, desc = "Toggle DAP UI" })
+
+-----------
+-- Other --
+-----------
+
+-- Dismiss Noice Message 
+map("n", "<leader>nd", "<cmd>NoiceDismiss<CR>", {desc = "Dismiss Noice Message"})
+
+-- Toggle Zen Mode
+map("n", "<leader>zm", "<cmd>ZenMode<CR>", {desc = "Toggle ZenMode"})
+
+-- Launch LazyGit
+map("n", "<leader>lg", "<cmd>LazyGit<CR>", {desc = "Launch LazyGit"})
 
