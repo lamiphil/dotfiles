@@ -20,6 +20,9 @@ return {
       preview = {
         icon_provider = "devicons"
       },
+      experimental = {
+        check_rtp = false
+      },
       markdown = {
         headings = presets.headings.glow,
         horizontal_rules = presets.horizontal_rules.thick,
