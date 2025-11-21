@@ -40,9 +40,9 @@ return {
     require "configs.surround-nvim"
   },
   -- Obsidian
-  {
-    require "configs.obsidian.obsidian"
-  },
+  -- {
+  --   require "configs.obsidian.obsidian"
+  -- },
   -- Todo
   {
     require "configs.todo"
