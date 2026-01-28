@@ -1,14 +1,7 @@
 
 -- Logstash grammar highlighting
-local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
-
-parser_config.logstash = {
-  install_info = {
-    url = "~/code/perso/dotfiles/repos/tree-sitter-logstash",
-    files = {"src/parser.c"},
-    branch = "master",
-  },
-}
+-- Note: In nvim 0.10+, parser configuration is done differently
+-- You may need to manually compile and add the parser to runtimepath
 
 vim.filetype.add({
   extension = {

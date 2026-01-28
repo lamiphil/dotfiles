@@ -3,7 +3,7 @@ local map = vim.keymap.set
 return {
   {
     "mfussenegger/nvim-dap",
-    ft = "python",
+    lazy = true,
     dependencies = {
 	  "nvim-neotest/nvim-nio",
       "rcarriga/nvim-dap-ui",
