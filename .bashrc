@@ -91,9 +91,41 @@ if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] &&
   exec tmux
 fi
 
-# FZF
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-. "$HOME/.cargo/env"
+# FZF - Source from Homebrew installation
+if [ -f /opt/homebrew/opt/fzf/shell/completion.bash ]; then
+  source /opt/homebrew/opt/fzf/shell/completion.bash
+fi
+
+if [ -f /opt/homebrew/opt/fzf/shell/key-bindings.bash ]; then
+  source /opt/homebrew/opt/fzf/shell/key-bindings.bash
+fi
+
+# Use ripgrep for fzf file searching (respects .gitignore)
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# Better fzf options with preview
+export FZF_DEFAULT_OPTS='
+  --height 40%
+  --layout=reverse
+  --border
+  --preview "([[ -f {} ]] && (bat --style=numbers --color=always {} || cat {})) || ([[ -d {} ]] && (tree -C {} | head -200)) || echo {} 2> /dev/null | head -200"
+  --preview-window=right:50%:wrap
+  --bind "ctrl-/:change-preview-window(down|hidden|)"
+'
+
+# Enhanced Ctrl+R with better history search
+export FZF_CTRL_R_OPTS="
+  --preview 'echo {}'
+  --preview-window up:3:hidden:wrap
+  --bind 'ctrl-/:toggle-preview'
+  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+  --color header:italic
+  --header 'Press CTRL-Y to copy command into clipboard'
+"
+
+# Load Cargo (Rust) environment if it exists
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 ###################
 # AUTO-COMPLETION #
@@ -151,14 +183,15 @@ eval $(ssh-agent -s) > /dev/null
 # Load SSH key
 ssh-add ~/.ssh/github > /dev/null 2>&1
 
-# Apply pywal color theme
-(cat ~/.cache/wal/sequences &)
-
-# Alternative (blocks terminal for 0-3ms)
-cat ~/.cache/wal/sequences
+# Apply pywal color theme (if installed)
+if [ -f ~/.cache/wal/sequences ]; then
+  (cat ~/.cache/wal/sequences &)
+  # Alternative (blocks terminal for 0-3ms)
+  cat ~/.cache/wal/sequences
+fi
 
 # To add support for TTYs this line can be optionally added.
-source ~/.cache/wal/colors-tty.sh
+[ -f ~/.cache/wal/colors-tty.sh ] && source ~/.cache/wal/colors-tty.sh
 
 # If Bash is running is not interactive mode, return here. 
 # Everything following will only be applied to interactive sessions
