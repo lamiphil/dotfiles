@@ -165,3 +165,11 @@ source ~/.cache/wal/colors-tty.sh
 [ -z "$PS1" ] && return
 export PATH="$HOME/.tfenv/bin:$PATH"
 export PATH="$HOME/.tfenv/bin:$PATH"
+
+# opencode
+export PATH=/Users/philippe.lamy/.opencode/bin:$PATH
+
+
+# nvm
+export NVM_DIR="$HOME/.nvm"
+  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
