@@ -21,6 +21,7 @@ if vim.lsp.config then
       on_init = nvlsp.on_init,
       capabilities = nvlsp.capabilities,
     })
+    vim.lsp.enable(lsp)
   end
 else
   -- Fallback to old API for older versions
