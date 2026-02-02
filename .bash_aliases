@@ -51,8 +51,10 @@ alias dcrd="docker compose down & docker compose up -d" # Restart in deamon
 alias dcr="docker compose down & docker compose up" # Restart filebeat
 alias dcrf="docker compose down filebeat ; docker compose up filebeat -d" # Restart filebeat
 
-# bat
-alias bat="batcat"
+# bat - use batcat on Linux, bat on macOS
+if command -v batcat &> /dev/null; then
+    alias bat="batcat"
+fi
 
 # shorcuts
 alias dot="cd ~/dotfiles/ && nvim"
@@ -82,7 +84,11 @@ alias mini="minikube"
 alias mux="tmuxinator"
 
 # fzf
-alias fzf="fzf --preview 'batcat --style=numbers --color=always {}'"
+if command -v batcat &> /dev/null; then
+    alias fzf="fzf --preview 'batcat --style=numbers --color=always {}'"
+else
+    alias fzf="fzf --preview 'bat --style=numbers --color=always {}'"
+fi
 
 # systemctl
 alias sys="systemctl"
