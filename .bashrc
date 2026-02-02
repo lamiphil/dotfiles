@@ -86,9 +86,15 @@ if [ -f ~/.bash_functions ]; then
 fi
 
 
-# Run Tmux on start
+# Run Tmux on start - Show sessions and attach to most recent
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-  exec tmux
+  if tmux has-session 2>/dev/null; then
+    echo "Active tmux sessions:"
+    tmux list-sessions
+    exec tmux attach
+  else
+    exec tmux new
+  fi
 fi
 
 # FZF - Source from Homebrew installation
