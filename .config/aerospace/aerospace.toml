@@ -52,7 +52,7 @@ on-mode-changed = []
 # Possible values: (qwerty|dvorak|colemak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
-    preset = 'colemak'
+    preset = 'qwerty'
 
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
@@ -148,6 +148,13 @@ on-mode-changed = []
     alt-4 = 'workspace 4'
     alt-5 = 'workspace 5'
 
+    # Alternative workspace switching with letters (home row)
+    alt-a = 'workspace 1'
+    alt-r = 'workspace 2'
+    alt-s = 'workspace 3'
+    alt-t = 'workspace 4'
+    alt-g = 'workspace 5'
+
     # Cycle through non-empty workspaces with wrap-around
     cmd-alt-left = 'exec-and-forget aerospace list-workspaces --monitor focused --empty no | aerospace workspace --wrap-around prev'
     cmd-alt-right = 'exec-and-forget aerospace list-workspaces --monitor focused --empty no | aerospace workspace --wrap-around next'
@@ -158,6 +165,13 @@ on-mode-changed = []
     alt-shift-3 = 'move-node-to-workspace --focus-follows-window 3'
     alt-shift-4 = 'move-node-to-workspace --focus-follows-window 4'
     alt-shift-5 = 'move-node-to-workspace --focus-follows-window 5'
+
+    # Alternative move-to-workspace with letters (home row)
+    alt-shift-a = 'move-node-to-workspace --focus-follows-window 1'
+    alt-shift-r = 'move-node-to-workspace --focus-follows-window 2'
+    alt-shift-s = 'move-node-to-workspace --focus-follows-window 3'
+    alt-shift-t = 'move-node-to-workspace --focus-follows-window 4'
+    alt-shift-g = 'move-node-to-workspace --focus-follows-window 5'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
