@@ -3,6 +3,8 @@ require "nvchad.mappings"
 local map = vim.keymap.set
 
 map("i", "jk", "<ESC>")
+map("n", "H", "^")
+map("n", "L", "$")
 
 ------------------------
 -- Vim Tmux Navigator --
