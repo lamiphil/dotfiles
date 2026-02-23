@@ -22,3 +22,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank { higroup = 'IncSearch', timeout = 500 }
   end,
 })
+
+-- Enable line wrap for Markdown files
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true       -- Break at word boundaries
+    vim.opt_local.breakindent = true     -- Indent wrapped lines
+    vim.opt_local.breakindentopt = "shift:2"
+  end,
+})
