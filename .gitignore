@@ -3,3 +3,5 @@ repos/tree-sitter-logstash
 .config/go/*
 **/cache
 .env
+.config/yarn/
+.config/raycast/
