@@ -1,4 +1,27 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "system"
+  "mcp": {
+    "grafana": {
+      "type": "local",
+      "command": [
+        "docker", "run", "--rm", "-i",
+        "-e", "GRAFANA_URL=https://REDACTED.grafana.net",
+        "-e", "GRAFANA_SERVICE_ACCOUNT_TOKEN",
+        "grafana/mcp-grafana",
+        "-t", "stdio"
+      ],
+      "environment": {
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      },
+      "enabled": true
+    },
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "enabled": true
+    }
+  }
 }

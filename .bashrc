@@ -85,6 +85,13 @@ if [ -f ~/.bash_functions ]; then
   source ~/.bash_functions
 fi
 
+# Load secrets from .env (gitignored)
+if [ -f ~/.env ]; then
+  set -a
+  source ~/.env
+  set +a
+fi
+
 
 # Run Tmux on start - Show sessions and attach to most recent
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
