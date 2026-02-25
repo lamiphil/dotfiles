@@ -5,3 +5,4 @@ repos/tree-sitter-logstash
 .env
 .config/yarn/
 .config/raycast/
+.kube
