@@ -1,0 +1,5 @@
+{
+  "format": "YYYY/MM - MMMM/YYYY-MM-DD",
+  "template": "config/templates/journal",
+  "folder": "Journal"
+}

@@ -1,0 +1,48 @@
+{
+  "command_timeout": 5,
+  "templates_folder": "_config/templates",
+  "templates_pairs": [
+    [
+      "",
+      ""
+    ]
+  ],
+  "trigger_on_file_creation": true,
+  "auto_jump_to_cursor": false,
+  "enable_system_commands": false,
+  "shell_path": "",
+  "user_scripts_folder": "",
+  "enable_folder_templates": true,
+  "folder_templates": [
+    {
+      "folder": "Issues",
+      "template": "_config/templates/issue.md"
+    },
+    {
+      "folder": "Meetings",
+      "template": "_config/templates/meeting.md"
+    },
+    {
+      "folder": "Atlas",
+      "template": "_config/templates/idea.md"
+    }
+  ],
+  "enable_file_templates": false,
+  "file_templates": [
+    {
+      "regex": ".*",
+      "template": ""
+    }
+  ],
+  "syntax_highlighting": true,
+  "syntax_highlighting_mobile": false,
+  "enabled_templates_hotkeys": [
+    "config/templates/bug.md",
+    "_config/templates/issue.md",
+    "config/templates/log.md",
+    "config/templates/meeting.md"
+  ],
+  "startup_templates": [
+    ""
+  ]
+}

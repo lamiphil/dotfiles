@@ -1,0 +1,9 @@
+filters:
+  and:
+    - file.hasTag("knowledge")
+views:
+  - type: table
+    name: Table
+    filters:
+      and:
+        - '!file.inFolder("_config/templates")'

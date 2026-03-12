@@ -1,0 +1,6 @@
+filters:
+  and:
+    - file.hasTag("coral")
+views:
+  - type: table
+    name: Table

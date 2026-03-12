@@ -1,0 +1,9 @@
+{
+  "vimMode": true,
+  "attachmentFolderPath": "_config/attachments",
+  "showIndentGuide": false,
+  "showUnsupportedFiles": true,
+  "alwaysUpdateLinks": true,
+  "openBehavior": "daily",
+  "showLineNumber": true
+}

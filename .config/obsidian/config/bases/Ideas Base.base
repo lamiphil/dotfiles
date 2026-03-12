@@ -1,0 +1,13 @@
+filters:
+  and:
+    - file.hasTag("idea")
+views:
+  - type: table
+    name: Table
+    filters:
+      and:
+        - '!file.inFolder("_config/templates")'
+    order:
+      - date
+      - file.name
+      - tags

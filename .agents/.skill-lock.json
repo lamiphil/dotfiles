@@ -1,0 +1,25 @@
+{
+  "version": 3,
+  "skills": {
+    "logging-best-practices": {
+      "source": "boristane/agent-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/boristane/agent-skills.git",
+      "skillPath": "skills/logging-best-practices/SKILL.md",
+      "skillFolderHash": "075c83b8bf75e6f7b7ac97b8cf752f819da7cdb7",
+      "installedAt": "2026-03-03T21:11:35.395Z",
+      "updatedAt": "2026-03-03T21:11:35.395Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "codex",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-cli",
+    "opencode"
+  ]
+}
