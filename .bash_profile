@@ -10,3 +10,7 @@ fi
 
 # Load flux completion if flux is installed
 command -v flux &> /dev/null && . <(flux completion bash)
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
