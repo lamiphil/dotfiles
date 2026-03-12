@@ -177,6 +177,39 @@ Ghostty is the default terminal on all platforms. After stowing, the config is a
 - **Font**: BerkeleyMono Nerd Font Mono (or JetBrains Mono Nerd Font as fallback)
 - **Theme**: OneDark-Pro (configured in `~/.config/ghostty/config`)
 
+### 9. Create Workspaces
+
+Workspaces are project-specific directories under `~/workspaces/`. Each workspace contains repos, an Obsidian vault for notes, and shared Obsidian configuration symlinked from this dotfiles repo.
+
+There are two types of workspaces:
+
+| Type | Description |
+|------|-------------|
+| **work** | For a job or organization. Empty notes folder (not a repo), `issues/` and `tools/` directories. |
+| **personal** | For personal projects. Clones the [notes](https://github.com/lamiphil/notes) and [portfolio](https://github.com/lamiphil/portfolio) repos from GitHub. |
+
+Both types generate a `CLAUDE.md` template tailored to the workspace type.
+
+#### Workspace structure
+
+```
+~/workspaces/<name>/
+├── CLAUDE.md           # AI assistant context (generated template)
+├── repos/              # Git repositories
+├── notes/              # Obsidian vault
+│   ├── .obsidian/  ->  ~/dotfiles/.config/obsidian/.obsidian
+│   └── _config/    ->  ~/dotfiles/.config/obsidian/_config
+├── issues/             # (work only) Working directories for tasks
+└── tools/              # (work only) API collections and tooling
+```
+
+- [ ] 9.1 Run the workspace init script:
+```bash
+~/dotfiles/scripts/init/init_workspace.sh
+```
+
+The script will prompt for a workspace name and type, then create the full structure. It is idempotent — safe to re-run on existing workspaces without breaking anything.
+
 ## Shell Overview
 
 Load order: `.bash_profile` → `.bashrc` → `.bash_env` → `.bash_aliases` → `.bash_functions` → `.env`
