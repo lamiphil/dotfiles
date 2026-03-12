@@ -5,7 +5,7 @@
     "tags": "tags",
     "date": "date",
     "test": "text",
-    "status": "multitext",
+    "status": "checkbox",
     "Date de création": "date",
     "Statut": "text",
     "": "date"

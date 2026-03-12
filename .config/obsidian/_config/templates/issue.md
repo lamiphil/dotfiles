@@ -11,10 +11,9 @@ await tp.file.move(`Issues/${issueName}`);
 -%>
 ---
 date:
-status: open
 tags:
-  - issue
   - ongoing
+  - issue
 ---
 # Description
 
