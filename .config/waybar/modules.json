@@ -25,8 +25,23 @@
       "escape": true
   },
   "custom/power": {
-    "format": "<span>  </span>",
-    "on-click": "/home/lamiphil/dotfiles/.config/rofi/powermenu/type-1/powermenu.sh",
+    "format": "<span></span>",
+    "on-click": "~/.config/rofi/powermenu/type-1/powermenu.sh",
+    "tooltip": true
+  },
+  "custom/kblayout": {
+    "exec": "~/.config/waybar/scripts/kblayout.sh",
+    "return-type": "json",
+    "interval": 2,
+    "on-click": "hyprctl switchxkblayout all next",
+    "tooltip": true
+  },
+  "custom/tailscale": {
+    "exec-if": "command -v tailscale >/dev/null 2>&1 && pgrep -x tailscaled >/dev/null",
+    "exec": "~/.config/waybar/scripts/tailscale.sh",
+    "return-type": "json",
+    "interval": 5,
+    "on-click": "~/.config/waybar/scripts/tailscale-toggle.sh",
     "tooltip": true
   },
 
