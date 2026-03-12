@@ -6,3 +6,6 @@ repos/tree-sitter-logstash
 .config/yarn/
 .config/raycast/
 .kube
+.config/Bitwarden CLI/
+.config/gh/hosts.yml
+.config/gatsby/config.json
