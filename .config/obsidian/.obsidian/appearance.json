@@ -2,5 +2,8 @@
   "theme": "obsidian",
   "cssTheme": "GitHub Theme",
   "textFontFamily": "Atkinson Hyperlegible Next",
-  "monospaceFontFamily": "BerkeleyMono Nerd Font Mono"
+  "monospaceFontFamily": "BerkeleyMono Nerd Font Mono",
+  "baseFontSize": 16,
+  "accentColor": "#22c55e",
+  "baseFontSizeAction": true
 }
