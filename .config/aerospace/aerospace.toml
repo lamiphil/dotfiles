@@ -147,6 +147,7 @@ on-mode-changed = []
     alt-3 = 'workspace 3'
     alt-4 = 'workspace 4'
     alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
 
     # Alternative workspace switching with letters (home row)
     alt-a = 'workspace 1'
@@ -154,6 +155,7 @@ on-mode-changed = []
     alt-s = 'workspace 3'
     alt-t = 'workspace 4'
     alt-g = 'workspace 5'
+    alt-m = 'workspace 6'
 
     # Cycle through non-empty workspaces with wrap-around
     cmd-alt-left = 'exec-and-forget aerospace list-workspaces --monitor focused --empty no | aerospace workspace --wrap-around prev'
@@ -165,6 +167,7 @@ on-mode-changed = []
     alt-shift-3 = 'move-node-to-workspace --focus-follows-window 3'
     alt-shift-4 = 'move-node-to-workspace --focus-follows-window 4'
     alt-shift-5 = 'move-node-to-workspace --focus-follows-window 5'
+    alt-shift-6 = 'move-node-to-workspace --focus-follows-window 6'
 
     # Alternative move-to-workspace with letters (home row)
     alt-shift-a = 'move-node-to-workspace --focus-follows-window 1'
@@ -172,6 +175,7 @@ on-mode-changed = []
     alt-shift-s = 'move-node-to-workspace --focus-follows-window 3'
     alt-shift-t = 'move-node-to-workspace --focus-follows-window 4'
     alt-shift-g = 'move-node-to-workspace --focus-follows-window 5'
+    alt-shift-m = 'move-node-to-workspace --focus-follows-window 6'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
