@@ -13,9 +13,7 @@ font-size = 18
 font-codepoint-map = U+1F300-U+1FAFF=Noto Color Emoji
 
 # Background
-background-opacity = 0.9
-background-opacity-cells = true
-background-blur = 20
+background-opacity = 1
 
 # OneDark-Pro colors (from kitty current-theme.conf)
 background = #282C34
