@@ -104,14 +104,8 @@ if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] &&
   fi
 fi
 
-# FZF - Source from Homebrew installation
-if [ -f /opt/homebrew/opt/fzf/shell/completion.bash ]; then
-  source /opt/homebrew/opt/fzf/shell/completion.bash
-fi
-
-if [ -f /opt/homebrew/opt/fzf/shell/key-bindings.bash ]; then
-  source /opt/homebrew/opt/fzf/shell/key-bindings.bash
-fi
+# FZF - Built-in shell integration (key-bindings + completion)
+eval "$(fzf --bash)"
 
 # Use ripgrep for fzf file searching (respects .gitignore)
 export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
