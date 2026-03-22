@@ -12,6 +12,9 @@ font-size = 18
 # Emoji font fallback
 font-codepoint-map = U+1F300-U+1FAFF=Noto Color Emoji
 
+# Scrolling
+mouse-scroll-multiplier = 0.3
+
 # Background
 background-opacity = 1
 
