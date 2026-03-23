@@ -67,5 +67,9 @@ return {
   {
     require "configs.nvim-dap"
   },
+  -- Television fuzzy finder
+  {
+    require "configs.tv"
+  },
 }
 
