@@ -5,13 +5,14 @@
       "type": "local",
       "command": [
         "docker", "run", "--rm", "-i",
-        "-e", "GRAFANA_URL=https://REDACTED.grafana.net",
+        "-e", "GRAFANA_URL",
         "-e", "GRAFANA_SERVICE_ACCOUNT_TOKEN",
         "grafana/mcp-grafana",
         "-t", "stdio"
       ],
       "environment": {
-        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}",
+        "GRAFANA_URL": "{env:GRAFANA_URL}"
       },
       "enabled": true
     },
