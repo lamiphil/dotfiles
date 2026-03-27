@@ -20,7 +20,6 @@ return {
         commented = true, -- Show virtual text alongside comment
       })
 
-      -- dap_python.setup("python3")
       dap_python.setup("python3")
       dap.configurations.python = {
         {
