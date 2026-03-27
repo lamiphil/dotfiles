@@ -190,15 +190,17 @@ eval $(ssh-agent -s) > /dev/null
 # Load SSH key
 ssh-add ~/.ssh/github > /dev/null 2>&1
 
-# Apply pywal color theme (if installed)
-if [ -f ~/.cache/wal/sequences ]; then
-  (cat ~/.cache/wal/sequences &)
-  # Alternative (blocks terminal for 0-3ms)
-  cat ~/.cache/wal/sequences
-fi
+# Apply pywal color theme (if installed), except in Ghostty or tmux sessions
+if [ "${TERM_PROGRAM:-}" != "ghostty" ] && [ -z "${TMUX:-}" ]; then
+  if [ -f ~/.cache/wal/sequences ]; then
+    (cat ~/.cache/wal/sequences &)
+    # Alternative (blocks terminal for 0-3ms)
+    cat ~/.cache/wal/sequences
+  fi
 
-# To add support for TTYs this line can be optionally added.
-[ -f ~/.cache/wal/colors-tty.sh ] && source ~/.cache/wal/colors-tty.sh
+  # To add support for TTYs this line can be optionally added.
+  [ -f ~/.cache/wal/colors-tty.sh ] && source ~/.cache/wal/colors-tty.sh
+fi
 
 # If Bash is running is not interactive mode, return here. 
 # Everything following will only be applied to interactive sessions
