@@ -55,3 +55,4 @@ palette = 15=#E6E6E6
 # Keybinds
 keybind = ctrl+kp_add=increase_font_size:2
 keybind = ctrl+minus=decrease_font_size:2
+keybind = ctrl+backspace=text:\x17
