@@ -59,14 +59,6 @@ fi
 # shorcuts
 alias dot="cd ~/dotfiles/ && nvim"
 alias home="cd ~"
-alias lq="cd ~/code/"
-alias obs="cd ~/code/obs/"
-
-if [[ $DOTFILES_ENV == "perso" ]]; then
-  alias notes="cd ~/notes/perso/ && nvim +ObsidianToday"
-else
-  alias notes="cd ~/notes/ && nvim +ObsidianToday"
-fi
 
 # bash
 alias rc="nvim ~/.bashrc"
@@ -74,8 +66,7 @@ alias aliases="nvim ~/.bash_aliases"
 
 # kubectl
 alias k="kubectl"
-alias kpo="kubectl config use-context admin@k8s-REDACTED"
-alias kti="kubectl config use-context admin@k8s-REDACTED"
+
 
 # minikube
 alias mini="minikube"
