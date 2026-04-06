@@ -1,6 +1,6 @@
 {
   "vimMode": true,
-  "attachmentFolderPath": "_config/attachments",
+  "attachmentFolderPath": "_attachments",
   "showIndentGuide": false,
   "showUnsupportedFiles": true,
   "alwaysUpdateLinks": true,

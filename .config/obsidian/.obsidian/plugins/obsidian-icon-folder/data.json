@@ -6,11 +6,11 @@
     "emojiStyle": "native",
     "iconColor": null,
     "recentlyUsedIcons": [
+      "LiImages",
+      "LiImage",
+      "LiBicepsFlexed",
       "LiNotebook",
-      "LiMap",
-      "LiFish",
-      "LiLightbulb",
-      "LiUserPen"
+      "LiMap"
     ],
     "recentlyUsedIconsSize": 5,
     "rules": [],
@@ -44,5 +44,7 @@
   "_config/bases/Knowledge Base.base": "LiBrainCog",
   "_config/bases/Ideas Base.base": "LiLightbulb",
   "_config/bases/Coral Base.base": "LiFish",
-  "_config/attachments": "LiImage"
+  "Journal": "LiNotebook",
+  "Training": "LiBicepsFlexed",
+  "_attachments": "LiImages"
 }
