@@ -209,7 +209,7 @@ export PATH="$HOME/.tfenv/bin:$PATH"
 export PATH="$HOME/.tfenv/bin:$PATH"
 
 # opencode
-export PATH=/Users/philippe.lamy/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 
 
 # nvm
