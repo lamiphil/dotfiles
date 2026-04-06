@@ -171,5 +171,14 @@
       ],
       "key": "Enter"
     }
+  ],
+  "file-explorer:new-file": [],
+  "switcher:open": [
+    {
+      "modifiers": [
+        "Ctrl"
+      ],
+      "key": "O"
+    }
   ]
 }

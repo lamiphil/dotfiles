@@ -33,7 +33,6 @@
     "lucideIconPackType": "native",
     "debugMode": false
   },
-  "Journal": "LiBook",
   "Tâches": "LiListTodo",
   "Autres/Templates": "LiBookTemplate",
   "Documents": "LiFiles",
@@ -45,6 +44,5 @@
   "_config/bases/Knowledge Base.base": "LiBrainCog",
   "_config/bases/Ideas Base.base": "LiLightbulb",
   "_config/bases/Coral Base.base": "LiFish",
-  "_config/attachments": "LiImage",
-  "journal": "LiNotebook"
+  "_config/attachments": "LiImage"
 }

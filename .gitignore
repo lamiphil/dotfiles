@@ -10,3 +10,5 @@ repos/tree-sitter-logstash
 .config/Bitwarden CLI/
 .config/gh/hosts.yml
 .config/gatsby/config.json
+.config/obsidian/.obsidian/workspace.json
+.config/obsidian/_config/attachments/
