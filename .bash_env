@@ -5,16 +5,6 @@ export EDITOR=nvim
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-if [ "$DOTFILES_ENV" = "work" ]; then
-  export AWS_CA_BUNDLE=~/.aws/aws.pem
-  export NODE_EXTRA_CA_CERTS=~/.aws/aws.pem
-fi
-
 export HYPRSHOT_DIR=~/Pictures/
-
-export DOTFILES_ENV=perso
-
-if [ "$DOTFILES_ENV" = "perso" ]; then
-  export GTK_THEME=Adwaita:dark
-fi
+export GTK_THEME=Adwaita:dark
 
