@@ -29,5 +29,6 @@
       "url": "https://mcp.linear.app/sse",
       "enabled": true
     }
-  }
+  },
+  "disabled_providers": ["opencode"]
 }
