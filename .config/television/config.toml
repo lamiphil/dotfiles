@@ -73,7 +73,7 @@ border_type = "rounded" # https://docs.rs/ratatui/latest/ratatui/widgets/block/e
 # Status bar separators (box):
 separator_open = ""
 separator_close = ""
-hidden = false
+hidden = true
 
 [ui.results_panel]
 border_type = "rounded"
@@ -87,7 +87,7 @@ size = 50
 scrollbar = true
 border_type = "rounded"
 # padding = {"left": 0, "right": 0, "top": 0, "bottom": 0}
-hidden = false
+hidden = true
 
 [ui.help_panel]
 # Whether to split the help panel by categories
@@ -140,8 +140,8 @@ ctrl-down = "select_next_history"
 
 # Multi-selection
 # --------------
-tab = "toggle_selection_down"
-backtab = "toggle_selection_up"
+ctrl-space = "toggle_selection_down"
+ctrl-backspace = "toggle_selection_up"
 enter = "confirm_selection"
 
 # Preview panel control
@@ -154,7 +154,7 @@ ctrl-f = "cycle_previews"
 # --------------
 ctrl-y = "copy_entry_to_clipboard"
 ctrl-r = "reload_source"
-ctrl-s = "cycle_sources"
+tab = "cycle_sources"
 
 # UI Features
 # ----------
