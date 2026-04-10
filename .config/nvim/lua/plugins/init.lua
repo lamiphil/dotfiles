@@ -71,5 +71,8 @@ return {
   {
     require "configs.tv"
   },
+  -- OpenCode
+  {
+    require "configs.opencode"
+  },
 }
-

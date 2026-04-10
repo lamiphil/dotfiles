@@ -92,3 +92,6 @@ alias lg="lazygit"
 
 # python3
 alias p="python3"
+
+# opencode
+alias oc="ocv --port"
