@@ -16,15 +16,19 @@ configuration {
 @import                          "shared/colors.rasi"
 @import                          "shared/fonts.rasi"
 
+* {
+    border-col:                  @background-alt;
+}
+
 /*****----- Main Window -----*****/
 window {
     /* properties for window widget */
     transparency:                "real";
-    location:                    center;
-    anchor:                      center;
+    location:                    north east;
+    anchor:                      north east;
     fullscreen:                  false;
-    width:                       350px;
-    x-offset:                    0px;
+    width:                       220px;
+    x-offset:                    -8px;
     y-offset:                    0px;
 
     /* properties for all widgets */
@@ -32,8 +36,8 @@ window {
     margin:                      0px;
     padding:                     0px;
     border:                      1px solid;
-    border-radius:               0px;
-    border-color:                @selected;
+    border-radius:               10px;
+    border-color:                @border-col;
     cursor:                      "default";
     background-color:            @background;
 }
@@ -43,12 +47,12 @@ mainbox {
     enabled:                     true;
     spacing:                     8px;
     margin:                      0px;
-    padding:                     8px;
+    padding:                     10px;
     border:                      0px solid;
     border-radius:               0px;
     border-color:                @selected;
     background-color:            transparent;
-    children:                    [ "inputbar", "message", "listview" ];
+    children:                    [ "inputbar", "listview" ];
 }
 
 /*****----- Inputbar -----*****/
@@ -69,26 +73,26 @@ textbox-prompt-colon {
     enabled:                     true;
     expand:                      false;
     str:                         "";
-    padding:                     8px 12px;
-    border-radius:               0px;
+    padding:                     6px 10px;
+    border-radius:               8px;
     background-color:            @urgent;
     text-color:                  @background;
 }
 prompt {
     enabled:                     true;
-    padding:                     8px;
-    border-radius:               0px;
-    background-color:            @active;
-    text-color:                  @background;
+    padding:                     6px 10px;
+    border-radius:               8px;
+    background-color:            @background-alt;
+    text-color:                  @foreground;
 }
 
 /*****----- Message -----*****/
 message {
     enabled:                     true;
     margin:                      0px;
-    padding:                     8px;
+    padding:                     8px 10px;
     border:                      0px solid;
-    border-radius:               0px;
+    border-radius:               8px;
     border-color:                @selected;
     background-color:            @background-alt;
     text-color:                  @foreground;
@@ -124,7 +128,7 @@ listview {
     fixed-height:                true;
     fixed-columns:               true;
     
-    spacing:                     5px;
+    spacing:                     4px;
     margin:                      0px;
     padding:                     0px;
     border:                      0px solid;
@@ -140,9 +144,9 @@ element {
     enabled:                     true;
     spacing:                     0px;
     margin:                      0px;
-    padding:                     8px;
+    padding:                     8px 10px;
     border:                      0px solid;
-    border-radius:               0px;
+    border-radius:               8px;
     border-color:                @selected;
     background-color:            transparent;
     text-color:                  @foreground;

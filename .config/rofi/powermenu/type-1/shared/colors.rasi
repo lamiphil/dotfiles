@@ -15,12 +15,6 @@
 
 /* Import color-scheme from `colors` directory */
 
-@import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.config/rofi/colors/onedark.rasi"
 
-/* Alias pour les variables attendues par le thème powermenu */
-* {
-  selected:        @selected-normal-background;
-  background-alt:  @alternate-normal-background;
-  urgent:          @urgent-background;
-  active:          @active-background;
-}
+/* One Dark already exposes the variable names used by the theme. */

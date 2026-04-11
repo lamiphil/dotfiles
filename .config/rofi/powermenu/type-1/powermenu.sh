@@ -11,39 +11,34 @@
 
 # Current Theme
 dir="$HOME/.config/rofi/powermenu/type-1"
-theme='style-1'
-
-# CMDs
-uptime="`uptime -p | sed -e 's/up //g'`"
-host=`hostname`
+theme='style-3'
 
 # Options
-shutdown=' Shutdown'
-reboot=' Reboot'
-lock=' Lock'
-suspend=' Suspend'
-logout=' Logout'
-yes=' Yes'
-no=' No'
+shutdown='Shutdown'
+reboot='Reboot'
+lock='Lock'
+suspend='Suspend'
+logout='Logout'
+yes='Yes'
+no='No'
 
 # Rofi CMD
 rofi_cmd() {
 	rofi -dmenu \
-		-p "$host" \
-		-mesg "Uptime: $uptime" \
+		-p "Power" \
 		-theme ${dir}/${theme}.rasi
 }
 
 # Confirmation CMD
 confirm_cmd() {
-	rofi -theme-str 'window {location: center; anchor: center; fullscreen: false; width: 250px;}' \
+	rofi -theme-str 'window {width: 220px;}' \
 		-theme-str 'mainbox {children: [ "message", "listview" ];}' \
-		-theme-str 'listview {columns: 2; lines: 1;}' \
+		-theme-str 'listview {columns: 1; lines: 2;}' \
 		-theme-str 'element-text {horizontal-align: 0.5;}' \
 		-theme-str 'textbox {horizontal-align: 0.5;}' \
 		-dmenu \
-		-p 'Confirmation' \
-		-mesg 'Are you Sure?' \
+		-p 'Confirm' \
+		-mesg 'Are you sure?' \
 		-theme ${dir}/${theme}.rasi
 }
 
@@ -113,4 +108,3 @@ case ${chosen} in
     run_cmd --logout
     ;;
 esac
-
