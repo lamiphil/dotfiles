@@ -5,6 +5,8 @@ local map = vim.keymap.set
 map("i", "jk", "<ESC>")
 map("n", "H", "^")
 map("n", "L", "$")
+map("n", "<leader>sv", "<cmd>vsplit<CR>", { noremap = true, silent = true, desc = "Vertical split" })
+map("n", "<leader>so", "<cmd>only<CR>", { noremap = true, silent = true, desc = "Keep focused only" })
 
 ------------------------
 -- Vim Tmux Navigator --
