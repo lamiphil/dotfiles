@@ -6,6 +6,11 @@ map("i", "jk", "<ESC>")
 map("n", "H", "^")
 map("n", "L", "$")
 map("n", "<leader>sv", "<cmd>vsplit<CR>", { noremap = true, silent = true, desc = "Vertical split" })
+map("n", "<leader>sh", "<cmd>split<CR>", { noremap = true, silent = true, desc = "Horizontal split" })
+map("n", "<C-S-h>", "<cmd>vertical resize +2<CR>", { noremap = true, silent = true, desc = "Resize split left" })
+map("n", "<C-S-l>", "<cmd>vertical resize -2<CR>", { noremap = true, silent = true, desc = "Resize split right" })
+map("n", "<C-S-j>", "<cmd>resize -2<CR>", { noremap = true, silent = true, desc = "Resize split down" })
+map("n", "<C-S-k>", "<cmd>resize +2<CR>", { noremap = true, silent = true, desc = "Resize split up" })
 map("n", "<leader>so", "<cmd>only<CR>", { noremap = true, silent = true, desc = "Keep focused only" })
 
 ------------------------
