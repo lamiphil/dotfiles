@@ -411,16 +411,50 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+      -- Track whether hidden files are shown (default: on)
+      local show_hidden = true
+
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
-        --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
+        defaults = {
+          -- Show hidden files in grep results (respects .gitignore)
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--smart-case',
+            '--hidden',
+            '--glob', '!**/.git/*',
+          },
+          mappings = {
+            i = {
+              -- Toggle hidden files with <C-h> inside the Telescope prompt
+              ['<C-h>'] = function(prompt_bufnr)
+                local action_state = require 'telescope.actions.state'
+                local current_picker = action_state.get_current_picker(prompt_bufnr)
+                local prompt = current_picker:_get_prompt()
+                require('telescope.actions').close(prompt_bufnr)
+                show_hidden = not show_hidden
+                require('telescope.builtin').find_files {
+                  hidden = show_hidden,
+                  default_text = prompt,
+                  prompt_title = show_hidden and 'Find Files (hidden: on)' or 'Find Files (hidden: off)',
+                }
+              end,
+            },
+          },
+        },
+        pickers = {
+          find_files = {
+            -- Show hidden/dotfiles by default (respects .gitignore, excludes .git/)
+            hidden = true,
+            prompt_title = 'Find Files (hidden: on)',
+          },
+        },
         extensions = {
           ['ui-select'] = { require('telescope.themes').get_dropdown() },
         },
