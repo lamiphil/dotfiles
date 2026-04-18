@@ -1,0 +1,33 @@
+-- Markdown rendering with presets for headings, horizontal rules, and tables
+return {
+  'OXY2DEV/markview.nvim',
+  lazy = false,
+  enabled = true,
+  ft = 'markdown',
+  dependencies = {
+    'nvim-tree/nvim-web-devicons',
+  },
+
+  config = function()
+    -- Ensure markview is installed before trying to load presets
+    local ok, presets = pcall(require, 'markview.presets')
+    if not ok then
+      vim.notify('markview.presets not found!', vim.log.levels.ERROR)
+      return
+    end
+
+    require('markview').setup {
+      preview = {
+        icon_provider = 'devicons',
+      },
+      experimental = {
+        check_rtp = false,
+      },
+      markdown = {
+        headings = presets.headings.glow,
+        horizontal_rules = presets.horizontal_rules.thick,
+        tables = presets.tables.rounded,
+      },
+    }
+  end,
+}
