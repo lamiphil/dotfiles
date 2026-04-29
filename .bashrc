@@ -12,8 +12,8 @@ HISTCONTROL=ignoreboth
 shopt -s histappend
 
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
+HISTSIZE=50000
+HISTFILESIZE=100000
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
@@ -121,15 +121,33 @@ export FZF_DEFAULT_OPTS='
   --bind "ctrl-/:change-preview-window(down|hidden|)"
 '
 
-# Enhanced Ctrl+R with better history search
-export FZF_CTRL_R_OPTS="
-  --preview 'echo {}'
-  --preview-window up:3:hidden:wrap
-  --bind 'ctrl-/:toggle-preview'
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --color header:italic
-  --header 'Press CTRL-Y to copy command into clipboard'
-"
+# Enhanced Ctrl+R with newest-first history search
+__fzf_history__() {
+  local output
+
+  output=$(
+    builtin history |
+      awk '{ lines[NR] = $0 } END { for (i = NR; i > 0; i--) print lines[i] }' |
+      awk '{ command = $0; sub(/^[[:space:]]*[0-9]+[[:space:]]+/, "", command); if (!seen[command]++) print $0 }' |
+      fzf \
+        --height 40% \
+        --layout=reverse \
+        --border \
+        --scheme=history \
+        --bind 'ctrl-r:toggle-sort' \
+        --bind 'ctrl-/:toggle-preview' \
+        --bind 'ctrl-y:execute-silent(printf "%s" {} | sed "s/^[[:space:]]*[0-9][0-9]*[[:space:]]*//" | pbcopy)+abort' \
+        --preview 'printf "%s\n" {}' \
+        --preview-window up:3:hidden:wrap \
+        --header 'Newest first. CTRL-R toggles sort, CTRL-Y copies.'
+  ) || return
+
+  READLINE_LINE=$(printf '%s' "$output" | sed 's/^[[:space:]]*[0-9][0-9]*[[:space:]]*//')
+  READLINE_POINT=${#READLINE_LINE}
+}
+
+bind -x '"\C-r":__fzf_history__'
+
 
 # Load Cargo (Rust) environment if it exists
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
@@ -183,6 +201,9 @@ eval "$(starship init bash)"
 
 # zoxide
 eval "$(zoxide init --cmd cd bash)"
+
+# Keep history synced between concurrent shells/tmux panes.
+PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
 
 # Start ssh-agent
 eval $(ssh-agent -s) > /dev/null
