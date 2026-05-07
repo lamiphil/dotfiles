@@ -28,6 +28,12 @@ const DESTRUCTIVE_PATTERNS = [
 	/\bapt(-get)?\s+(install|remove|purge|update|upgrade)/i,
 	/\bbrew\s+(install|uninstall|upgrade)/i,
 	/\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|branch\s+-[dD]|stash|cherry-pick|revert|tag|init|clone)/i,
+	// gh (GitHub CLI) write operations — block before allowing reads.
+	/\bgh\s+api\b[^&;|]*(?:-X\s+|--method\s*=?\s*)(?:POST|PUT|DELETE|PATCH)\b/i,
+	/\bgh\s+(pr|issue)\s+(create|edit|close|reopen|merge|review|comment|delete|update|ready|lock|unlock)\b/i,
+	/\bgh\s+(repo|release|workflow|gist|label)\s+(create|edit|delete|update|fork|clone|run|disable|enable|archive|rename|sync)\b/i,
+	/\bgh\s+(secret|variable|ssh-key|gpg-key)\s+(set|remove|delete)\b/i,
+	/\bgh\s+auth\s+(login|logout|refresh|setup-git)\b/i,
 	/\bsudo\b/i,
 	/\bsu\b/i,
 	/\bkill\b/i,
@@ -49,6 +55,7 @@ const SAFE_PATTERNS = [
 	/^\s*more\b/,
 	/^\s*grep\b/,
 	/^\s*find\b/,
+	/^\s*xargs\b/,
 	/^\s*ls\b/,
 	/^\s*pwd\b/,
 	/^\s*echo\b/,
@@ -79,6 +86,16 @@ const SAFE_PATTERNS = [
 	/^\s*free\b/,
 	/^\s*git\s+(status|log|diff|show|branch|remote|config\s+--get)/i,
 	/^\s*git\s+ls-/i,
+	/^\s*git\s+(rev-parse|rev-list|describe|blame|shortlog|reflog|merge-base|for-each-ref|symbolic-ref|cat-file|grep|whatchanged|name-rev)\b/i,
+	/^\s*git\s+(worktree\s+list|submodule\s+status)\b/i,
+	// gh (GitHub CLI) read-only subcommands.
+	/^\s*gh\s+(--version|version|--help|help)\b/i,
+	/^\s*gh\s+auth\s+(status|token)\b/i,
+	/^\s*gh\s+(pr|issue|repo|release|workflow|run|gist)\s+(view|list|diff|status|checks|show|watch)\b/i,
+	/^\s*gh\s+search\b/i,
+	/^\s*gh\s+browse\b/i,
+	/^\s*gh\s+api\b/i,
+	/^\s*gh\s+(label|secret|variable)\s+list\b/i,
 	/^\s*npm\s+(list|ls|view|info|search|outdated|audit)/i,
 	/^\s*yarn\s+(list|info|why|audit)/i,
 	/^\s*node\s+--version/i,
@@ -94,10 +111,29 @@ const SAFE_PATTERNS = [
 	/^\s*eza\b/,
 ];
 
+// Treat `cd <anywhere>` as a free pass: navigation only, no filesystem writes.
+const NAV_RE = /^\s*cd\b/;
+
+// Naive top-level splitter: splits on &&, ||, ;, |. Does NOT handle quotes
+// or backticks. The destructive-pattern check still runs against the whole
+// command string, so hidden ops inside subshells/strings still trip the
+// destructive regexes.
+function splitTopLevel(command: string): string[] {
+	return command
+		.split(/&&|\|\||;|\|/)
+		.map((s) => s.trim())
+		.filter((s) => s.length > 0);
+}
+
+function isSegmentSafe(segment: string): boolean {
+	if (NAV_RE.test(segment)) return true;
+	return SAFE_PATTERNS.some((p) => p.test(segment));
+}
+
 export function isSafeCommand(command: string): boolean {
 	const isDestructive = DESTRUCTIVE_PATTERNS.some((p) => p.test(command));
-	const isSafe = SAFE_PATTERNS.some((p) => p.test(command));
-	return !isDestructive && isSafe;
+	if (isDestructive) return false;
+	return splitTopLevel(command).every(isSegmentSafe);
 }
 
 export interface TodoItem {
