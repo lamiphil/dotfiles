@@ -50,13 +50,48 @@ git commit -m "<the user's text>"
 1. Run `git status --porcelain` to see what's staged.
 2. If **nothing is staged**, stop and tell the user: "Nothing staged. Run `git add` first." Do not stage anything yourself.
 3. Run `git diff --cached` to read the changes.
-4. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
+4. **Check that the staged set is one logical change.** See "Logical commits"
+   below. If it isn't, stop and tell the user how to split it.
+5. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
    - Adding new functionality the user can use → `feat`
    - Correcting incorrect behavior → `fix`
    - Anything else (config, docs, refactor, deps, dotfiles, CI) → `chore`
-5. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
-6. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
-7. Run `git commit -m "<message>"`.
-8. Print the resulting commit subject and short hash.
+6. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
+7. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
+8. Run `git commit -m "<message>"`.
+9. Print the resulting commit subject and short hash.
 
 Only run `git status`, `git diff`, `git log`, and `git commit`. Never `git add`, `git push`, `git rebase`, or anything else.
+
+## Logical commits
+
+One commit = one logical change. Before committing, look at the staged set
+and decide whether it is **one** thing the reviewer would describe with a
+single sentence.
+
+Split when you see:
+
+- **Different scopes / areas** — e.g. `nvim` config + `tmux` config + `aws-guard`.
+- **Mixed types** — a real bug fix mixed in with unrelated refactor or config tweaks.
+- **A new feature plus its supporting unrelated cleanup** — commit each separately.
+- **Independent files that don't co-evolve** — if file A keeps working without
+  file B (and vice versa), they probably belong in different commits.
+
+Keep together when:
+
+- The changes are required to ship one capability (e.g. a new `/foo` command:
+  the extension code + the settings entry that registers it).
+- A single refactor touches several files but expresses one idea.
+- A test and the production code it covers.
+
+If the staged set is too broad, **do not commit**. Stop and report back with
+a suggested split (file groupings + one-line message per group). Tell the
+user to:
+
+```
+git reset                         # unstage everything
+git add <files for first commit>  # then re-run /commit
+```
+
+Never try to split commits with `git add -p` or `git restore --staged`
+yourself — the user controls staging.
