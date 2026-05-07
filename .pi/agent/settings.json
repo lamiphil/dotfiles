@@ -12,6 +12,9 @@
   "compaction": {
     "enabled": true
   },
+  "workingVibe": "adeptus mechanicus",
+  "workingVibeMode": "file",
+  "workingVibeFallback": "Praising the Omnissiah",
   "showLastPrompt": false,
   "powerline": {
     "preset": "default",
@@ -54,6 +57,5 @@
     "stashHistory": "ctrl+alt+h",
     "copyEditor": "ctrl+alt+c",
     "cutEditor": "ctrl+alt+x"
-  },
-  "workingVibe": "star trek"
+  }
 }

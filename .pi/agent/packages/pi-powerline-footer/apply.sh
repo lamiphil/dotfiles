@@ -130,4 +130,51 @@ open(path, "w").write(new_src)
 print("✓ index.ts (computeResponsiveLayout)")
 PY
 
+# ── 4. index.ts: support multi-word themes in `/vibe generate` ────────────
+python3 - "$PKG/index.ts" <<'PY'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:vibe-multiword]" in src:
+    print("✓ index.ts (vibe multi-word already patched)")
+    sys.exit(0)
+
+NEEDLE = (
+    "      // /vibe generate <theme> [count] - generate vibes and save to file\n"
+    "      if (subcommand === \"generate\") {\n"
+    "        const theme = parts[1];\n"
+    "        const parsedCount = Number.parseInt(parts[2] ?? \"\", 10);\n"
+    "        const count = Number.isFinite(parsedCount)\n"
+    "          ? Math.min(Math.max(Math.floor(parsedCount), 1), 500)\n"
+    "          : 100;\n"
+)
+
+REPL = (
+    "      // /vibe generate <theme> [count] - generate vibes and save to file\n"
+    "      // [pi-config patch:vibe-multiword] last numeric arg is the count;\n"
+    "      // everything else (joined by spaces) is the theme.\n"
+    "      if (subcommand === \"generate\") {\n"
+    "        const _gArgs = parts.slice(1);\n"
+    "        let _gCount = 100;\n"
+    "        let _gThemeParts = _gArgs;\n"
+    "        if (_gArgs.length > 0) {\n"
+    "          const _last = _gArgs[_gArgs.length - 1] ?? \"\";\n"
+    "          if (/^\\d+$/.test(_last)) {\n"
+    "            _gCount = Math.min(Math.max(Math.floor(Number.parseInt(_last, 10)), 1), 500);\n"
+    "            _gThemeParts = _gArgs.slice(0, -1);\n"
+    "          }\n"
+    "        }\n"
+    "        const theme = _gThemeParts.join(\" \").trim();\n"
+    "        const count = _gCount;\n"
+)
+
+if NEEDLE not in src:
+    print("Could not find /vibe generate body to patch (upstream changed?)", file=sys.stderr)
+    sys.exit(1)
+
+open(path, "w").write(src.replace(NEEDLE, REPL, 1))
+print("✓ index.ts (vibe multi-word)")
+PY
+
 echo "Done. Run /reload in pi (or restart) to pick up the changes."
