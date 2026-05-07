@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Stage and commit pending changes using a tight conventional-commits format with only chore/feat/fix types. Always stages all working-tree changes before committing. Refuses to commit when the staged set is not one logical change. With arguments, uses them as the full commit message verbatim.
+description: Stage and commit pending changes using a tight conventional-commits format with only chore/feat/fix types. Auto-stages all working-tree changes when nothing is staged yet; commits just the existing staged set when the user pre-staged a subset. Refuses to commit when the staged set is not one logical change. With arguments, uses them as the full commit message verbatim.
 tools: Read, Bash
 allowedBashCommands: git status, git diff, git log, git add, git reset, git commit
 model: haiku
@@ -9,8 +9,10 @@ model: haiku
 # /commit
 
 Commits pending working-tree changes with a tight conventional-commits format.
-**Stages all changes for you** (`git add -A`) before committing — you no longer
-need to `git add` manually.
+**Auto-stages everything when nothing is staged yet**, so you no longer need to
+`git add` for the common case. When something **is** already staged, only the
+staged set is committed — so manual per-group staging (`git add <subset> && /commit`)
+still works as expected.
 
 ## Format
 
@@ -42,40 +44,51 @@ chore: tidy gitignore
 ## With arguments
 
 If the user passes text after `/commit`, treat the entire text as the **final
-commit message** and use it verbatim. Stage everything, then commit:
+commit message** and use it verbatim:
 
-```
-git add -A
-git commit -m "<the user's text>"
-```
+1. Run `git status --porcelain`.
+2. If anything is **already staged** (first column of porcelain output is
+   non-space, e.g. `M `, `A `, `D `, `R`, `C`), commit just that staged set
+   — do not auto-stage anything else.
+3. Otherwise, if the working tree is clean, stop with: "Nothing to commit —
+   working tree clean."
+4. Otherwise (tree dirty, nothing staged), `git add -A` to stage everything,
+   then commit.
+5. `git commit -m "<the user's text>"`
 
-Do not edit the message. Do not add a type if missing.
+Do not edit the message. Do not add a type if missing. With arguments, the
+logical-commit guard is **bypassed** — explicit user intent wins.
 
 ## Without arguments
 
 1. Run `git status --porcelain`.
-2. If the working tree is clean **and** nothing is already staged, stop and
-   tell the user: "Nothing to commit — working tree clean."
-3. Stage everything:
-   ```
-   git add -A
-   ```
-   Respects `.gitignore`. After this, the staged set may include files the
-   user hadn't explicitly added; that's expected.
-4. Run `git diff --cached` to read the staged changes.
-5. **Check that the staged set is one logical change.** See "Logical commits"
+2. **Decide whether to auto-stage**. If the porcelain output contains
+   **any line whose first column is non-space** (something is already
+   staged), do **not** auto-stage — the user has set up the staged set
+   intentionally. If nothing is staged and the working tree is clean,
+   stop with: "Nothing to commit — working tree clean." Otherwise
+   (working-tree changes exist but nothing is staged), run
+   `git add -A` to stage everything (respects `.gitignore`).
+   - Remember whether **you** ran `git add -A` (call it `weStaged`).
+     This matters for the refusal flow below.
+3. Run `git diff --cached` to read the staged changes.
+4. **Check that the staged set is one logical change.** See "Logical commits"
    below.
-   - If it is **not** one logical change → stop. Run `git reset` to undo the
-     staging you just did, then report a suggested split to the user (see
-     "Refusal flow"). **Do not commit.**
-6. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
+   - If it is **not** one logical change → stop.
+     - If `weStaged` is true: run `git reset` to undo the staging you just
+       did, so the working tree is back to its pre-`/commit` state.
+     - If `weStaged` is false: the user staged this themselves; **leave
+       the index intact** so they don't lose their selection.
+     Then report a suggested split to the user (see "Refusal flow").
+     **Do not commit.**
+5. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
    - Adding new functionality the user can use → `feat`
    - Correcting incorrect behavior → `fix`
    - Anything else (config, docs, refactor, deps, dotfiles, CI) → `chore`
-7. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
-8. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
-9. Run `git commit -m "<message>"`.
-10. Print the resulting commit subject and short hash.
+6. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
+7. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
+8. Run `git commit -m "<message>"`.
+9. Print the resulting commit subject and short hash.
 
 Allowed commands: `git status`, `git diff`, `git log`, `git add`, `git reset`,
 `git commit`. Never `git push`, `git rebase`, `git checkout`, `git restore`,
@@ -104,9 +117,8 @@ Keep together when:
 
 ## Refusal flow (when staged set is too broad)
 
-After running `git reset` to undo the staging you just did, report back with
-a suggested split: file groupings + a one-line message per group. Tell the
-user how to commit each group:
+Report back with a suggested split: file groupings + a one-line message per
+group. Tell the user how to commit each group:
 
 ```
 git add <files for first commit>  &&  /commit
@@ -114,9 +126,15 @@ git add <files for second commit> &&  /commit
 …
 ```
 
-The working tree is left intact (only the index is reset). Never try to split
-commits with `git add -p` or `git restore --staged` yourself — once we refuse,
-the user takes manual control.
+If you ran `git add -A` yourself this turn (`weStaged` true), also run
+`git reset` first so the index is clean and the user's `git add <subset>`
+starts from a clean slate. If the user had already curated the staged set
+(`weStaged` false), leave it intact so they can adjust it without losing
+their work.
+
+The working tree is left intact either way (only the index may be reset).
+Never try to split commits with `git add -p` or `git restore --staged`
+yourself — once we refuse, the user takes manual control.
 
 ## When to bypass the logical-commit guard
 

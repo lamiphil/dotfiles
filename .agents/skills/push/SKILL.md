@@ -1,6 +1,6 @@
 ---
 name: push
-description: Smart push — auto-stages and commits pending changes (per /commit rules), then pushes. Just pushes when there are unpushed commits and a clean tree. Sets the upstream automatically when the branch has none. Use `/push force` to bypass the logical-commit guard and lump everything into one commit (asks for confirmation before pushing).
+description: Smart push — auto-stages and commits pending changes (per /commit rules), then pushes. If something is already staged, only the staged set is committed (manual per-group flow stays intact). Just pushes when there are unpushed commits and a clean tree. Sets the upstream automatically when the branch has none. Use `/push force` to bypass the logical-commit guard and lump everything into one commit (asks for confirmation before pushing).
 tools: Read, Bash
 allowedBashCommands: git status, git diff, git log, git add, git reset, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote
 model: haiku
@@ -19,17 +19,16 @@ decision tree:
 1. Run `git status --porcelain`. If the working tree is clean **and** there
    are no commits ahead of upstream, fall back to the normal flow's case C
    (`Nothing to do`).
-2. Stage all working-tree changes:
-   ```
-   git add -A
-   ```
+2. Stage everything if needed: if the porcelain output already has staged
+   entries (first column non-space), keep that intact — the user has
+   curated it. Otherwise run `git add -A` to stage all working-tree changes.
    Respects `.gitignore`.
-3. Run the **`/commit`** skill's "with arguments" path if the user passed
-   any text **after** `force` (e.g. `/push force feat(api): add login`):
-   commit verbatim with that message. Otherwise, **bypass the
-   logical-commit guard**: pick a single chore/feat/fix message that
-   broadly summarizes the staged set and commit. Force mode is the explicit
-   override for the "must be one logical change" rule.
+3. Commit. If the user passed any text **after** `force`
+   (e.g. `/push force feat(api): add login`), use it verbatim with
+   `git commit -m "<text>"`. Otherwise, **bypass the logical-commit guard**:
+   pick a single chore/feat/fix message that broadly summarizes the staged
+   set and commit. Force mode is the explicit override for the "must be one
+   logical change" rule.
 4. **Stop and ask the user for explicit authorization** before pushing.
    Print the new commit's subject + short hash, the branch name, and the
    target (`origin/<branch>` or `origin <branch>` for an unset upstream).
@@ -67,10 +66,13 @@ Follow this decision tree.
 4. Choose **exactly one** of the following branches:
 
    ### A — There are working-tree changes (staged or unstaged)
-   Run the **`/commit`** workflow. It will:
-   - Stage everything (`git add -A`),
-   - Run the logical-commit check,
-   - Either commit, or refuse and unstage with a suggested split.
+   Run the **`/commit`** workflow, which will:
+   - **Auto-stage only when nothing is already staged.** If the user has
+     hand-staged a subset, that subset is committed as-is and the rest of
+     the working tree is left for follow-up `/commit` runs.
+   - Run the logical-commit check on the staged set.
+   - Either commit, or refuse with a suggested split (and unstage only what
+     `/commit` itself just staged — hand-staged sets are preserved).
 
    If `/commit` refused (broad set), **stop**. Pass through its suggested
    split to the user. Do not push. Tell the user to `git add` the first
