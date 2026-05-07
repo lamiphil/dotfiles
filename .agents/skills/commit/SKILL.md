@@ -58,6 +58,12 @@ so the same instructions apply uniformly.
 - `<type>` — exactly one of: `chore`, `feat`, `fix`
 - `<scope>` — lowercase, the affected component or area; in parentheses; optional, omit if unclear
 - `<description>` — short, imperative, lowercase first letter, no trailing period
+- **Preserve acronyms and proper nouns** in their original casing even when the rest of the description is lowercase. Examples:
+  - `chore(foundation): add VPC_CIDR_BLOCK fallback`
+  - `chore(foundation): write kubeconfig to dab in Infisical`
+  - `feat(foundation): install kube-state-metrics`
+  - `feat(foundation): add log export to Grafana Cloud Loki`
+  - `chore(ci): bump actions/checkout to v4`
 - Total subject ≤ 72 characters when possible
 - No body, no footer (keep it simple)
 
