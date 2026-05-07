@@ -5,7 +5,6 @@
   "defaultModel": "claude-opus-4-7",
   "defaultThinkingLevel": "medium",
   "packages": [
-    "npm:pi-vim",
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction"
   ],
