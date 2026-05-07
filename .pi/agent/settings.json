@@ -56,5 +56,9 @@
     "stashHistory": "ctrl+alt+h",
     "copyEditor": "ctrl+alt+c",
     "cutEditor": "ctrl+alt+x"
-  }
+  },
+  "editorPaddingX": 1,
+  "steeringMode": "one-at-a-time",
+  "doubleEscapeAction": "tree",
+  "treeFilterMode": "default"
 }
