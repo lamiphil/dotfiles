@@ -1,8 +1,8 @@
 ---
 name: push
-description: Smart push — commits staged changes (using /commit rules) before pushing, just pushes when there are already unpushed commits, and says nothing to do when up to date. Sets the upstream automatically when the branch has none. Use `/push force` to also stage unstaged changes (asks for confirmation before pushing).
+description: Smart push — auto-stages and commits pending changes (per /commit rules), then pushes. Just pushes when there are unpushed commits and a clean tree. Sets the upstream automatically when the branch has none. Use `/push force` to bypass the logical-commit guard and lump everything into one commit (asks for confirmation before pushing).
 tools: Read, Bash
-allowedBashCommands: git status, git diff, git log, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote, git add
+allowedBashCommands: git status, git diff, git log, git add, git reset, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote
 model: haiku
 ---
 
@@ -13,21 +13,23 @@ upstream.
 
 ## `/push force` mode
 
-When the user invokes `/push force` (the literal word `force` is the only
-argument), use this flow instead of the default decision tree:
+When the user invokes `/push force`, use this flow instead of the default
+decision tree:
 
 1. Run `git status --porcelain`. If the working tree is clean **and** there
    are no commits ahead of upstream, fall back to the normal flow's case C
    (`Nothing to do`).
-2. Stage all tracked-modified, deleted, and untracked files:
+2. Stage all working-tree changes:
    ```
    git add -A
    ```
-   Respect `.gitignore`. Do not stage anything else by hand.
-3. Run the **`/commit`** workflow. Use the user's text verbatim if they passed
-   any text **after** `force` (e.g. `/push force feat(api): add login`),
-   otherwise auto-generate the message per the `/commit` skill (chore | feat
-   | fix only).
+   Respects `.gitignore`.
+3. Run the **`/commit`** skill's "with arguments" path if the user passed
+   any text **after** `force` (e.g. `/push force feat(api): add login`):
+   commit verbatim with that message. Otherwise, **bypass the
+   logical-commit guard**: pick a single chore/feat/fix message that
+   broadly summarizes the staged set and commit. Force mode is the explicit
+   override for the "must be one logical change" rule.
 4. **Stop and ask the user for explicit authorization** before pushing.
    Print the new commit's subject + short hash, the branch name, and the
    target (`origin/<branch>` or `origin <branch>` for an unset upstream).
@@ -45,8 +47,8 @@ argument), use this flow instead of the default decision tree:
    `pushed to origin/<branch>`.
 
 Never combine `force` with `--force` / `-f`. The `force` keyword in this
-skill only authorizes staging — it never authorizes a force-push, rebase,
-or history rewrite.
+skill only authorizes bypassing the logical-commit guard — it never
+authorizes a force-push, rebase, or history rewrite.
 
 ---
 
@@ -64,12 +66,23 @@ Follow this decision tree.
 
 4. Choose **exactly one** of the following branches:
 
-   ### A — Something is staged
-   Run the **`/commit`** workflow first. Use the user's text verbatim if they
-   passed any after `/push`; otherwise auto-generate the message per the
-   `/commit` skill (chore | feat | fix only). Then continue to step 5.
+   ### A — There are working-tree changes (staged or unstaged)
+   Run the **`/commit`** workflow. It will:
+   - Stage everything (`git add -A`),
+   - Run the logical-commit check,
+   - Either commit, or refuse and unstage with a suggested split.
 
-   ### B — Nothing staged, but there are local commits ahead of the upstream
+   If `/commit` refused (broad set), **stop**. Pass through its suggested
+   split to the user. Do not push. Tell the user to `git add` the first
+   logical group manually and re-run `/push` (or `/push force` if they
+   really want one big commit).
+
+   If the commit succeeded, continue to step 5.
+
+   If the user passed text after `/push`, forward it to `/commit` so it's
+   used as the verbatim message.
+
+   ### B — Nothing changed in the tree, but there are local commits ahead of the upstream
    Skip committing. Continue to step 5.
 
    You can verify with:
@@ -77,11 +90,11 @@ Follow this decision tree.
    git log @{u}..HEAD --oneline    # only meaningful when upstream exists
    ```
 
-   ### C — Nothing staged, no commits ahead, and there is an upstream
+   ### C — Working tree clean, no commits ahead, and there is an upstream
    Say: **"Nothing to do — working tree clean and up to date with `<upstream>`."**
    Stop. Do not push.
 
-   ### D — Nothing staged, no upstream yet, but the branch has commits
+   ### D — Working tree clean, no upstream yet, but the branch has commits
    Treat the same as B (push and set upstream in step 5).
 
 5. **Push**. Two cases:
@@ -98,7 +111,6 @@ Follow this decision tree.
 
 ## Rules
 
-- Never `git add` anything. The user controls staging.
 - Never amend, rebase, force-push, or rewrite history.
 - Never push a different branch than the current one.
 - If `git push` is rejected (non-fast-forward, etc.), stop and show the error.
@@ -106,5 +118,6 @@ Follow this decision tree.
 
 ## Allowed commands
 
-`git status`, `git diff`, `git log`, `git commit`, `git push`,
-`git rev-parse`, `git symbolic-ref`, `git branch`, `git remote`. Nothing else.
+`git status`, `git diff`, `git log`, `git add`, `git reset`, `git commit`,
+`git push`, `git rev-parse`, `git symbolic-ref`, `git branch`, `git remote`.
+Nothing else.
