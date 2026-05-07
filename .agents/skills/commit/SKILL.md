@@ -1,95 +1,62 @@
 ---
 name: commit
-description: Commit staged changes using conventional commits format. Analyzes changes and creates a properly formatted commit message.
+description: Commit staged changes using a tight conventional-commits format with only chore/feat/fix types. With arguments, uses them as the full commit message verbatim. Without arguments, analyzes staged changes and generates a short message.
 tools: Read, Bash
-allowedBashCommands: git status, git diff, git add, git commit
+allowedBashCommands: git status, git diff, git log, git commit
 model: haiku
 ---
 
-You are a commit message specialist. Your ONLY job is to commit the current changes using the conventional commits format.
+# /commit
 
-## Conventional Commits Format
+Always commits the **already staged** changes. Never stages anything.
+
+## Format
 
 ```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
+<type>(<scope>): <description>
 ```
+
+- `<type>` — exactly one of: `chore`, `feat`, `fix`
+- `<scope>` — lowercase, the affected component or area; in parentheses; optional, omit if unclear
+- `<description>` — short, imperative, lowercase first letter, no trailing period
+- Total subject ≤ 72 characters when possible
+- No body, no footer (keep it simple)
 
 ### Types
 
-- **feat**: A new feature (correlates with MINOR in SemVer)
-- **fix**: A bug fix (correlates with PATCH in SemVer)
-- **docs**: Documentation only changes
-- **style**: Changes that don't affect code meaning (whitespace, formatting)
-- **refactor**: Code change that neither fixes a bug nor adds a feature
-- **perf**: Performance improvement
-- **test**: Adding or correcting tests
-- **build**: Changes to build system or external dependencies
-- **ci**: Changes to CI configuration files and scripts
-- **chore**: Other changes that don't modify src or test files
-
-### Scope (Optional)
-
-A noun describing the section of codebase affected, in parentheses: `feat(parser):`, `fix(api):`
-
-### Breaking Changes
-
-Indicate breaking changes by:
-- Adding `!` after type/scope: `feat!:` or `feat(api)!:`
-- Adding a `BREAKING CHANGE:` footer
+- **chore** — Anything that isn't a new feature or a bug fix. Refactor, formatting, docs, CI, dependency bumps, config tweaks, dotfile changes.
+- **feat** — A new feature is added.
+- **fix** — A bug is fixed.
 
 ### Examples
 
 ```
-feat(lang): add Polish language
-fix: prevent racing of requests
-docs: correct spelling of CHANGELOG
-feat!: send an email to the customer when a product is shipped
-refactor(auth): simplify token validation logic
+feat(auth): add login page
+fix(auth): redirect after expired session
+chore(ci): bump actions/checkout to v4
+chore: tidy gitignore
 ```
 
-## Your Process
+## With arguments
 
-1. Run `git status` to see staged and unstaged changes
-2. Run `git diff --cached` to see what's staged (if anything)
-3. Run `git diff` to see unstaged changes (if nothing is staged)
-4. Analyze the changes to determine:
-   - The appropriate **type**
-   - The appropriate **scope** (optional, if changes are focused on one area)
-   - A concise **description** of what changed
-   - Whether it's a breaking change (add exclamation mark if so)
-5. If nothing is staged, stage the relevant changes with `git add`
-6. Create the commit with the conventional format (no body)
+If the user passes text after `/commit`, treat the entire text as the **final commit message** and use it verbatim. Do not edit it. Do not add a type if missing. Just run:
 
-## Rules
-
-- Keep the description concise (50 chars or less ideally)
-- Use imperative mood ("add" not "added", "fix" not "fixed")
-- Don't capitalize the first letter of the description
-- Don't end description with a period
-- Scope should be lowercase
-- **NO BODY** - 95% of commits need no body. Only add a body for exceptionally large and complex changes where the subject line alone cannot convey the essential context
-- DO NOT push to remote - only commit locally
-- DO NOT do anything else - your only job is to create the commit
-
-## Commit Command Format
-
-Standard commit (use this 95% of the time):
-
-```bash
-git commit -m "<type>[scope]: <description>"
+```
+git commit -m "<the user's text>"
 ```
 
-Only for exceptionally complex changes that require additional context:
+## Without arguments
 
-```bash
-git commit -m "$(cat <<'EOF'
-<type>[scope]: <description>
+1. Run `git status --porcelain` to see what's staged.
+2. If **nothing is staged**, stop and tell the user: "Nothing staged. Run `git add` first." Do not stage anything yourself.
+3. Run `git diff --cached` to read the changes.
+4. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
+   - Adding new functionality the user can use → `feat`
+   - Correcting incorrect behavior → `fix`
+   - Anything else (config, docs, refactor, deps, dotfiles, CI) → `chore`
+5. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
+6. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
+7. Run `git commit -m "<message>"`.
+8. Print the resulting commit subject and short hash.
 
-<brief context only if absolutely necessary>
-EOF
-)"
-```
+Only run `git status`, `git diff`, `git log`, and `git commit`. Never `git add`, `git push`, `git rebase`, or anything else.
