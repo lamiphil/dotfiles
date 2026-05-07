@@ -1,8 +1,8 @@
 ---
 name: push
-description: Smart push — commits staged changes (using /commit rules) before pushing, just pushes when there are already unpushed commits, and says nothing to do when up to date. Sets the upstream automatically when the branch has none.
+description: Smart push — commits staged changes (using /commit rules) before pushing, just pushes when there are already unpushed commits, and says nothing to do when up to date. Sets the upstream automatically when the branch has none. Use `/push force` to also stage unstaged changes (asks for confirmation before pushing).
 tools: Read, Bash
-allowedBashCommands: git status, git diff, git log, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote
+allowedBashCommands: git status, git diff, git log, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote, git add
 model: haiku
 ---
 
@@ -11,7 +11,48 @@ model: haiku
 Decide what to do based on the working tree and the branch's state vs its
 upstream.
 
-## Decision tree
+## `/push force` mode
+
+When the user invokes `/push force` (the literal word `force` is the only
+argument), use this flow instead of the default decision tree:
+
+1. Run `git status --porcelain`. If the working tree is clean **and** there
+   are no commits ahead of upstream, fall back to the normal flow's case C
+   (`Nothing to do`).
+2. Stage all tracked-modified, deleted, and untracked files:
+   ```
+   git add -A
+   ```
+   Respect `.gitignore`. Do not stage anything else by hand.
+3. Run the **`/commit`** workflow. Use the user's text verbatim if they passed
+   any text **after** `force` (e.g. `/push force feat(api): add login`),
+   otherwise auto-generate the message per the `/commit` skill (chore | feat
+   | fix only).
+4. **Stop and ask the user for explicit authorization** before pushing.
+   Print the new commit's subject + short hash, the branch name, and the
+   target (`origin/<branch>` or `origin <branch>` for an unset upstream).
+   Ask, literally:
+   ```
+   Push this commit to <target>? (yes/no)
+   ```
+   Wait for the user's reply. Only proceed if they answer with `y`, `yes`,
+   `Y`, or `YES`. Anything else → stop. Do not amend, do not reset, do not
+   undo the commit. Tell the user how to push later: `/push` (no args) will
+   send it the next time they invoke it.
+5. On approval, push using the same logic as step 5 of the default flow
+   (set upstream automatically if the branch has none).
+6. Print a summary line: commit subject + short hash, then
+   `pushed to origin/<branch>`.
+
+Never combine `force` with `--force` / `-f`. The `force` keyword in this
+skill only authorizes staging — it never authorizes a force-push, rebase,
+or history rewrite.
+
+---
+
+## Default mode (no args, or any text other than `force`)
+
+Follow this decision tree.
 
 1. Run `git status --porcelain` to inspect the working tree.
 2. Run `git rev-parse --abbrev-ref HEAD` to get the current branch name.
