@@ -2,7 +2,7 @@
 name: commit
 description: Stage and commit pending changes using a tight conventional-commits format with only chore/feat/fix types. Auto-stages all working-tree changes when nothing is staged yet; commits just the existing staged set when the user pre-staged a subset. Refuses to commit when the staged set is not one logical change. With arguments, uses them as the full commit message verbatim.
 tools: Read, Bash
-allowedBashCommands: git status, git diff, git log, git add, git reset, git commit
+allowedBashCommands: git status, git diff, git log, git add, git reset, git commit, git rev-parse, find
 model: haiku
 ---
 
@@ -13,6 +13,41 @@ Commits pending working-tree changes with a tight conventional-commits format.
 `git add` for the common case. When something **is** already staged, only the
 staged set is committed — so manual per-group staging (`git add <subset> && /commit`)
 still works as expected.
+
+If pi's cwd isn't a git repository, `/commit` finds nearby repos under cwd
+(up to two levels deep) and either uses the only one, or asks you to pick.
+See "Repo resolution" below.
+
+## Repo resolution
+
+Before running any git command, decide which repo to operate on:
+
+1. Run `git rev-parse --show-toplevel` (without `-C`).
+   - Exit 0 → the printed path **is** `<repo>`. Skip to the normal flow.
+   - Non-zero → cwd is not inside a git repo. Continue to step 2.
+2. Search for git repositories under cwd, up to two levels deep:
+   ```
+   find . -maxdepth 3 -type d -name .git -prune
+   ```
+   For each result, the repo path is the parent directory (strip `/.git`).
+3. Decide based on the count:
+   - **0 found** → stop. Tell the user: "Not in a git repository, and no
+     nearby repos found under `<cwd>`. cd into a repo and re-run."
+   - **1 found** → tell the user `Using <repo>` and use it as `<repo>`.
+   - **2+ found** → print a numbered list and ask: "Which repo? (1–N, or
+     'cancel')". Wait for the user's reply. On a number match, use that
+     repo. On `cancel` or anything else, stop with `Cancelled.`.
+4. From this point on, prefix every git command with `git -C <repo>`:
+   - `git -C <repo> status --porcelain`
+   - `git -C <repo> add -A`
+   - `git -C <repo> diff --cached`
+   - `git -C <repo> reset`
+   - `git -C <repo> commit -m "<message>"`
+   - `git -C <repo> log -1 --pretty=%h\ %s`
+
+When `<repo>` is the same as cwd, `-C <repo>` is a harmless no-op — still
+prefer the explicit form so it's obvious which repo you're acting on, and
+so the same instructions apply uniformly.
 
 ## Format
 
@@ -46,53 +81,58 @@ chore: tidy gitignore
 If the user passes text after `/commit`, treat the entire text as the **final
 commit message** and use it verbatim:
 
-1. Run `git status --porcelain`.
-2. If anything is **already staged** (first column of porcelain output is
+1. Resolve `<repo>` per the "Repo resolution" section above.
+2. Run `git -C <repo> status --porcelain`.
+3. If anything is **already staged** (first column of porcelain output is
    non-space, e.g. `M `, `A `, `D `, `R`, `C`), commit just that staged set
    — do not auto-stage anything else.
-3. Otherwise, if the working tree is clean, stop with: "Nothing to commit —
+4. Otherwise, if the working tree is clean, stop with: "Nothing to commit —
    working tree clean."
-4. Otherwise (tree dirty, nothing staged), `git add -A` to stage everything,
-   then commit.
-5. `git commit -m "<the user's text>"`
+5. Otherwise (tree dirty, nothing staged), `git -C <repo> add -A` to stage
+   everything, then commit.
+6. `git -C <repo> commit -m "<the user's text>"`
 
 Do not edit the message. Do not add a type if missing. With arguments, the
 logical-commit guard is **bypassed** — explicit user intent wins.
 
 ## Without arguments
 
-1. Run `git status --porcelain`.
-2. **Decide whether to auto-stage**. If the porcelain output contains
+1. Resolve `<repo>` per the "Repo resolution" section above.
+2. Run `git -C <repo> status --porcelain`.
+3. **Decide whether to auto-stage**. If the porcelain output contains
    **any line whose first column is non-space** (something is already
    staged), do **not** auto-stage — the user has set up the staged set
    intentionally. If nothing is staged and the working tree is clean,
    stop with: "Nothing to commit — working tree clean." Otherwise
    (working-tree changes exist but nothing is staged), run
-   `git add -A` to stage everything (respects `.gitignore`).
+   `git -C <repo> add -A` to stage everything (respects `.gitignore`).
    - Remember whether **you** ran `git add -A` (call it `weStaged`).
      This matters for the refusal flow below.
-3. Run `git diff --cached` to read the staged changes.
-4. **Check that the staged set is one logical change.** See "Logical commits"
+4. Run `git -C <repo> diff --cached` to read the staged changes.
+5. **Check that the staged set is one logical change.** See "Logical commits"
    below.
    - If it is **not** one logical change → stop.
-     - If `weStaged` is true: run `git reset` to undo the staging you just
-       did, so the working tree is back to its pre-`/commit` state.
+     - If `weStaged` is true: run `git -C <repo> reset` to undo the staging
+       you just did, so the working tree is back to its pre-`/commit` state.
      - If `weStaged` is false: the user staged this themselves; **leave
        the index intact** so they don't lose their selection.
      Then report a suggested split to the user (see "Refusal flow").
      **Do not commit.**
-5. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
+6. Pick exactly one of `chore` / `feat` / `fix` based on the diff:
    - Adding new functionality the user can use → `feat`
    - Correcting incorrect behavior → `fix`
    - Anything else (config, docs, refactor, deps, dotfiles, CI) → `chore`
-6. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
-7. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
-8. Run `git commit -m "<message>"`.
-9. Print the resulting commit subject and short hash.
+7. Pick a scope when one is obvious from the paths (e.g., `auth`, `ci`, `nvim`, `aws-guard`). If multiple unrelated areas changed, omit the scope.
+8. Write the description. Imperative mood ("add", not "added"). Keep it under ~50 chars.
+9. Run `git -C <repo> commit -m "<message>"`.
+10. Print the resulting commit subject and short hash. Mention the repo if
+    it differs from cwd.
 
 Allowed commands: `git status`, `git diff`, `git log`, `git add`, `git reset`,
-`git commit`. Never `git push`, `git rebase`, `git checkout`, `git restore`,
-`git stash`, or anything else.
+`git commit`, `git rev-parse`, `find` (only with the form
+`find . -maxdepth 3 -type d -name .git -prune` for repo discovery). Either
+as plain or with `git -C <repo>`. Never `git push`, `git rebase`,
+`git checkout`, `git restore`, `git stash`, or anything else.
 
 ## Logical commits
 

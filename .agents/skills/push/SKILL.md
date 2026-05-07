@@ -2,7 +2,7 @@
 name: push
 description: Smart push — auto-stages and commits pending changes (per /commit rules), then pushes. If something is already staged, only the staged set is committed (manual per-group flow stays intact). Just pushes when there are unpushed commits and a clean tree. Sets the upstream automatically when the branch has none. Use `/push force` to bypass the logical-commit guard and lump everything into one commit (asks for confirmation before pushing).
 tools: Read, Bash
-allowedBashCommands: git status, git diff, git log, git add, git reset, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote
+allowedBashCommands: git status, git diff, git log, git add, git reset, git commit, git push, git rev-parse, git symbolic-ref, git branch, git remote, find
 model: haiku
 ---
 
@@ -11,24 +11,46 @@ model: haiku
 Decide what to do based on the working tree and the branch's state vs its
 upstream.
 
+## Repo resolution
+
+Before any git command, resolve `<repo>`:
+
+1. Run `git rev-parse --show-toplevel` (without `-C`).
+   - Exit 0 → the printed path is `<repo>`. Skip to the main flow below.
+   - Non-zero → cwd is not inside a git repo. Continue to step 2.
+2. Search up to two levels deep for git repos:
+   ```
+   find . -maxdepth 3 -type d -name .git -prune
+   ```
+   For each result, the repo path is its parent directory.
+3. Decide:
+   - **0 found** → stop with: "Not in a git repository, and no nearby repos
+     found under `<cwd>`. cd into a repo and re-run."
+   - **1 found** → use it. Tell the user `Using <repo>`.
+   - **2+ found** → print a numbered list and ask: "Which repo? (1–N, or
+     'cancel')". Wait for the reply. Use the matched repo, or stop with
+     `Cancelled.` on no match.
+4. From this point on, prefix every git command with `git -C <repo>`. This
+   includes the calls into the `/commit` workflow (forward `<repo>` to it).
+
 ## `/push force` mode
 
 When the user invokes `/push force`, use this flow instead of the default
-decision tree:
+decision tree. Resolve `<repo>` first (per "Repo resolution"), then:
 
-1. Run `git status --porcelain`. If the working tree is clean **and** there
-   are no commits ahead of upstream, fall back to the normal flow's case C
-   (`Nothing to do`).
+1. Run `git -C <repo> status --porcelain`. If the working tree is clean
+   **and** there are no commits ahead of upstream, fall back to the normal
+   flow's case C (`Nothing to do`).
 2. Stage everything if needed: if the porcelain output already has staged
    entries (first column non-space), keep that intact — the user has
-   curated it. Otherwise run `git add -A` to stage all working-tree changes.
-   Respects `.gitignore`.
+   curated it. Otherwise run `git -C <repo> add -A` to stage all
+   working-tree changes. Respects `.gitignore`.
 3. Commit. If the user passed any text **after** `force`
    (e.g. `/push force feat(api): add login`), use it verbatim with
-   `git commit -m "<text>"`. Otherwise, **bypass the logical-commit guard**:
-   pick a single chore/feat/fix message that broadly summarizes the staged
-   set and commit. Force mode is the explicit override for the "must be one
-   logical change" rule.
+   `git -C <repo> commit -m "<text>"`. Otherwise, **bypass the
+   logical-commit guard**: pick a single chore/feat/fix message that
+   broadly summarizes the staged set and commit. Force mode is the
+   explicit override for the "must be one logical change" rule.
 4. **Stop and ask the user for explicit authorization** before pushing.
    Print the new commit's subject + short hash, the branch name, and the
    target (`origin/<branch>` or `origin <branch>` for an unset upstream).
@@ -53,13 +75,13 @@ authorizes a force-push, rebase, or history rewrite.
 
 ## Default mode (no args, or any text other than `force`)
 
-Follow this decision tree.
+Resolve `<repo>` per "Repo resolution" first, then follow this decision tree.
 
-1. Run `git status --porcelain` to inspect the working tree.
-2. Run `git rev-parse --abbrev-ref HEAD` to get the current branch name.
+1. Run `git -C <repo> status --porcelain` to inspect the working tree.
+2. Run `git -C <repo> rev-parse --abbrev-ref HEAD` to get the current branch name.
 3. Determine whether the branch has an upstream:
    ```
-   git rev-parse --abbrev-ref --symbolic-full-name @{u}
+   git -C <repo> rev-parse --abbrev-ref --symbolic-full-name @{u}
    ```
    Exit code 0 ⇒ upstream exists. Non-zero ⇒ no upstream.
 
@@ -89,7 +111,7 @@ Follow this decision tree.
 
    You can verify with:
    ```
-   git log @{u}..HEAD --oneline    # only meaningful when upstream exists
+   git -C <repo> log @{u}..HEAD --oneline    # only meaningful when upstream exists
    ```
 
    ### C — Working tree clean, no commits ahead, and there is an upstream
@@ -101,9 +123,9 @@ Follow this decision tree.
 
 5. **Push**. Two cases:
 
-   - Upstream exists → `git push`.
-   - No upstream → `git push --set-upstream origin <branch>` using the branch
-     name from step 2.
+   - Upstream exists → `git -C <repo> push`.
+   - No upstream → `git -C <repo> push --set-upstream origin <branch>` using
+     the branch name from step 2.
 
 6. Print one summary line:
    - When you committed: the commit subject + short hash, then `pushed to origin/<branch>`.
@@ -121,5 +143,7 @@ Follow this decision tree.
 ## Allowed commands
 
 `git status`, `git diff`, `git log`, `git add`, `git reset`, `git commit`,
-`git push`, `git rev-parse`, `git symbolic-ref`, `git branch`, `git remote`.
+`git push`, `git rev-parse`, `git symbolic-ref`, `git branch`, `git remote`,
+`find` (only with the exact form `find . -maxdepth 3 -type d -name .git -prune`
+used for repo discovery). Either as plain or `git -C <repo>` form.
 Nothing else.
