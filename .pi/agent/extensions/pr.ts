@@ -1,14 +1,17 @@
 /**
- * /pr  [auto]  [<repo-path>]
+ * /pr  [<repo-path>]
  *
  * Open a PR via `gh pr create`, with a friendly approve/edit flow.
  *
- *   /pr                 Prompts for title (single line), then description (editor),
- *                       then creates the PR.
- *   /pr auto            Auto-generates title + description from the branch's commits.
+ * Auto-generates a conventional-commits title and a `## Changes` body from
+ * the branch's commits vs. the detected base branch, opens both in an editor
+ * for you to approve or edit, then creates the PR on save. Cancel by saving
+ * an empty buffer.
+ *
+ *   /pr                 Operate on the current repo (or pick one if cwd holds
+ *                       multiple).
  *   /pr <path>          Operate on the repo at <path>. Path may be relative to
  *                       pi's cwd or absolute; `~` is expanded.
- *   /pr auto <path>     Combine both.
  *
  * Repo resolution (when no explicit path is given):
  *   1. If pi's cwd is itself a git repo, use it.
@@ -74,7 +77,7 @@ function inferTypeFromPaths(paths: string[]): "chore" | "feat" | "fix" {
 	const joined = paths.join("\n").toLowerCase();
 	// Heuristic: filenames mentioning "fix" / "bug" → fix; otherwise default to chore
 	// (we can't reliably infer feat without reading the diff content; the agent
-	// can do that via `/commit`. PR auto stays conservative.)
+	// can do that via `/commit`. We stay conservative here.)
 	if (/\bfix\b|\bbug\b|\bhotfix\b/.test(joined)) return "fix";
 	return "chore";
 }
@@ -188,8 +191,11 @@ async function generateTitleAndBody(
 
 	const title = toConventionalSubject(rawTitle, paths);
 
-	// Body: lead sentence derived from the title, then a `### Summary`
-	// bullet list — one bullet per commit subject ahead of base.
+	// Body: lead sentence derived from the title. For single-commit PRs the
+	// bullet would just restate the lead, so we emit only the sentence —
+	// matching the user's pattern for short PRs (e.g. "Title says all" /
+	// one-line bodies). For multi-commit PRs we add a `## Changes` section
+	// (h2, matching the PR #3292 reference).
 	const log = await run(
 		pi,
 		"git",
@@ -204,10 +210,14 @@ async function generateTitleAndBody(
 	const lead = titleToLeadSentence(title || rawTitle);
 	const bullets = subjects.map((s) => `- ${commitToBullet(s)}`).join("\n");
 
-	const body =
-		subjects.length > 0
-			? `${lead}\n\n### Summary\n${bullets}\n`
-			: `${lead}\n\n_(no commits ahead of \`${base}\`)_\n`;
+	let body: string;
+	if (subjects.length === 0) {
+		body = `${lead}\n\n_(no commits ahead of \`${base}\`)_\n`;
+	} else if (subjects.length === 1) {
+		body = `${lead}\n`;
+	} else {
+		body = `${lead}\n\n## Changes\n${bullets}\n`;
+	}
 
 	return { title: title || `Update from ${await currentBranch(pi, cwd)}`, body };
 }
@@ -336,7 +346,7 @@ async function resolveRepo(
 			`pi's cwd is not a git repository and no git repos were found in:\n  ${ctx.cwd}\n\n` +
 				`Either:\n` +
 				`  • cd into a repo and re-run pi, or\n` +
-				`  • invoke as: /pr [auto] <repo-path>`,
+				`  • invoke as: /pr <repo-path>`,
 		);
 		return undefined;
 	}
@@ -351,17 +361,10 @@ async function resolveRepo(
 	return children[idx];
 }
 
-/** Parse args. Supports: "", "auto", "<path>", "auto <path>", "<path> auto". */
-function parseArgs(raw: string): { mode: "interactive" | "auto"; path: string | undefined } {
+/** Parse args. Supports: "", "<path>". Extra tokens are ignored. */
+function parseArgs(raw: string): { path: string | undefined } {
 	const tokens = raw.trim().split(/\s+/).filter(Boolean);
-	let mode: "interactive" | "auto" = "interactive";
-	let path: string | undefined;
-	for (const t of tokens) {
-		if (t.toLowerCase() === "auto") mode = "auto";
-		else if (path === undefined) path = t;
-		// extra tokens after path are ignored silently
-	}
-	return { mode, path };
+	return { path: tokens[0] };
 }
 
 async function preflight(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promise<boolean> {
@@ -378,20 +381,11 @@ async function preflight(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promis
 
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("pr", {
-		description: "Open a GitHub PR (use `/pr auto` to pre-fill from commits, optional repo path)",
-		getArgumentCompletions: (prefix: string) => {
-			const tokens = prefix.split(/\s+/);
-			if (tokens.length <= 1) {
-				const items = [{ value: "auto", label: "auto — pre-fill from branch commits" }];
-				const filtered = items.filter((i) => i.value.startsWith(tokens[0] ?? ""));
-				return filtered.length > 0 ? filtered : null;
-			}
-			return null;
-		},
+		description: "Open a GitHub PR (auto-fills title + description from branch commits)",
 		handler: async (args, ctx) => {
 			if (!(await preflight(pi, ctx))) return;
 
-			const { mode, path: pathArg } = parseArgs(args ?? "");
+			const { path: pathArg } = parseArgs(args ?? "");
 
 			const cwd = await resolveRepo(pi, ctx, pathArg);
 			if (!cwd) return;
@@ -407,10 +401,7 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			let title: string;
-			let body: string;
-
-			// Pre-compute changed paths once — used to infer type/scope when the
+			// Changed paths against base — used to infer type/scope when the
 			// title isn't already in conventional commits format.
 			const names = await run(pi, "git", ["diff", "--name-only", `${base}...HEAD`], cwd);
 			const paths = names.stdout
@@ -418,44 +409,19 @@ export default function (pi: ExtensionAPI) {
 				.map((s) => s.trim())
 				.filter((s) => s.length > 0);
 
-			if (mode === "auto") {
-				const gen = await generateTitleAndBody(pi, cwd, base);
-				const reviewed = await ctx.ui.editor(
-					`Review PR (base: ${base}) — first line is the title in <type>(<scope>): <description> format. Save empty to cancel.`,
-					`${gen.title}\n\n${gen.body}`,
-				);
-				const parsed = parseTitleAndBody(reviewed ?? "");
-				if (!parsed) {
-					ctx.ui.notify("PR cancelled.", "info");
-					return;
-				}
-				// In case the user edited the title away from conventional format.
-				title = toConventionalSubject(parsed.title, paths);
-				body = parsed.body;
-			} else {
-				const t = await ctx.ui.input(
-					"PR title  —  format: <type>(<scope>): <description>",
-					"feat(auth): add login page",
-				);
-				const rawTitle = (t ?? "").trim();
-				if (!rawTitle) {
-					ctx.ui.notify("PR cancelled (no title).", "info");
-					return;
-				}
-				title = toConventionalSubject(rawTitle, paths);
-				if (title !== rawTitle) {
-					ctx.ui.notify(`Title normalized to:\n  ${title}`, "info");
-				}
-				const b = await ctx.ui.editor(
-					`PR description (base: ${base}). Markdown supported. Save empty to cancel.`,
-					"",
-				);
-				body = (b ?? "").trim();
-				if (!body) {
-					ctx.ui.notify("PR cancelled (no description).", "info");
-					return;
-				}
+			const gen = await generateTitleAndBody(pi, cwd, base);
+			const reviewed = await ctx.ui.editor(
+				`Review PR (base: ${base}) — first line is the title in <type>(<scope>): <description> format. Save empty to cancel.`,
+				`${gen.title}\n\n${gen.body}`,
+			);
+			const parsed = parseTitleAndBody(reviewed ?? "");
+			if (!parsed) {
+				ctx.ui.notify("PR cancelled.", "info");
+				return;
 			}
+			// In case the user edited the title away from conventional format.
+			const title = toConventionalSubject(parsed.title, paths);
+			const body = parsed.body;
 
 			ctx.ui.notify(`Creating PR against ${base}…`, "info");
 			const result = await ghPrCreate(pi, cwd, title, body);
