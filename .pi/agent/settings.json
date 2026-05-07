@@ -1,0 +1,59 @@
+{
+  "lastChangelogVersion": "0.73.0",
+  "defaultProvider": "anthropic",
+  "theme": "onedark-pro",
+  "defaultModel": "claude-opus-4-7",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "npm:pi-vim",
+    "npm:pi-powerline-footer",
+    "npm:pi-custom-compaction"
+  ],
+  "compaction": {
+    "enabled": true
+  },
+  "showLastPrompt": false,
+  "powerline": {
+    "preset": "default",
+    "fixedEditor": true,
+    "mouseScroll": true,
+    "customItems": [
+      {
+        "id": "kube",
+        "statusKey": "kube",
+        "position": "secondary",
+        "hideWhenMissing": true,
+        "excludeFromExtensionStatuses": true
+      },
+      {
+        "id": "aws",
+        "statusKey": "aws",
+        "position": "secondary",
+        "hideWhenMissing": true,
+        "excludeFromExtensionStatuses": true
+      },
+      {
+        "id": "plan-mode",
+        "statusKey": "plan-mode",
+        "position": "secondary",
+        "color": "warning",
+        "hideWhenMissing": true,
+        "excludeFromExtensionStatuses": true
+      },
+      {
+        "id": "note-vault",
+        "statusKey": "note-vault",
+        "position": "secondary",
+        "color": "accent",
+        "hideWhenMissing": true,
+        "excludeFromExtensionStatuses": true
+      }
+    ]
+  },
+  "powerlineShortcuts": {
+    "stashHistory": "ctrl+alt+h",
+    "copyEditor": "ctrl+alt+c",
+    "cutEditor": "ctrl+alt+x"
+  },
+  "workingVibe": "star trek"
+}

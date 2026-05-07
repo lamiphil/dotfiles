@@ -1,0 +1,20 @@
+{
+  "colors": {
+    "model": "#c678dd",
+    "shellMode": "accent",
+    "path": "#56b6c2",
+    "gitClean": "success",
+    "gitDirty": "warning",
+    "thinking": "thinkingOff",
+    "thinkingMinimal": "thinkingMinimal",
+    "thinkingLow": "thinkingLow",
+    "thinkingMedium": "thinkingMedium",
+    "context": "dim",
+    "contextWarn": "warning",
+    "contextError": "error",
+    "cost": "text",
+    "tokens": "muted",
+    "separator": "dim",
+    "border": "borderMuted"
+  }
+}
