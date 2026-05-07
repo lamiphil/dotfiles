@@ -295,6 +295,39 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	pi.registerCommand("vault", {
+		description: "Show or switch the active note vault (alias of `/note vault`)",
+		getArgumentCompletions: (prefix: string) => {
+			const items = Object.keys(VAULTS).map((name) => ({ value: name, label: name }));
+			const filtered = items.filter((i) => i.value.startsWith(prefix));
+			return filtered.length > 0 ? filtered : null;
+		},
+		handler: async (rawArgs, ctx) => {
+			const name = (rawArgs ?? "").trim();
+			if (!name) {
+				const active = readActiveVault();
+				ctx.ui.notify(`Active vault: ${active}\n\n${vaultListPretty(active)}`, "info");
+				return;
+			}
+			if (!VAULTS[name]) {
+				ctx.ui.notify(
+					`Unknown vault "${name}". Known: ${Object.keys(VAULTS).join(", ")}`,
+					"error",
+				);
+				return;
+			}
+			if (!existsSync(VAULTS[name])) {
+				ctx.ui.notify(
+					`Vault path does not exist: ${VAULTS[name]}\nSwitched anyway.`,
+					"warning",
+				);
+			}
+			writeActiveVault(name);
+			publishVaultStatus(ctx);
+			ctx.ui.notify(`Vault → ${name}  (${VAULTS[name].replace(HOME, "~")})`, "success");
+		},
+	});
+
 	pi.registerCommand("todo", {
 		description: "Prepend comma-separated todos to today's `## Todos` list (active vault)",
 		handler: async (rawArgs, ctx) => {
