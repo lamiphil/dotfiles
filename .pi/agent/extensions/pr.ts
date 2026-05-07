@@ -1,21 +1,29 @@
 /**
- * /pr  [auto]
+ * /pr  [auto]  [<repo-path>]
  *
  * Open a PR via `gh pr create`, with a friendly approve/edit flow.
  *
- *   /pr           Prompts for title (single line), then description (editor),
- *                 then creates the PR.
+ *   /pr                 Prompts for title (single line), then description (editor),
+ *                       then creates the PR.
+ *   /pr auto            Auto-generates title + description from the branch's commits.
+ *   /pr <path>          Operate on the repo at <path>. Path may be relative to
+ *                       pi's cwd or absolute; `~` is expanded.
+ *   /pr auto <path>     Combine both.
  *
- *   /pr auto      Auto-generates title + description from the branch's commits
- *                 (vs. the detected base branch), opens both in an editor for
- *                 you to approve or edit, then creates the PR on save.
- *                 Cancel by saving an empty buffer.
+ * Repo resolution (when no explicit path is given):
+ *   1. If pi's cwd is itself a git repo, use it.
+ *   2. Else scan immediate subdirectories for git repos.
+ *      - exactly one  → use it (and tell the user)
+ *      - multiple     → select dialog
+ *      - none         → confirm error so the message stays visible
  *
  * After creation, the PR URL is printed and copied to the clipboard (best-effort).
  */
 
 import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-coding-agent";
 import { spawnSync } from "node:child_process";
+import { readdirSync, statSync } from "node:fs";
+import { isAbsolute, join, resolve as resolvePath } from "node:path";
 
 interface ExecOk {
 	stdout: string;
@@ -109,6 +117,53 @@ function toConventionalSubject(
 	return scope ? `${type}(${scope}): ${desc}` : `${type}: ${desc}`;
 }
 
+// Strip conventional-commits prefix (`feat(scope): `) from a subject.
+function stripConventionalPrefix(subject: string): string {
+	return subject.replace(/^(chore|feat|fix)(\([^)]+\))?(!)?:\s+/, "");
+}
+
+function capitalizeFirst(s: string): string {
+	return s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Imperative → 3rd-person singular ("add" → "adds", "fix" → "fixes").
+// Covers regular English -s/-es/-ies rules; good enough for commit verbs.
+function conjugate3rdPersonSingular(verb: string): string {
+	const v = verb.toLowerCase();
+	if (v.endsWith("y") && v.length > 1 && !"aeiou".includes(v[v.length - 2])) {
+		return v.slice(0, -1) + "ies";
+	}
+	if (
+		v.endsWith("s") ||
+		v.endsWith("x") ||
+		v.endsWith("z") ||
+		v.endsWith("ch") ||
+		v.endsWith("sh")
+	) {
+		return v + "es";
+	}
+	return v + "s";
+}
+
+// Build the lead sentence from the title:
+//   "feat(foundation): add dab-deployer SA"
+//   → "This PR adds dab-deployer SA."
+function titleToLeadSentence(title: string): string {
+	const desc = stripConventionalPrefix(title).trim();
+	if (!desc) return "This PR introduces the changes below.";
+	const [first, ...rest] = desc.split(/\s+/);
+	const conjugated = conjugate3rdPersonSingular(first);
+	const tail = rest.join(" ");
+	const sentence = tail ? `This PR ${conjugated} ${tail}` : `This PR ${conjugated}`;
+	return sentence.replace(/[.!?]+$/, "") + ".";
+}
+
+// Turn a commit subject into a Summary bullet:
+//   "feat(foundation): add dab-deployer SA" → "Add dab-deployer SA"
+function commitToBullet(subject: string): string {
+	return capitalizeFirst(stripConventionalPrefix(subject).trim());
+}
+
 async function generateTitleAndBody(
 	pi: ExtensionAPI,
 	cwd: string,
@@ -133,25 +188,26 @@ async function generateTitleAndBody(
 
 	const title = toConventionalSubject(rawTitle, paths);
 
-	// Body: oneline log of commits ahead of base, plus a brief diffstat.
+	// Body: lead sentence derived from the title, then a `### Summary`
+	// bullet list — one bullet per commit subject ahead of base.
 	const log = await run(
 		pi,
 		"git",
-		["log", `${base}..HEAD`, "--pretty=- %s"],
+		["log", `${base}..HEAD`, "--reverse", "--no-merges", "--pretty=%s"],
 		cwd,
 	);
-	const stat = await run(pi, "git", ["diff", "--stat", `${base}...HEAD`], cwd);
+	const subjects = log.stdout
+		.split("\n")
+		.map((s) => s.trim())
+		.filter((s) => s.length > 0);
 
-	const commits = log.stdout.trim();
-	const stats = stat.stdout.trim();
+	const lead = titleToLeadSentence(title || rawTitle);
+	const bullets = subjects.map((s) => `- ${commitToBullet(s)}`).join("\n");
 
 	const body =
-		`## Summary\n\n` +
-		(commits ? `${commits}\n\n` : `_(no commits ahead of \`${base}\`)_\n\n`) +
-		`## Changes\n\n` +
-		"```\n" +
-		(stats || "(no diff)") +
-		"\n```\n";
+		subjects.length > 0
+			? `${lead}\n\n### Summary\n${bullets}\n`
+			: `${lead}\n\n_(no commits ahead of \`${base}\`)_\n`;
 
 	return { title: title || `Update from ${await currentBranch(pi, cwd)}`, body };
 }
@@ -189,15 +245,132 @@ function copyToClipboard(text: string): void {
 	}
 }
 
-async function preflight(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promise<boolean> {
-	const repo = await run(pi, "git", ["rev-parse", "--show-toplevel"], ctx.cwd);
-	if (repo.exitCode !== 0) {
-		ctx.ui.notify("Not inside a git repository.", "error");
-		return false;
+function expandTilde(p: string): string {
+	if (p === "~") return process.env.HOME ?? p;
+	if (p.startsWith("~/")) return join(process.env.HOME ?? "", p.slice(2));
+	return p;
+}
+
+function resolveAgainst(cwd: string, p: string): string {
+	const expanded = expandTilde(p);
+	return isAbsolute(expanded) ? expanded : resolvePath(cwd, expanded);
+}
+
+async function isGitRepo(pi: ExtensionAPI, path: string): Promise<string | undefined> {
+	const r = await run(pi, "git", ["rev-parse", "--show-toplevel"], path);
+	return r.exitCode === 0 ? r.stdout.trim() : undefined;
+}
+
+/**
+ * Find git repos under `dir` up to `maxDepth` levels deep.
+ * Each found repo terminates that branch (we never descend into a repo).
+ * Hidden directories (dotfiles) are skipped except when `dir` itself is one.
+ */
+async function findChildRepos(
+	pi: ExtensionAPI,
+	dir: string,
+	maxDepth = 2,
+): Promise<string[]> {
+	const hits: string[] = [];
+
+	const walk = async (current: string, depth: number): Promise<void> => {
+		if (depth > maxDepth) return;
+		let entries: string[];
+		try {
+			entries = readdirSync(current);
+		} catch {
+			return;
+		}
+		for (const name of entries) {
+			if (name.startsWith(".")) continue;
+			const full = join(current, name);
+			try {
+				if (!statSync(full).isDirectory()) continue;
+			} catch {
+				continue;
+			}
+			const top = await isGitRepo(pi, full);
+			if (top && top === full) {
+				hits.push(top);
+				// Don't descend into a repo — submodules / nested repos rarely
+				// host the PR you want.
+				continue;
+			}
+			await walk(full, depth + 1);
+		}
+	};
+
+	await walk(dir, 1);
+	return hits.sort();
+}
+
+/** Resolve which repo `/pr` should operate on, given parsed args. */
+async function resolveRepo(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+	explicitPath: string | undefined,
+): Promise<string | undefined> {
+	// 1. Explicit path argument.
+	if (explicitPath) {
+		const abs = resolveAgainst(ctx.cwd, explicitPath);
+		const top = await isGitRepo(pi, abs);
+		if (!top) {
+			await ctx.ui.confirm(
+				"PR aborted",
+				`The path you supplied is not a git repository:\n  ${abs}`,
+			);
+			return undefined;
+		}
+		return top;
 	}
+
+	// 2. cwd itself is a repo.
+	const cwdTop = await isGitRepo(pi, ctx.cwd);
+	if (cwdTop) return cwdTop;
+
+	// 3. Scan immediate subdirectories.
+	const children = await findChildRepos(pi, ctx.cwd);
+	if (children.length === 0) {
+		await ctx.ui.confirm(
+			"PR aborted",
+			`pi's cwd is not a git repository and no git repos were found in:\n  ${ctx.cwd}\n\n` +
+				`Either:\n` +
+				`  • cd into a repo and re-run pi, or\n` +
+				`  • invoke as: /pr [auto] <repo-path>`,
+		);
+		return undefined;
+	}
+	if (children.length === 1) {
+		ctx.ui.notify(`Using ${children[0].replace(process.env.HOME ?? "", "~")}`, "info");
+		return children[0];
+	}
+	const pretty = children.map((p) => p.replace(process.env.HOME ?? "", "~"));
+	const pick = await ctx.ui.select("Which repository?", pretty);
+	if (!pick) return undefined;
+	const idx = pretty.indexOf(pick);
+	return children[idx];
+}
+
+/** Parse args. Supports: "", "auto", "<path>", "auto <path>", "<path> auto". */
+function parseArgs(raw: string): { mode: "interactive" | "auto"; path: string | undefined } {
+	const tokens = raw.trim().split(/\s+/).filter(Boolean);
+	let mode: "interactive" | "auto" = "interactive";
+	let path: string | undefined;
+	for (const t of tokens) {
+		if (t.toLowerCase() === "auto") mode = "auto";
+		else if (path === undefined) path = t;
+		// extra tokens after path are ignored silently
+	}
+	return { mode, path };
+}
+
+async function preflight(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promise<boolean> {
 	const gh = await run(pi, "gh", ["--version"], ctx.cwd);
 	if (gh.exitCode !== 0) {
-		ctx.ui.notify("`gh` (GitHub CLI) not found in PATH.", "error");
+		await ctx.ui.confirm(
+			"PR aborted",
+			"`gh` (GitHub CLI) not found in PATH. Install it first: brew install gh",
+		);
 		return false;
 	}
 	return true;
@@ -205,17 +378,24 @@ async function preflight(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promis
 
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("pr", {
-		description: "Open a GitHub PR (use `/pr auto` to pre-fill from commits)",
+		description: "Open a GitHub PR (use `/pr auto` to pre-fill from commits, optional repo path)",
 		getArgumentCompletions: (prefix: string) => {
-			const items = [{ value: "auto", label: "auto — pre-fill from branch commits" }];
-			const filtered = items.filter((i) => i.value.startsWith(prefix));
-			return filtered.length > 0 ? filtered : null;
+			const tokens = prefix.split(/\s+/);
+			if (tokens.length <= 1) {
+				const items = [{ value: "auto", label: "auto — pre-fill from branch commits" }];
+				const filtered = items.filter((i) => i.value.startsWith(tokens[0] ?? ""));
+				return filtered.length > 0 ? filtered : null;
+			}
+			return null;
 		},
 		handler: async (args, ctx) => {
 			if (!(await preflight(pi, ctx))) return;
 
-			const mode = (args ?? "").trim().toLowerCase();
-			const cwd = ctx.cwd;
+			const { mode, path: pathArg } = parseArgs(args ?? "");
+
+			const cwd = await resolveRepo(pi, ctx, pathArg);
+			if (!cwd) return;
+
 			const base = await detectBase(pi, cwd);
 			const branch = await currentBranch(pi, cwd);
 
