@@ -6,7 +6,10 @@
   "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-powerline-footer",
-    "npm:pi-custom-compaction"
+    "npm:pi-custom-compaction",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:pi-lsp-extension",
+    "npm:pi-web-access"
   ],
   "compaction": {
     "enabled": true
@@ -57,8 +60,11 @@
     "copyEditor": "ctrl+alt+c",
     "cutEditor": "ctrl+alt+x"
   },
-  "editorPaddingX": 1,
+  "editorPaddingX": 0,
   "steeringMode": "one-at-a-time",
   "doubleEscapeAction": "tree",
-  "treeFilterMode": "default"
+  "treeFilterMode": "default",
+  "warnings": {
+    "anthropicExtraUsage": true
+  }
 }

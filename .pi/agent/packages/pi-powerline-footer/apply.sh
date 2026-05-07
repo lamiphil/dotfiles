@@ -7,6 +7,7 @@
 #   3) index.ts      — patches computeResponsiveLayout() so secondary segments
 #                       stay on the bottom row instead of being auto-promoted to the
 #                       top row when the terminal is wide.
+#                    — also patches /vibe generate to accept multi-word themes.
 #
 # The pi-powerline-footer plugin lives inside the npm package directory and gets
 # wiped on `pi update` / `pi install`. Re-run this script afterwards.
