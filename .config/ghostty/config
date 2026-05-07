@@ -12,6 +12,13 @@ font-codepoint-map = U+1F300-U+1FAFF=Noto Color Emoji
 # Scrolling
 mouse-scroll-multiplier = 0.3
 
+# Window padding (acts like a 5px breathing-room border around the TUI)
+window-padding-x = 5
+# top,bottom — extra bottom padding lifts the pi input section off the window edge
+window-padding-y = 5,10
+window-padding-balance = true
+window-padding-color = background
+
 # Background
 background-opacity = 1
 
