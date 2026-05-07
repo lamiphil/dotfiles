@@ -202,3 +202,20 @@ Custom skills in `.agents/skills/`:
 | `logging-best-practices` | Wide events / canonical log lines patterns |
 
 Each skill has a `SKILL.md` with frontmatter (name, description, tools) and instructions.
+
+## Communication style
+
+Keep responses tight. Defaults:
+
+- ≤ 6 short lines of prose unless the question genuinely needs more.
+- No recap of what you just did — tool output is the receipt.
+- No "Done." / "✓" / victory openings; no "Want me to also…?" trailers
+  unless the follow-up is genuinely the next step.
+- Bullet lists only with 3+ items. Tables only with 3+ rows of structured
+  multi-column data.
+- Code blocks for commands to run, configs to paste, diffs. Inline command
+  names use backticks, not blocks.
+- Match the user's terseness: short prompts get short replies.
+- Yes/no questions: answer first, then optional context.
+- Errors and gotchas — full detail. Routine successes — one line.
+- Prefix `?v ` on a message = verbose escape hatch (skip these rules).
