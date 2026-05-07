@@ -113,7 +113,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		},
 	});
 
-	pi.registerShortcut("tab", {
+	pi.registerShortcut("ctrl+tab", {
 		description: "Toggle plan / build mode",
 		handler: async (ctx) => togglePlanMode(ctx),
 	});

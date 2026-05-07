@@ -60,3 +60,11 @@ palette = 15=#E6E6E6
 keybind = ctrl+kp_add=increase_font_size:2
 keybind = ctrl+minus=decrease_font_size:2
 keybind = ctrl+backspace=text:\x17
+
+# Free Ctrl+Tab / Ctrl+Shift+Tab so they reach the inner app (pi plan-mode toggle).
+# Ghostty's defaults bind these to next_tab / previous_tab; use Cmd+Shift+[ / ] instead.
+# `unbind` alone isn't enough on macOS — the OS / Ghostty drops the modified Tab
+# without an active keyboard protocol. Explicitly send the Kitty CSI u sequence so
+# pi-tui's parser recognizes it as ctrl+tab / ctrl+shift+tab regardless of state.
+keybind = ctrl+tab=text:\x1b[9;5u
+keybind = ctrl+shift+tab=text:\x1b[9;6u
