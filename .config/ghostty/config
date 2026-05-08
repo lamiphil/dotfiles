@@ -23,7 +23,7 @@ background-opacity = 1
 
 # OneDark-Pro colors (from kitty current-theme.conf)
 background = #282C34
-foreground = #FFFFFF
+foreground = #e6e6e6
 selection-foreground = #282C34
 selection-background = #ABB2BF
 cursor-color = #ABB2BF
@@ -52,7 +52,7 @@ palette = 13=#DE73FF
 palette = 6=#56B6C2
 palette = 14=#4CD1E0
 # white
-palette = 7=#D7DAE0
+palette = 7=#e6e6e6
 palette = 15=#E6E6E6
 
 # Keybinds
