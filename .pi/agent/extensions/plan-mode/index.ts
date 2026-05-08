@@ -19,8 +19,12 @@ import { Key } from "@mariozechner/pi-tui";
 import { extractTodoItems, isSafeCommand, markCompletedSteps, type TodoItem } from "./utils.js";
 
 // Tools
-const PLAN_MODE_TOOLS = ["read", "bash", "grep", "find", "ls", "questionnaire"];
-const NORMAL_MODE_TOOLS = ["read", "bash", "edit", "write"];
+// Plan mode allows everything EXCEPT file-mutation tools (`edit`, `write`).
+// Bash stays enabled — the `isSafeCommand()` allowlist below blocks destructive
+// shell commands. Active tools are computed dynamically from `pi.getAllTools()`
+// (called inside the default export below) so custom tools from other
+// extensions are automatically included.
+const BLOCKED_IN_PLAN_MODE = new Set(["edit", "write"]);
 
 // Type guard for assistant messages
 function isAssistantMessage(m: AgentMessage): m is AssistantMessage {
@@ -47,14 +51,16 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 	});
 
 	function updateStatus(ctx: ExtensionContext): void {
-		// Footer status
+		// Always emit a plan/build badge so the powerline always has a value to render.
+		// Plan mode → green, Build mode → red. Execution mode keeps the progress 📋 counter.
+		const thm = ctx.ui.theme;
 		if (executionMode && todoItems.length > 0) {
 			const completed = todoItems.filter((t) => t.completed).length;
-			ctx.ui.setStatus("plan-mode", ctx.ui.theme.fg("accent", `📋 ${completed}/${todoItems.length}`));
+			ctx.ui.setStatus("plan-mode", thm.fg("success", `📋 ${completed}/${todoItems.length}`));
 		} else if (planModeEnabled) {
-			ctx.ui.setStatus("plan-mode", ctx.ui.theme.fg("warning", "⏸ plan"));
+			ctx.ui.setStatus("plan-mode", thm.fg("success", "● PLAN"));
 		} else {
-			ctx.ui.setStatus("plan-mode", undefined);
+			ctx.ui.setStatus("plan-mode", thm.fg("error", "● BUILD"));
 		}
 
 		// Widget showing todo list
@@ -79,10 +85,11 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		todoItems = [];
 
 		if (planModeEnabled) {
-			pi.setActiveTools(PLAN_MODE_TOOLS);
-			ctx.ui.notify(`Plan mode enabled. Tools: ${PLAN_MODE_TOOLS.join(", ")}`);
+			const planTools = pi.getAllTools().map((t) => t.name).filter((n) => !BLOCKED_IN_PLAN_MODE.has(n));
+			pi.setActiveTools(planTools);
+			ctx.ui.notify(`Plan mode enabled. Blocked: ${[...BLOCKED_IN_PLAN_MODE].join(", ")}`);
 		} else {
-			pi.setActiveTools(NORMAL_MODE_TOOLS);
+			pi.setActiveTools(pi.getAllTools().map((t) => t.name));
 			ctx.ui.notify("Plan mode disabled. Full access restored.");
 		}
 		updateStatus(ctx);
@@ -228,7 +235,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 				);
 				executionMode = false;
 				todoItems = [];
-				pi.setActiveTools(NORMAL_MODE_TOOLS);
+				pi.setActiveTools(pi.getAllTools().map((t) => t.name));
 				updateStatus(ctx);
 				persistState(); // Save cleared state so resume doesn't restore old execution mode
 			}
@@ -268,7 +275,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		if (choice?.startsWith("Execute")) {
 			planModeEnabled = false;
 			executionMode = todoItems.length > 0;
-			pi.setActiveTools(NORMAL_MODE_TOOLS);
+			pi.setActiveTools(pi.getAllTools().map((t) => t.name));
 			updateStatus(ctx);
 
 			const execMessage =
@@ -333,7 +340,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		}
 
 		if (planModeEnabled) {
-			pi.setActiveTools(PLAN_MODE_TOOLS);
+			pi.setActiveTools(pi.getAllTools().map((t) => t.name).filter((n) => !BLOCKED_IN_PLAN_MODE.has(n)));
 		}
 		updateStatus(ctx);
 	});

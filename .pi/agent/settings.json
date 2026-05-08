@@ -1,8 +1,8 @@
 {
-  "lastChangelogVersion": "0.73.0",
+  "lastChangelogVersion": "0.74.0",
   "defaultProvider": "anthropic",
   "theme": "onedark-pro",
-  "defaultModel": "claude-opus-4-7",
+  "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-powerline-footer",
@@ -40,9 +40,8 @@
       {
         "id": "plan-mode",
         "statusKey": "plan-mode",
-        "position": "secondary",
-        "color": "warning",
-        "hideWhenMissing": true,
+        "position": "secondary-right",
+        "hideWhenMissing": false,
         "excludeFromExtensionStatuses": true
       },
       {
@@ -61,6 +60,7 @@
     "cutEditor": "ctrl+alt+x"
   },
   "editorPaddingX": 0,
+  "shellCommandPrefix": "shopt -s expand_aliases\nsource ~/.bash_aliases 2>/dev/null",
   "steeringMode": "one-at-a-time",
   "doubleEscapeAction": "tree",
   "treeFilterMode": "default",

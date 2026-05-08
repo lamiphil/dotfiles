@@ -178,4 +178,361 @@ open(path, "w").write(src.replace(NEEDLE, REPL, 1))
 print("✓ index.ts (vibe multi-word)")
 PY
 
-echo "Done. Run /reload in pi (or restart) to pick up the changes."
+# ── 5. shell-session.ts: enable alias expansion in managed bash ──────────
+python3 - "$PKG/bash-mode/shell-session.ts" <<'PY'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:bash-aliases]" in src:
+    print("✓ shell-session.ts (bash-aliases already patched)")
+    sys.exit(0)
+
+NEEDLE = (
+    "  if (shellName.includes(\"bash\")) {\n"
+    "    return `\n"
+    "__pi_eval() {\n"
+)
+
+REPL = (
+    "  if (shellName.includes(\"bash\")) {\n"
+    "    // [pi-config patch:bash-aliases] enable alias expansion so user aliases\n"
+    "    // (ll, k, lg, etc.) work in powerline bash-mode commands.\n"
+    "    return `\n"
+    "shopt -s expand_aliases\n"
+    "[ -f ~/.bash_aliases ] && source ~/.bash_aliases\n"
+    "__pi_eval() {\n"
+)
+
+if NEEDLE not in src:
+    print("Could not find bash init block (upstream changed?)", file=sys.stderr)
+    sys.exit(1)
+
+open(path, "w").write(src.replace(NEEDLE, REPL, 1))
+print("✓ shell-session.ts (bash-aliases)")
+PY
+
+# ── 5. Rounded editor: suppress editor borders + embed rounded corners in powerline rows
+
+# 5a. Suppress the editor's own horizontal borders (replace with empty lines)
+# Search both vendor namespaces (pi was forked from @mariozechner to @earendil-works)
+EDITOR_JS="$(find /opt/homebrew/lib/node_modules/@earendil-works /opt/homebrew/lib/node_modules/@mariozechner -path '*/pi-tui/dist/components/editor.js' -print -quit 2>/dev/null)"
+if [[ -n "$EDITOR_JS" && -f "$EDITOR_JS" ]]; then
+  python3 - "$EDITOR_JS" <<'PYEDITOR'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:suppress-editor-border]" in src:
+    print("✓ editor.js (borders already suppressed)")
+    sys.exit(0)
+
+# Replace top border (non-scroll case) with empty line
+NT = '''        else {
+            result.push(horizontal.repeat(width));
+        }
+        // Render each visible layout line'''
+RT = '''        else {
+            // [pi-config patch:suppress-editor-border]
+            result.push(" ".repeat(width));
+        }
+        // Render each visible layout line'''
+
+# Replace bottom border (non-scroll case) with empty line
+NB = '''        else {
+            result.push(horizontal.repeat(width));
+        }
+        // Add autocomplete list if active'''
+RB = '''        else {
+            result.push(" ".repeat(width));
+        }
+        // Add autocomplete list if active'''
+
+if NT not in src:
+    print("Could not find top border needle", file=sys.stderr); sys.exit(1)
+if NB not in src:
+    print("Could not find bottom border needle", file=sys.stderr); sys.exit(1)
+
+src = src.replace(NT, RT, 1).replace(NB, RB, 1)
+open(path, 'w').write(src)
+print("✓ editor.js (borders suppressed)")
+PYEDITOR
+else
+  echo "Could not find pi-tui editor.js — skipping border suppression" >&2
+fi
+
+# 5b. Wrap powerline top/secondary lines with rounded corners
+python3 - "$PKG/index.ts" <<'PYPOWERLINE'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:rounded-powerline]" in src:
+    print("✓ index.ts (rounded-powerline already patched)")
+    sys.exit(0)
+
+# Patch renderPowerlineTopLines to wrap content in ╭───╮
+NT = '''  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+
+    const layout = getResponsiveLayout(width, theme);
+    return layout.topContent ? [layout.topContent] : [];
+  }'''
+
+RT = '''  // [pi-config patch:rounded-powerline]
+  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme);
+    if (!layout.topContent) return [];
+    const border = (s: string) => theme.fg("borderMuted", s);
+    const inner = layout.topContent;
+    const innerW = visibleWidth(inner);
+    const fill = Math.max(0, width - innerW - 2);
+    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
+  }'''
+
+# Patch renderPowerlineSecondaryLines similarly
+NS = '''  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+
+    const layout = getResponsiveLayout(width, theme);
+    return layout.secondaryContent ? [layout.secondaryContent] : [];
+  }'''
+
+RS = '''  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme);
+    if (!layout.secondaryContent) return [];
+    const border = (s: string) => theme.fg("borderMuted", s);
+    const inner = layout.secondaryContent;
+    const innerW = visibleWidth(inner);
+    const fill = Math.max(0, width - innerW - 2);
+    return [border("╰") + inner + border("─".repeat(fill) + "╯")];
+  }'''
+
+if NT not in src:
+    print("Could not find renderPowerlineTopLines", file=sys.stderr); sys.exit(1)
+if NS not in src:
+    print("Could not find renderPowerlineSecondaryLines", file=sys.stderr); sys.exit(1)
+
+src = src.replace(NT, RT, 1).replace(NS, RS, 1)
+open(path, 'w').write(src)
+print("✓ index.ts (rounded-powerline)")
+PYPOWERLINE
+
+# ── 6. powerline-config.ts + index.ts: support "secondary-right" position ────
+python3 - "$PKG/powerline-config.ts" <<'PYCFG'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:secondary-right]" in src:
+    print("✓ powerline-config.ts (secondary-right already patched)")
+    sys.exit(0)
+
+NN = '''function normalizeCustomItemPosition(value: unknown): CustomItemPosition {
+  if (value === "left" || value === "right" || value === "secondary") return value;
+  return "right";
+}'''
+RN = '''function normalizeCustomItemPosition(value: unknown): CustomItemPosition {
+  // [pi-config patch:secondary-right]
+  if (value === "left" || value === "right" || value === "secondary" || value === "secondary-right") return value as CustomItemPosition;
+  return "right";
+}'''
+
+NM = '''  for (const item of customItems) {
+    const segmentId: StatusLineSegmentId = `custom:${item.id}`;
+    if (item.position === "left") left.push(segmentId);
+    else if (item.position === "secondary") secondary.push(segmentId);
+    else right.push(segmentId);
+  }
+
+  return { leftSegments: left, rightSegments: right, secondarySegments: secondary };'''
+RM = '''  const secondaryRight: StatusLineSegmentId[] = [];
+  for (const item of customItems) {
+    const segmentId: StatusLineSegmentId = `custom:${item.id}`;
+    if (item.position === "left") left.push(segmentId);
+    else if (item.position === "secondary") secondary.push(segmentId);
+    else if ((item.position as string) === "secondary-right") secondaryRight.push(segmentId);
+    else right.push(segmentId);
+  }
+
+  return { leftSegments: left, rightSegments: right, secondarySegments: secondary, secondaryRightSegments: secondaryRight } as any;'''
+
+for needle, repl in [(NN, RN), (NM, RM)]:
+    if needle not in src:
+        print("powerline-config.ts: needle not found", file=sys.stderr); sys.exit(1)
+    src = src.replace(needle, repl, 1)
+
+open(path, "w").write(src)
+print("✓ powerline-config.ts (secondary-right)")
+PYCFG
+
+python3 - "$PKG/index.ts" <<'PYIDX'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:secondary-right-render]" in src:
+    print("✓ index.ts (secondary-right-render already patched)")
+    sys.exit(0)
+
+# Replace the patched renderPowerlineSecondaryLines from the rounded patch with
+# one that supports a right-aligned tail group.
+NEEDLE = '''  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme);
+    if (!layout.secondaryContent) return [];
+    const border = (s: string) => theme.fg("borderMuted", s);
+    const inner = layout.secondaryContent;
+    const innerW = visibleWidth(inner);
+    const fill = Math.max(0, width - innerW - 2);
+    return [border("╰") + inner + border("─".repeat(fill) + "╯")];
+  }'''
+
+REPL = '''  // [pi-config patch:secondary-right-render]
+  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme) as any;
+    const border = (s: string) => theme.fg("borderMuted", s);
+    const left = layout.secondaryContent || "";
+    const right = layout.secondaryRightContent || "";
+    if (!left && !right) return [];
+    const leftW = visibleWidth(left);
+    const rightW = visibleWidth(right);
+    const fill = Math.max(0, width - leftW - rightW - 2);
+    return [border("╰") + left + border("─".repeat(fill)) + right + border("╯")];
+  }'''
+
+if NEEDLE not in src:
+    print("index.ts: secondary render needle not found (was rounded patch applied?)", file=sys.stderr); sys.exit(1)
+src = src.replace(NEEDLE, REPL, 1)
+
+# Also extend computeResponsiveLayout to render secondaryRightContent.
+# Find the function and add a new variable computation near the existing secondarySegments.
+LAYOUT_NEEDLE = '''  const topSegments = renderRow(primaryIds);
+  const secondarySegments = renderRow(secondaryIds);
+  return {
+    topContent: buildContentFromParts(topSegments, presetDef),
+    secondaryContent: buildContentFromParts(secondarySegments, presetDef),
+  };
+}'''
+
+LAYOUT_REPL = '''  const topSegments = renderRow(primaryIds);
+  const secondarySegments = renderRow(secondaryIds);
+  const secondaryRightIds = (mergedSegments as any).secondaryRightSegments || [];
+  const secondaryRightSegments = renderRow(secondaryRightIds);
+  return {
+    topContent: buildContentFromParts(topSegments, presetDef),
+    secondaryContent: buildContentFromParts(secondarySegments, presetDef),
+    secondaryRightContent: buildContentFromParts(secondaryRightSegments, presetDef),
+  } as any;
+}'''
+
+if LAYOUT_NEEDLE not in src:
+    print("index.ts: layout return needle not found", file=sys.stderr); sys.exit(1)
+src = src.replace(LAYOUT_NEEDLE, LAYOUT_REPL, 1)
+
+open(path, "w").write(src)
+print("✓ index.ts (secondary-right-render)")
+PYIDX
+
+# ── 7. Mode-aware border colors (green=plan, red=build) ──────────────────
+python3 - "$PKG/index.ts" <<'PYBORDERCOLOR'
+import sys, re
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:mode-border-color]" in src:
+    print("✓ index.ts (mode-border-color already patched)")
+    sys.exit(0)
+
+# Helper inserted once — reads the plan-mode extension status and returns a
+# theme color token: "success" (PLAN), "error" (BUILD), or "borderMuted" (no
+# plan-mode extension loaded).
+HELPER = '''
+  // [pi-config patch:mode-border-color]
+  function getModeBorderColor(): "success" | "error" | "borderMuted" {
+    try {
+      const status = footerDataRef?.getExtensionStatuses().get("plan-mode") ?? "";
+      if (status.includes("BUILD")) return "error";
+      if (status.includes("PLAN") || status.includes("\\ud83d\\udccb")) return "success";
+    } catch { /* fallthrough */ }
+    return "borderMuted";
+  }
+'''
+
+# Insert helper just after the existing function declaration of renderPowerlineStatusLines
+MARKER = "  function renderPowerlineStatusLines(width: number): string[] {"
+if MARKER not in src:
+    print("index.ts: helper anchor not found", file=sys.stderr); sys.exit(1)
+src = src.replace(MARKER, HELPER + "\n" + MARKER, 1)
+
+# Replace the v1 rounded-powerline TOP function with a mode-aware version.
+NT = '''  // [pi-config patch:rounded-powerline]
+  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme);
+    if (!layout.topContent) return [];
+    const border = (s: string) => theme.fg("borderMuted", s);
+    const inner = layout.topContent;
+    const innerW = visibleWidth(inner);
+    const fill = Math.max(0, width - innerW - 2);
+    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
+  }'''
+
+RT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
+  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme);
+    if (!layout.topContent) return [];
+    const border = (s: string) => theme.fg(getModeBorderColor(), s);
+    const inner = layout.topContent;
+    const innerW = visibleWidth(inner);
+    const fill = Math.max(0, width - innerW - 2);
+    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
+  }'''
+
+if NT not in src:
+    print("index.ts: rounded-powerline TOP needle not found", file=sys.stderr); sys.exit(1)
+src = src.replace(NT, RT, 1)
+
+# Replace the v1 secondary-right-render function with a mode-aware version.
+NS = '''  // [pi-config patch:secondary-right-render]
+  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme) as any;
+    const border = (s: string) => theme.fg("borderMuted", s);
+    const left = layout.secondaryContent || "";
+    const right = layout.secondaryRightContent || "";
+    if (!left && !right) return [];
+    const leftW = visibleWidth(left);
+    const rightW = visibleWidth(right);
+    const fill = Math.max(0, width - leftW - rightW - 2);
+    return [border("╰") + left + border("─".repeat(fill)) + right + border("╯")];
+  }'''
+
+RS = '''  // [pi-config patch:secondary-right-render] [mode-border-color]
+  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme) as any;
+    const border = (s: string) => theme.fg(getModeBorderColor(), s);
+    const left = layout.secondaryContent || "";
+    const right = layout.secondaryRightContent || "";
+    if (!left && !right) return [];
+    const leftW = visibleWidth(left);
+    const rightW = visibleWidth(right);
+    const fill = Math.max(0, width - leftW - rightW - 2);
+    return [border("╰") + left + border("─".repeat(fill)) + right + border("╯")];
+  }'''
+
+if NS not in src:
+    print("index.ts: secondary-right-render needle not found", file=sys.stderr); sys.exit(1)
+src = src.replace(NS, RS, 1)
+
+open(path, "w").write(src)
+print("✓ index.ts (mode-border-color)")
+PYBORDERCOLOR
+
+echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
+
