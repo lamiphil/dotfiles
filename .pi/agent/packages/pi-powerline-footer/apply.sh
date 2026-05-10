@@ -14,20 +14,27 @@
 
 set -euo pipefail
 
-PKG=$(node -e 'console.log(require.resolve("pi-powerline-footer/package.json"))' 2>/dev/null \
-  | xargs dirname \
+NPM_ROOT="$(npm root -g 2>/dev/null || true)"
+PKG=$(NODE_PATH="$NPM_ROOT" node -e 'console.log(require.resolve("pi-powerline-footer/package.json"))' 2>/dev/null \
+  | xargs -r dirname \
   || true)
 
 if [[ -z "${PKG:-}" || ! -d "$PKG" ]]; then
-  # Fallback: probe Homebrew default
-  if [[ -d /opt/homebrew/lib/node_modules/pi-powerline-footer ]]; then
-    PKG=/opt/homebrew/lib/node_modules/pi-powerline-footer
-  elif [[ -d /usr/local/lib/node_modules/pi-powerline-footer ]]; then
-    PKG=/usr/local/lib/node_modules/pi-powerline-footer
-  else
-    echo "Cannot locate pi-powerline-footer. Is it installed?" >&2
-    exit 1
-  fi
+  # Fallback: probe common global npm locations (macOS Homebrew, Linux/NVM).
+  for candidate in \
+    /opt/homebrew/lib/node_modules/pi-powerline-footer \
+    /usr/local/lib/node_modules/pi-powerline-footer \
+    "${NPM_ROOT:-}/pi-powerline-footer"; do
+    if [[ -d "$candidate" ]]; then
+      PKG="$candidate"
+      break
+    fi
+  done
+fi
+
+if [[ -z "${PKG:-}" || ! -d "$PKG" ]]; then
+  echo "Cannot locate pi-powerline-footer. Is it installed?" >&2
+  exit 1
 fi
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -216,7 +223,14 @@ PY
 
 # 5a. Suppress the editor's own horizontal borders (replace with empty lines)
 # Search both vendor namespaces (pi was forked from @mariozechner to @earendil-works)
-EDITOR_JS="$(find /opt/homebrew/lib/node_modules/@earendil-works /opt/homebrew/lib/node_modules/@mariozechner -path '*/pi-tui/dist/components/editor.js' -print -quit 2>/dev/null)"
+EDITOR_JS="$(find \
+  /opt/homebrew/lib/node_modules/@earendil-works \
+  /opt/homebrew/lib/node_modules/@mariozechner \
+  /usr/local/lib/node_modules/@earendil-works \
+  /usr/local/lib/node_modules/@mariozechner \
+  "${NPM_ROOT:-}/@earendil-works" \
+  "${NPM_ROOT:-}/@mariozechner" \
+  -path '*/pi-tui/dist/components/editor.js' -print -quit 2>/dev/null || true)"
 if [[ -n "$EDITOR_JS" && -f "$EDITOR_JS" ]]; then
   python3 - "$EDITOR_JS" <<'PYEDITOR'
 import sys
@@ -439,41 +453,12 @@ PYIDX
 
 # ── 7. Mode-aware border colors (green=plan, red=build) ──────────────────
 python3 - "$PKG/index.ts" <<'PYBORDERCOLOR'
-import sys, re
+import re, sys
 path = sys.argv[1]
 src = open(path).read()
 
-if "[pi-config patch:mode-border-color]" in src:
-    print("✓ index.ts (mode-border-color already patched)")
-    sys.exit(0)
-
-# Helper: returns a colorizer FUNCTION, not just a token. When the plan-mode
-# status contains APPLYING, produces rainbow borders; otherwise single-color.
 HELPER = '''
   // [pi-config patch:mode-border-color]
-  function __hueToRgb(h: number): [number, number, number] {
-    const s = 0.85, l = 0.6;
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-    const m = l - c / 2;
-    let r = 0, g = 0, b = 0;
-    if (h < 60) { r = c; g = x; }
-    else if (h < 120) { r = x; g = c; }
-    else if (h < 180) { g = c; b = x; }
-    else if (h < 240) { g = x; b = c; }
-    else if (h < 300) { r = x; b = c; }
-    else { r = c; b = x; }
-    return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
-  }
-
-  function __rainbowStr(text: string): string {
-    return text.split("").map((ch, i) => {
-      const hue = (i / Math.max(1, text.length)) * 300;
-      const [r, g, b] = __hueToRgb(hue);
-      return `\x1b[38;2;${r};${g};${b}m${ch}`;
-    }).join("") + "\x1b[0m";
-  }
-
   function getModeBorderFn(theme: Theme): (s: string) => string {
     try {
       const status = footerDataRef?.getExtensionStatuses().get("plan-mode") ?? "";
@@ -485,81 +470,30 @@ HELPER = '''
   }
 '''
 
-# Replace the old getModeBorderColor function with the new getModeBorderFn
-OLD_HELPER_START = '  // [pi-config patch:mode-border-color]'
-OLD_HELPER_END = '    return "borderMuted";\n  }'
-if OLD_HELPER_START in src:
-    start = src.index(OLD_HELPER_START)
-    end = src.index(OLD_HELPER_END, start) + len(OLD_HELPER_END)
-    src = src[:start] + HELPER.strip() + src[end:]
-else:
-    MARKER = '  function renderPowerlineStatusLines(width: number): string[] {'
-    if MARKER not in src:
+if "[pi-config patch:mode-border-color]" not in src:
+    marker = '  function renderPowerlineStatusLines(width: number): string[] {'
+    if marker not in src:
         print('index.ts: helper anchor not found', file=sys.stderr); sys.exit(1)
-    src = src.replace(MARKER, HELPER + '\n' + MARKER, 1)
+    src = src.replace(marker, HELPER + '\n' + marker, 1)
 
-# Replace the v1 rounded-powerline TOP function with a mode-aware version.
-# Match both original v1 and v1+mode-border-color variants.
-NT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
-  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
-    if (!currentCtx) return [];
-    const layout = getResponsiveLayout(width, theme);
-    if (!layout.topContent) return [];
-    const border = (s: string) => theme.fg(getModeBorderColor(), s);
-    const inner = layout.topContent;
-    const innerW = visibleWidth(inner);
-    const fill = Math.max(0, width - innerW - 2);
-    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
-  }'''
+# Accept either freshly-rounded functions or older mode-border versions.
+src, n1 = re.subn(
+    r'const border = \(s: string\) => theme\.fg\("borderMuted", s\);\n(\s*const inner = layout\.topContent;)',
+    r'const border = getModeBorderFn(theme);\n\1',
+    src,
+    count=1,
+)
+src, n2 = re.subn(
+    r'const border = \(s: string\) => theme\.fg\("borderMuted", s\);\n(\s*const left = layout\.secondaryContent \|\| "";)',
+    r'const border = getModeBorderFn(theme);\n\1',
+    src,
+    count=1,
+)
+# Older script variant used getModeBorderColor(); normalize that too.
+src = src.replace('const border = (s: string) => theme.fg(getModeBorderColor(), s);', 'const border = getModeBorderFn(theme);')
 
-RT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
-  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
-    if (!currentCtx) return [];
-    const layout = getResponsiveLayout(width, theme);
-    if (!layout.topContent) return [];
-    const border = getModeBorderFn(theme);
-    const inner = layout.topContent;
-    const innerW = visibleWidth(inner);
-    const fill = Math.max(0, width - innerW - 2);
-    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
-  }'''
-
-if NT not in src:
-    print("index.ts: rounded-powerline TOP needle not found", file=sys.stderr); sys.exit(1)
-src = src.replace(NT, RT, 1)
-
-# Replace the v1 secondary-right-render function with a mode-aware version.
-NS = '''  // [pi-config patch:secondary-right-render] [mode-border-color]
-  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
-    if (!currentCtx) return [];
-    const layout = getResponsiveLayout(width, theme) as any;
-    const border = (s: string) => theme.fg(getModeBorderColor(), s);
-    const left = layout.secondaryContent || "";
-    const right = layout.secondaryRightContent || "";
-    if (!left && !right) return [];
-    const leftW = visibleWidth(left);
-    const rightW = visibleWidth(right);
-    const fill = Math.max(0, width - leftW - rightW - 2);
-    return [border("╰") + left + border("─".repeat(fill)) + right + border("╯")];
-  }'''
-
-RS = '''  // [pi-config patch:secondary-right-render] [mode-border-color]
-  function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
-    if (!currentCtx) return [];
-    const layout = getResponsiveLayout(width, theme) as any;
-    const border = getModeBorderFn(theme);
-    const left = layout.secondaryContent || "";
-    const right = layout.secondaryRightContent || "";
-    if (!left && !right) return [];
-    const leftW = visibleWidth(left);
-    const rightW = visibleWidth(right);
-    const fill = Math.max(0, width - leftW - rightW - 2);
-    return [border("╰") + left + border("─".repeat(fill)) + right + border("╯")];
-  }'''
-
-if NS not in src:
-    print("index.ts: secondary-right-render needle not found", file=sys.stderr); sys.exit(1)
-src = src.replace(NS, RS, 1)
+if 'const border = getModeBorderFn(theme);' not in src:
+    print('index.ts: mode border replacement not found', file=sys.stderr); sys.exit(1)
 
 open(path, "w").write(src)
 print("✓ index.ts (mode-border-color)")
