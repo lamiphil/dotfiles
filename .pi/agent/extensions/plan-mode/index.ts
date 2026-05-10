@@ -50,13 +50,36 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		default: false,
 	});
 
+	// Rainbow text helper: cycles hue 0→300° across each character.
+	function rainbow(text: string): string {
+		return text.split("").map((ch, i) => {
+			const hue = (i / Math.max(1, text.length)) * 300;
+			const [r, g, b] = hueToRgb(hue);
+			return `\x1b[38;2;${r};${g};${b}m${ch}`;
+		}).join("") + "\x1b[0m";
+	}
+
+	function hueToRgb(h: number): [number, number, number] {
+		const s = 0.85, l = 0.6;
+		const c = (1 - Math.abs(2 * l - 1)) * s;
+		const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+		const m = l - c / 2;
+		let r = 0, g = 0, b = 0;
+		if (h < 60) { r = c; g = x; }
+		else if (h < 120) { r = x; g = c; }
+		else if (h < 180) { g = c; b = x; }
+		else if (h < 240) { g = x; b = c; }
+		else if (h < 300) { r = x; b = c; }
+		else { r = c; b = x; }
+		return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+	}
+
 	function updateStatus(ctx: ExtensionContext): void {
 		// Always emit a plan/build badge so the powerline always has a value to render.
-		// Plan mode → green, Build mode → red. Execution mode keeps the progress 📋 counter.
+		// Plan mode → green, Build mode → red. Execution → rainbow APPLYING...
 		const thm = ctx.ui.theme;
 		if (executionMode && todoItems.length > 0) {
-			const completed = todoItems.filter((t) => t.completed).length;
-			ctx.ui.setStatus("plan-mode", thm.fg("success", `📋 ${completed}/${todoItems.length}`));
+			ctx.ui.setStatus("plan-mode", thm.fg("thinkingHigh", "APPLYING..."));
 		} else if (planModeEnabled) {
 			ctx.ui.setStatus("plan-mode", thm.fg("success", "● PLAN"));
 		} else {

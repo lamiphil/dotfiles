@@ -447,41 +447,60 @@ if "[pi-config patch:mode-border-color]" in src:
     print("✓ index.ts (mode-border-color already patched)")
     sys.exit(0)
 
-# Helper inserted once — reads the plan-mode extension status and returns a
-# theme color token: "success" (PLAN), "error" (BUILD), or "borderMuted" (no
-# plan-mode extension loaded).
+# Helper: returns a colorizer FUNCTION, not just a token. When the plan-mode
+# status contains APPLYING, produces rainbow borders; otherwise single-color.
 HELPER = '''
   // [pi-config patch:mode-border-color]
-  function getModeBorderColor(): "success" | "error" | "borderMuted" {
+  function __hueToRgb(h: number): [number, number, number] {
+    const s = 0.85, l = 0.6;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) { r = c; g = x; }
+    else if (h < 120) { r = x; g = c; }
+    else if (h < 180) { g = c; b = x; }
+    else if (h < 240) { g = x; b = c; }
+    else if (h < 300) { r = x; b = c; }
+    else { r = c; b = x; }
+    return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+  }
+
+  function __rainbowStr(text: string): string {
+    return text.split("").map((ch, i) => {
+      const hue = (i / Math.max(1, text.length)) * 300;
+      const [r, g, b] = __hueToRgb(hue);
+      return `\x1b[38;2;${r};${g};${b}m${ch}`;
+    }).join("") + "\x1b[0m";
+  }
+
+  function getModeBorderFn(theme: Theme): (s: string) => string {
     try {
       const status = footerDataRef?.getExtensionStatuses().get("plan-mode") ?? "";
-      if (status.includes("BUILD")) return "error";
-      if (status.includes("PLAN") || status.includes("\\ud83d\\udccb")) return "success";
+      if (status.includes("APPLYING")) return (s: string) => theme.fg("thinkingHigh", s);
+      if (status.includes("BUILD")) return (s: string) => theme.fg("error", s);
+      if (status.includes("PLAN")) return (s: string) => theme.fg("success", s);
     } catch { /* fallthrough */ }
-    return "borderMuted";
+    return (s: string) => theme.fg("borderMuted", s);
   }
 '''
 
-# Insert helper just after the existing function declaration of renderPowerlineStatusLines
-MARKER = "  function renderPowerlineStatusLines(width: number): string[] {"
-if MARKER not in src:
-    print("index.ts: helper anchor not found", file=sys.stderr); sys.exit(1)
-src = src.replace(MARKER, HELPER + "\n" + MARKER, 1)
+# Replace the old getModeBorderColor function with the new getModeBorderFn
+OLD_HELPER_START = '  // [pi-config patch:mode-border-color]'
+OLD_HELPER_END = '    return "borderMuted";\n  }'
+if OLD_HELPER_START in src:
+    start = src.index(OLD_HELPER_START)
+    end = src.index(OLD_HELPER_END, start) + len(OLD_HELPER_END)
+    src = src[:start] + HELPER.strip() + src[end:]
+else:
+    MARKER = '  function renderPowerlineStatusLines(width: number): string[] {'
+    if MARKER not in src:
+        print('index.ts: helper anchor not found', file=sys.stderr); sys.exit(1)
+    src = src.replace(MARKER, HELPER + '\n' + MARKER, 1)
 
 # Replace the v1 rounded-powerline TOP function with a mode-aware version.
-NT = '''  // [pi-config patch:rounded-powerline]
-  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
-    if (!currentCtx) return [];
-    const layout = getResponsiveLayout(width, theme);
-    if (!layout.topContent) return [];
-    const border = (s: string) => theme.fg("borderMuted", s);
-    const inner = layout.topContent;
-    const innerW = visibleWidth(inner);
-    const fill = Math.max(0, width - innerW - 2);
-    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
-  }'''
-
-RT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
+# Match both original v1 and v1+mode-border-color variants.
+NT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
   function renderPowerlineTopLines(width: number, theme: Theme): string[] {
     if (!currentCtx) return [];
     const layout = getResponsiveLayout(width, theme);
@@ -493,16 +512,28 @@ RT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
     return [border("╭") + inner + border("─".repeat(fill) + "╮")];
   }'''
 
+RT = '''  // [pi-config patch:rounded-powerline] [mode-border-color]
+  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+    if (!currentCtx) return [];
+    const layout = getResponsiveLayout(width, theme);
+    if (!layout.topContent) return [];
+    const border = getModeBorderFn(theme);
+    const inner = layout.topContent;
+    const innerW = visibleWidth(inner);
+    const fill = Math.max(0, width - innerW - 2);
+    return [border("╭") + inner + border("─".repeat(fill) + "╮")];
+  }'''
+
 if NT not in src:
     print("index.ts: rounded-powerline TOP needle not found", file=sys.stderr); sys.exit(1)
 src = src.replace(NT, RT, 1)
 
 # Replace the v1 secondary-right-render function with a mode-aware version.
-NS = '''  // [pi-config patch:secondary-right-render]
+NS = '''  // [pi-config patch:secondary-right-render] [mode-border-color]
   function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
     if (!currentCtx) return [];
     const layout = getResponsiveLayout(width, theme) as any;
-    const border = (s: string) => theme.fg("borderMuted", s);
+    const border = (s: string) => theme.fg(getModeBorderColor(), s);
     const left = layout.secondaryContent || "";
     const right = layout.secondaryRightContent || "";
     if (!left && !right) return [];
@@ -516,7 +547,7 @@ RS = '''  // [pi-config patch:secondary-right-render] [mode-border-color]
   function renderPowerlineSecondaryLines(width: number, theme: Theme): string[] {
     if (!currentCtx) return [];
     const layout = getResponsiveLayout(width, theme) as any;
-    const border = (s: string) => theme.fg(getModeBorderColor(), s);
+    const border = getModeBorderFn(theme);
     const left = layout.secondaryContent || "";
     const right = layout.secondaryRightContent || "";
     if (!left && !right) return [];
