@@ -44,7 +44,7 @@
   "_config/bases/Knowledge Base.base": "LiBrainCog",
   "_config/bases/Ideas Base.base": "LiLightbulb",
   "_config/bases/Coral Base.base": "LiFish",
-  "Journal": "LiNotebook",
   "Training": "LiBicepsFlexed",
-  "_attachments": "LiImages"
+  "_attachments": "LiImages",
+  "Journal": "LiNotebook"
 }

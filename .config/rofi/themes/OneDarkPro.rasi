@@ -1,0 +1,128 @@
+configuration {
+    show-icons: false;
+    drun-display-format: "{name}";
+}
+
+* {
+    background:                  #1e2127ff;
+    background-alt:              #282b31ff;
+    foreground:                  #ffffffff;
+    selected:                    #61afefff;
+    active:                      #98c379ff;
+    urgent:                      #e06c75ff;
+
+    border-colour:               #3b4048ff;
+    handle-colour:               #61afefff;
+    background-colour:           @background;
+    foreground-colour:           @foreground;
+    alternate-background:        @background-alt;
+    normal-background:           @background;
+    normal-foreground:           @foreground;
+    selected-normal-background:  @selected;
+    selected-normal-foreground:  @background;
+    selected-active-background:  @active;
+    selected-active-foreground:  @background;
+    selected-urgent-background:  @urgent;
+    selected-urgent-foreground:  @background;
+    urgent-background:           @urgent;
+    urgent-foreground:           @background;
+    active-background:           @active;
+    active-foreground:           @background;
+}
+
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    fullscreen:                  false;
+    width:                       700px;
+    border:                      1px solid;
+    border-radius:               12px;
+    border-color:                @border-colour;
+    background-color:            @background-colour;
+    padding:                     16px;
+}
+
+mainbox {
+    spacing:                     12px;
+    background-color:            transparent;
+    children:                    [ "inputbar", "listview" ];
+}
+
+inputbar {
+    spacing:                     10px;
+    padding:                     12px;
+    border:                      0px;
+    border-radius:               10px;
+    background-color:            @alternate-background;
+    text-color:                  @foreground-colour;
+    children:                    [ "prompt", "entry" ];
+}
+
+prompt {
+    background-color:            transparent;
+    text-color:                  @selected;
+}
+
+entry {
+    background-color:            transparent;
+    text-color:                  @foreground-colour;
+    placeholder:                 "Type to filter";
+    placeholder-color:           #abb2bfff;
+}
+
+listview {
+    columns:                     1;
+    lines:                       8;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   true;
+    layout:                      vertical;
+    fixed-height:                false;
+    spacing:                     8px;
+    background-color:            transparent;
+    text-color:                  @foreground-colour;
+}
+
+scrollbar {
+    width:                       6px;
+    handle-width:                6px;
+    border-radius:               10px;
+    handle-color:                @handle-colour;
+    background-color:            @alternate-background;
+}
+
+element {
+    spacing:                     10px;
+    padding:                     12px;
+    border:                      0px;
+    border-radius:               10px;
+    background-color:            transparent;
+    text-color:                  @foreground-colour;
+}
+
+element normal.normal {
+    background-color:            @normal-background;
+    text-color:                  @normal-foreground;
+}
+
+element selected.normal {
+    background-color:            @selected-normal-background;
+    text-color:                  @selected-normal-foreground;
+}
+
+element selected.active {
+    background-color:            @selected-active-background;
+    text-color:                  @selected-active-foreground;
+}
+
+element selected.urgent {
+    background-color:            @selected-urgent-background;
+    text-color:                  @selected-urgent-foreground;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+}
