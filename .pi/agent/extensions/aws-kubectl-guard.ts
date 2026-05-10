@@ -5,7 +5,7 @@
  *
  *   AWS writes allowed only on profile:    personal
  *   AWS profiles read-only:                cloud-staging, cloud-production (+ any other)
- *   kubectl writes allowed only on context: foundation-personal-phil
+ *   kubectl writes allowed only on contexts: foundation-personal-phil, homelab
  *
  * Detection (per command):
  *   AWS profile        →  AWS_PROFILE=… , --profile=… , else $AWS_PROFILE inherited
@@ -28,7 +28,7 @@
 import { isToolCallEventType, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
 
 const AWS_WRITE_PROFILES = new Set<string>(["personal"]);
-const KUBE_WRITE_CONTEXTS = new Set<string>(["foundation-personal-phil"]);
+const KUBE_WRITE_CONTEXTS = new Set<string>(["foundation-personal-phil", "homelab"]);
 
 const AWS_READ_VERB_RE =
 	/^(describe-|list-|get-|head-|show-|search-|view-|lookup-|batch-get-|simulate-|validate-|estimate-|preview-|test-|generate-presigned-|generate-data-key-without-plaintext|select$|scan$|query$|help$)/;
