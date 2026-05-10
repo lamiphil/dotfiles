@@ -7,6 +7,14 @@ description: Add a timestamped log entry to notes. Summarizes recent work and ad
 
 Add timestamped log entries summarizing recent work to the appropriate note file.
 
+## Language and Style
+
+- For the personal vault under `/home/lamiphil/workspaces/personal/notes`, write log entries in French by default.
+- Match Philippe's note-taking style: concise first-person notes (`Je...`, `J'ai...`, `Je vais...`), practical/contextual wording, and Markdown bullets for concrete actions or findings.
+- Keep technical terms in English when they are tool names or clearer as-is (`slskd`, `Bubble Tea`, `API`, `Docker`, `TUI`, `port forwarding`, etc.).
+- Use Québec/French phrasing naturally; avoid overly formal or generic summaries.
+- Only write in English if the user explicitly asks for English or the target vault/repo convention requires it.
+
 ## Timestamp Format
 
 Always start log entries with a bold timestamp:
