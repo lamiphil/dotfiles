@@ -39,15 +39,6 @@
         "excludeFromExtensionStatuses": true
       },
       {
-        "id": "lsp-hide",
-        "statusKey": "lsp",
-        "position": "secondary",
-        "hideWhenMissing": true,
-        "excludeFromExtensionStatuses": true,
-        "prefix": "",
-        "color": "#00000000"
-      },
-      {
         "id": "vim-mode",
         "statusKey": "vim-mode",
         "position": "secondary-right",

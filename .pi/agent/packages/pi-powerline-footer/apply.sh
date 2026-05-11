@@ -56,7 +56,7 @@ new_default = (
     "  default: {\n"
     "    leftSegments: [\"model\", \"thinking\", \"path\"],\n"
     "    rightSegments: [],\n"
-    "    secondarySegments: [\"shell_mode\", \"git\", \"extension_statuses\"],\n"
+    "    secondarySegments: [\"shell_mode\", \"git\"],\n"
     "    separator: \"powerline-thin\",\n"
     "    colors: DEFAULT_COLORS,\n"
     "    segmentOptions: {\n"
