@@ -60,14 +60,14 @@ function writeActiveVault(name: string): void {
 }
 
 // Nerd Font journal-ish glyph (nf-md-notebook).
-const VAULT_ICON = "\u{F0E59}";
+const VAULT_ICON = "\u{F14E7}"; // nf-md-notebook_edit
 
 function publishVaultStatus(ctx: ExtensionContext): void {
 	const vault = readActiveVault();
 	const thm = ctx.ui.theme;
 	ctx.ui.setStatus(
 		"note-vault",
-		thm.fg("accent", VAULT_ICON) + thm.fg("dim", " vault ") + thm.fg("text", vault),
+		thm.fg("thinkingHigh", VAULT_ICON) + thm.fg("dim", " vault ") + thm.fg("thinkingHigh", vault),
 	);
 }
 

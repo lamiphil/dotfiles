@@ -146,7 +146,7 @@ export default function (pi: ExtensionAPI) {
 		void okKube;
 		ctx.ui.setStatus(
 			"aws",
-			thm.fg("warning", "") + thm.fg("dim", " aws ") + thm.fg("warning", awsLabel),
+			thm.fg("warning", "☁") + thm.fg("dim", " aws ") + thm.fg("warning", awsLabel),
 		);
 		// #61afef = rgb(97,175,239) — hardcoded blue since accent is now orange.
 		const kubeBlue = (s: string) => `\x1b[38;2;97;175;239m${s}\x1b[0m`;
