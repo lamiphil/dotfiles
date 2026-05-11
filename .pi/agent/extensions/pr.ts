@@ -3,27 +3,16 @@
  *
  * Open a PR via `gh pr create`, with a friendly approve/edit flow.
  *
- * Auto-generates a conventional-commits title and a `## Changes` body from
- * the branch's commits vs. the detected base branch, opens both in an editor
- * for you to approve or edit, then creates the PR on save. Cancel by saving
- * an empty buffer.
+ * Uses the current LLM to generate a PR title and description from the
+ * branch's diff and commits, then opens both in an editor for review.
+ * Cancel by saving an empty buffer.
  *
  *   /pr                 Operate on the current repo (or pick one if cwd holds
  *                       multiple).
- *   /pr <path>          Operate on the repo at <path>. Path may be relative to
- *                       pi's cwd or absolute; `~` is expanded.
- *
- * Repo resolution (when no explicit path is given):
- *   1. If pi's cwd is itself a git repo, use it.
- *   2. Else scan immediate subdirectories for git repos.
- *      - exactly one  → use it (and tell the user)
- *      - multiple     → select dialog
- *      - none         → confirm error so the message stays visible
- *
- * After creation, the PR URL is printed and copied to the clipboard (best-effort).
+ *   /pr <path>          Operate on the repo at <path>.
  */
 
-import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import { spawnSync } from "node:child_process";
 import { readdirSync, statSync } from "node:fs";
 import { isAbsolute, join, resolve as resolvePath } from "node:path";
@@ -49,13 +38,11 @@ async function run(
 }
 
 async function detectBase(pi: ExtensionAPI, cwd: string): Promise<string> {
-	// Prefer the remote's default branch.
 	const sym = await run(pi, "git", ["symbolic-ref", "refs/remotes/origin/HEAD"], cwd);
 	if (sym.exitCode === 0) {
 		const m = sym.stdout.trim().match(/refs\/remotes\/origin\/(.+)$/);
 		if (m) return m[1];
 	}
-	// Fallbacks
 	for (const b of ["main", "master", "develop"]) {
 		const r = await run(pi, "git", ["rev-parse", "--verify", `origin/${b}`], cwd);
 		if (r.exitCode === 0) return b;
@@ -68,27 +55,20 @@ async function currentBranch(pi: ExtensionAPI, cwd: string): Promise<string> {
 	return r.stdout.trim();
 }
 
-// Conventional Commits subject: <type>(<scope>): <description>
-//   - type   = chore | feat | fix   (per the user's tight spec)
-//   - scope  = optional, lowercase
 const CONVENTIONAL_RE = /^(chore|feat|fix)(\([^)]+\))?(!)?:\s+\S/;
 
 function inferTypeFromPaths(paths: string[]): "chore" | "feat" | "fix" {
 	const joined = paths.join("\n").toLowerCase();
-	// Heuristic: filenames mentioning "fix" / "bug" → fix; otherwise default to chore
-	// (we can't reliably infer feat without reading the diff content; the agent
-	// can do that via `/commit`. We stay conservative here.)
 	if (/\bfix\b|\bbug\b|\bhotfix\b/.test(joined)) return "fix";
 	return "chore";
 }
 
 function inferScopeFromPaths(paths: string[]): string | undefined {
 	if (paths.length === 0) return undefined;
-	// Pick the most common top-level directory as the scope.
 	const freq = new Map<string, number>();
 	for (const p of paths) {
 		const seg = p.split("/")[0];
-		if (!seg || seg.startsWith(".")) continue; // skip dotfiles segments like .pi, .config
+		if (!seg || seg.startsWith(".")) continue;
 		freq.set(seg, (freq.get(seg) ?? 0) + 1);
 	}
 	let best: { seg: string; n: number } | undefined;
@@ -105,7 +85,6 @@ function toConventionalSubject(
 	const trimmed = subject.trim();
 	if (CONVENTIONAL_RE.test(trimmed)) return trimmed;
 
-	// Existing dotfiles convention: "SCOPE - Description"
 	const scoped = trimmed.match(/^([A-Z][A-Z0-9_]*)\s+-\s+(.+)$/);
 	if (scoped) {
 		const [, rawScope, rawDesc] = scoped;
@@ -120,7 +99,6 @@ function toConventionalSubject(
 	return scope ? `${type}(${scope}): ${desc}` : `${type}: ${desc}`;
 }
 
-// Strip conventional-commits prefix (`feat(scope): `) from a subject.
 function stripConventionalPrefix(subject: string): string {
 	return subject.replace(/^(chore|feat|fix)(\([^)]+\))?(!)?:\s+/, "");
 }
@@ -129,8 +107,6 @@ function capitalizeFirst(s: string): string {
 	return s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// Imperative → 3rd-person singular ("add" → "adds", "fix" → "fixes").
-// Covers regular English -s/-es/-ies rules; good enough for commit verbs.
 function conjugate3rdPersonSingular(verb: string): string {
 	const v = verb.toLowerCase();
 	if (v.endsWith("y") && v.length > 1 && !"aeiou".includes(v[v.length - 2])) {
@@ -148,9 +124,6 @@ function conjugate3rdPersonSingular(verb: string): string {
 	return v + "s";
 }
 
-// Build the lead sentence from the title:
-//   "feat(foundation): add dab-deployer SA"
-//   → "This PR adds dab-deployer SA."
 function titleToLeadSentence(title: string): string {
 	const desc = stripConventionalPrefix(title).trim();
 	if (!desc) return "This PR introduces the changes below.";
@@ -161,29 +134,110 @@ function titleToLeadSentence(title: string): string {
 	return sentence.replace(/[.!?]+$/, "") + ".";
 }
 
-// Turn a commit subject into a Summary bullet:
-//   "feat(foundation): add dab-deployer SA" → "Add dab-deployer SA"
 function commitToBullet(subject: string): string {
 	return capitalizeFirst(stripConventionalPrefix(subject).trim());
 }
 
+const PR_DESCRIPTION_PROMPT = `You are writing a GitHub PR description. You will be given the PR title, commit subjects, and a diff.
+
+Write a concise PR description following this style:
+- Start with a lead sentence: "This PR [verb]s [what]."
+- If there are multiple distinct changes, add a bullet list with \`-\` (no heading, no "## Changes")
+- If there is important context (why this change was made, migration steps, manual work needed), add a short paragraph after the bullets
+- Keep it concise — no filler, no restating the title unnecessarily
+- For trivial single-commit PRs, a single sentence is enough
+- Use backticks for code references (file names, variable names, commands)
+- Do not use markdown headings (no ##)
+
+Output ONLY the PR body text, no title, no markdown fencing.`;
+
+function getCheapestModelForProvider(ctx: ExtensionCommandContext): ExtensionCommandContext["model"] {
+	const current = ctx.model;
+	if (!current) return undefined;
+
+	const available = ctx.modelRegistry.getAvailable();
+	const sameProvider = available.filter((m) => m.provider === current.provider);
+	if (sameProvider.length === 0) return current;
+
+	sameProvider.sort((a, b) => a.cost.input - b.cost.input);
+	return sameProvider[0];
+}
+
+async function callLLM(
+	ctx: ExtensionCommandContext,
+	prompt: string,
+	userContent: string,
+): Promise<string | undefined> {
+	const model = getCheapestModelForProvider(ctx);
+	if (!model) return undefined;
+
+	console.log(`Using model ${model.id} for PR description`);
+
+	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+	if (!auth.ok) return undefined;
+
+	const provider = model.provider;
+	const baseUrl = model.baseUrl;
+
+	if (provider === "anthropic" || (baseUrl && baseUrl.includes("anthropic"))) {
+		const headers: Record<string, string> = {
+			"content-type": "application/json",
+			"x-api-key": auth.apiKey ?? "",
+			"anthropic-version": "2023-06-01",
+			...(auth.headers ?? {}),
+		};
+
+		const resp = await fetch(`${baseUrl ?? "https://api.anthropic.com"}/v1/messages`, {
+			method: "POST",
+			headers,
+			body: JSON.stringify({
+				model: model.id,
+				max_tokens: 1024,
+				system: prompt,
+				messages: [{ role: "user", content: userContent }],
+			}),
+		});
+
+		if (!resp.ok) return undefined;
+		const data = (await resp.json()) as { content?: Array<{ text?: string }> };
+		return data.content?.[0]?.text;
+	}
+
+	// OpenAI-compatible
+	const headers: Record<string, string> = {
+		"content-type": "application/json",
+		authorization: `Bearer ${auth.apiKey ?? ""}`,
+		...(auth.headers ?? {}),
+	};
+
+	const resp = await fetch(`${baseUrl ?? "https://api.openai.com"}/v1/chat/completions`, {
+		method: "POST",
+		headers,
+		body: JSON.stringify({
+			model: model.id,
+			max_tokens: 1024,
+			messages: [
+				{ role: "system", content: prompt },
+				{ role: "user", content: userContent },
+			],
+		}),
+	});
+
+	if (!resp.ok) return undefined;
+	const data = (await resp.json()) as { choices?: Array<{ message?: { content?: string } }> };
+	return data.choices?.[0]?.message?.content;
+}
+
 async function generateTitleAndBody(
 	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
 	cwd: string,
 	base: string,
 ): Promise<{ title: string; body: string }> {
-	// Title: subject of the most recent commit on this branch.
 	const subj = await run(pi, "git", ["log", "-1", "--pretty=%s"], cwd);
 	const rawTitle = subj.stdout.trim();
 
-	// File paths changed against the base — used to infer type/scope when the
-	// commit subject isn't already conventional.
-	const names = await run(
-		pi,
-		"git",
-		["diff", "--name-only", `${base}...HEAD`],
-		cwd,
-	);
+	const names = await run(pi, "git", ["diff", "--name-only", `${base}...HEAD`], cwd);
 	const paths = names.stdout
 		.split("\n")
 		.map((s) => s.trim())
@@ -191,11 +245,6 @@ async function generateTitleAndBody(
 
 	const title = toConventionalSubject(rawTitle, paths);
 
-	// Body: lead sentence derived from the title. For single-commit PRs the
-	// bullet would just restate the lead, so we emit only the sentence —
-	// matching the user's pattern for short PRs (e.g. "Title says all" /
-	// one-line bodies). For multi-commit PRs we add a `## Changes` section
-	// (h2, matching the PR #3292 reference).
 	const log = await run(
 		pi,
 		"git",
@@ -207,6 +256,31 @@ async function generateTitleAndBody(
 		.map((s) => s.trim())
 		.filter((s) => s.length > 0);
 
+	// Try LLM-generated body
+	const diff = await run(pi, "git", ["diff", `${base}...HEAD`], cwd);
+	const truncatedDiff = diff.stdout.slice(0, 15000);
+
+	const userContent = [
+		`PR Title: ${title}`,
+		``,
+		`Commits:`,
+		...subjects.map((s) => `- ${s}`),
+		``,
+		`Diff:`,
+		"```",
+		truncatedDiff,
+		"```",
+	].join("\n");
+
+	ctx.ui.setStatus("pr", "Generating PR description…");
+	const llmBody = await callLLM(ctx, PR_DESCRIPTION_PROMPT, userContent);
+	ctx.ui.setStatus("pr", "");
+
+	if (llmBody) {
+		return { title, body: llmBody.trim() };
+	}
+
+	// Fallback: heuristic
 	const lead = titleToLeadSentence(title || rawTitle);
 	const bullets = subjects.map((s) => `- ${commitToBullet(s)}`).join("\n");
 
@@ -216,7 +290,7 @@ async function generateTitleAndBody(
 	} else if (subjects.length === 1) {
 		body = `${lead}\n`;
 	} else {
-		body = `${lead}\n\n## Changes\n${bullets}\n`;
+		body = `${lead}\n\n${bullets}\n`;
 	}
 
 	return { title: title || `Update from ${await currentBranch(pi, cwd)}`, body };
@@ -228,7 +302,6 @@ function parseTitleAndBody(text: string): { title: string; body: string } | unde
 	const lines = trimmed.split("\n");
 	const title = (lines.shift() ?? "").trim();
 	if (!title) return undefined;
-	// Skip a single blank separator line, but keep the rest verbatim.
 	if (lines.length && lines[0].trim() === "") lines.shift();
 	return { title, body: lines.join("\n") };
 }
@@ -250,9 +323,7 @@ async function ghPrCreate(
 function copyToClipboard(text: string): void {
 	try {
 		spawnSync("pbcopy", [], { input: text });
-	} catch {
-		// best-effort; silent on failure (Linux without xclip, etc.)
-	}
+	} catch {}
 }
 
 function expandTilde(p: string): string {
@@ -271,11 +342,6 @@ async function isGitRepo(pi: ExtensionAPI, path: string): Promise<string | undef
 	return r.exitCode === 0 ? r.stdout.trim() : undefined;
 }
 
-/**
- * Find git repos under `dir` up to `maxDepth` levels deep.
- * Each found repo terminates that branch (we never descend into a repo).
- * Hidden directories (dotfiles) are skipped except when `dir` itself is one.
- */
 async function findChildRepos(
 	pi: ExtensionAPI,
 	dir: string,
@@ -302,8 +368,6 @@ async function findChildRepos(
 			const top = await isGitRepo(pi, full);
 			if (top && top === full) {
 				hits.push(top);
-				// Don't descend into a repo — submodules / nested repos rarely
-				// host the PR you want.
 				continue;
 			}
 			await walk(full, depth + 1);
@@ -314,13 +378,11 @@ async function findChildRepos(
 	return hits.sort();
 }
 
-/** Resolve which repo `/pr` should operate on, given parsed args. */
 async function resolveRepo(
 	pi: ExtensionAPI,
 	ctx: ExtensionCommandContext,
 	explicitPath: string | undefined,
 ): Promise<string | undefined> {
-	// 1. Explicit path argument.
 	if (explicitPath) {
 		const abs = resolveAgainst(ctx.cwd, explicitPath);
 		const top = await isGitRepo(pi, abs);
@@ -334,11 +396,9 @@ async function resolveRepo(
 		return top;
 	}
 
-	// 2. cwd itself is a repo.
 	const cwdTop = await isGitRepo(pi, ctx.cwd);
 	if (cwdTop) return cwdTop;
 
-	// 3. Scan immediate subdirectories.
 	const children = await findChildRepos(pi, ctx.cwd);
 	if (children.length === 0) {
 		await ctx.ui.confirm(
@@ -361,7 +421,6 @@ async function resolveRepo(
 	return children[idx];
 }
 
-/** Parse args. Supports: "", "<path>". Extra tokens are ignored. */
 function parseArgs(raw: string): { path: string | undefined } {
 	const tokens = raw.trim().split(/\s+/).filter(Boolean);
 	return { path: tokens[0] };
@@ -381,7 +440,7 @@ async function preflight(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promis
 
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("pr", {
-		description: "Open a GitHub PR (auto-fills title + description from branch commits)",
+		description: "Open a GitHub PR (LLM-generated title + description from branch diff)",
 		handler: async (args, ctx) => {
 			if (!(await preflight(pi, ctx))) return;
 
@@ -401,17 +460,15 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			// Changed paths against base — used to infer type/scope when the
-			// title isn't already in conventional commits format.
 			const names = await run(pi, "git", ["diff", "--name-only", `${base}...HEAD`], cwd);
 			const paths = names.stdout
 				.split("\n")
 				.map((s) => s.trim())
 				.filter((s) => s.length > 0);
 
-			const gen = await generateTitleAndBody(pi, cwd, base);
+			const gen = await generateTitleAndBody(pi, ctx, cwd, base);
 			const reviewed = await ctx.ui.editor(
-				`Review PR (base: ${base}) — first line is the title in <type>(<scope>): <description> format. Save empty to cancel.`,
+				`Review PR (base: ${base}) — first line is the title. Save empty to cancel.`,
 				`${gen.title}\n\n${gen.body}`,
 			);
 			const parsed = parseTitleAndBody(reviewed ?? "");
@@ -419,7 +476,6 @@ export default function (pi: ExtensionAPI) {
 				ctx.ui.notify("PR cancelled.", "info");
 				return;
 			}
-			// In case the user edited the title away from conventional format.
 			const title = toConventionalSubject(parsed.title, paths);
 			const body = parsed.body;
 

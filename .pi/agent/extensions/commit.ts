@@ -14,6 +14,76 @@ import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-cod
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
+// ─── LLM helpers ────────────────────────────────────────────────────────────
+
+function getCheapestModel(ctx: ExtensionCommandContext) {
+	const current = ctx.model;
+	if (!current) return undefined;
+	const available = ctx.modelRegistry.getAvailable();
+	const sameProvider = available.filter((m) => m.provider === current.provider);
+	if (sameProvider.length === 0) return current;
+	sameProvider.sort((a, b) => a.cost.input - b.cost.input);
+	return sameProvider[0];
+}
+
+async function callLLM(
+	ctx: ExtensionCommandContext,
+	prompt: string,
+	userContent: string,
+): Promise<string | undefined> {
+	const model = getCheapestModel(ctx);
+	if (!model) return undefined;
+
+	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+	if (!auth.ok) return undefined;
+
+	const provider = model.provider;
+	const baseUrl = model.baseUrl;
+
+	if (provider === "anthropic" || (baseUrl && baseUrl.includes("anthropic"))) {
+		const headers: Record<string, string> = {
+			"content-type": "application/json",
+			"x-api-key": auth.apiKey ?? "",
+			"anthropic-version": "2023-06-01",
+			...(auth.headers ?? {}),
+		};
+		const resp = await fetch(`${baseUrl ?? "https://api.anthropic.com"}/v1/messages`, {
+			method: "POST",
+			headers,
+			body: JSON.stringify({
+				model: model.id,
+				max_tokens: 256,
+				system: prompt,
+				messages: [{ role: "user", content: userContent }],
+			}),
+		});
+		if (!resp.ok) return undefined;
+		const data = (await resp.json()) as { content?: Array<{ text?: string }> };
+		return data.content?.[0]?.text;
+	}
+
+	const headers: Record<string, string> = {
+		"content-type": "application/json",
+		authorization: `Bearer ${auth.apiKey ?? ""}`,
+		...(auth.headers ?? {}),
+	};
+	const resp = await fetch(`${baseUrl ?? "https://api.openai.com"}/v1/chat/completions`, {
+		method: "POST",
+		headers,
+		body: JSON.stringify({
+			model: model.id,
+			max_tokens: 256,
+			messages: [
+				{ role: "system", content: prompt },
+				{ role: "user", content: userContent },
+			],
+		}),
+	});
+	if (!resp.ok) return undefined;
+	const data = (await resp.json()) as { choices?: Array<{ message?: { content?: string } }> };
+	return data.choices?.[0]?.message?.content;
+}
+
 interface ExecOk {
 	stdout: string;
 	stderr: string;
@@ -146,20 +216,53 @@ function suggestSubjectPrefix(paths: string[]): string {
 	return scope ? `${type}(${scope}): ` : `${type}: `;
 }
 
+const COMMIT_MESSAGE_PROMPT = `You are writing a git commit message in conventional commits format: <type>(<scope>): <description>
+
+Rules:
+- type is exactly one of: chore, feat, fix
+  - feat: a new feature the user can use
+  - fix: corrects incorrect behavior
+  - chore: everything else (config, docs, refactor, deps, CI, dotfiles)
+- scope is optional, lowercase, the affected component or area
+- description is short, imperative mood, lowercase first letter, no trailing period
+- Preserve acronyms and proper nouns in their original casing
+- Total subject ≤ 72 characters
+- No body, no footer
+
+Output ONLY the commit message, nothing else.`;
+
+async function generateCommitMessage(
+	ctx: ExtensionCommandContext,
+	pi: ExtensionAPI,
+	cwd: string,
+): Promise<string | undefined> {
+	const diff = await run(pi, "git", ["diff", "--cached"], cwd);
+	const truncatedDiff = diff.stdout.slice(0, 10000);
+	if (!truncatedDiff.trim()) return undefined;
+
+	ctx.ui.setStatus("commit", "Generating commit message…");
+	const result = await callLLM(ctx, COMMIT_MESSAGE_PROMPT, truncatedDiff);
+	ctx.ui.setStatus("commit", "");
+
+	return result?.trim();
+}
+
 async function promptForMessage(
 	ctx: ExtensionCommandContext,
 	pi: ExtensionAPI,
 	cwd: string,
 ): Promise<string | undefined> {
+	const llmSuggestion = await generateCommitMessage(ctx, pi, cwd);
+
 	const paths = await stagedPaths(pi, cwd);
-	const placeholder = `${suggestSubjectPrefix(paths)}<description>`;
+	const placeholder = llmSuggestion || `${suggestSubjectPrefix(paths)}<description>`;
 	const entered = await ctx.ui.input(
 		"Commit message  —  format: <type>(<scope>): <description>",
 		placeholder,
 	);
 	const trimmed = (entered ?? "").trim();
 	if (!trimmed) return undefined;
-	if (trimmed === placeholder) return undefined;
+	if (!llmSuggestion && trimmed === placeholder) return undefined;
 	return trimmed;
 }
 
