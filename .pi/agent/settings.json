@@ -9,7 +9,8 @@
     "npm:pi-custom-compaction",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:pi-lsp-extension",
-    "npm:pi-web-access"
+    "npm:pi-web-access",
+    "npm:vim-motions-pi"
   ],
   "compaction": {
     "enabled": true
@@ -38,8 +39,8 @@
         "excludeFromExtensionStatuses": true
       },
       {
-        "id": "plan-mode",
-        "statusKey": "plan-mode",
+        "id": "vim-mode",
+        "statusKey": "vim-mode",
         "position": "secondary-right",
         "hideWhenMissing": false,
         "excludeFromExtensionStatuses": true

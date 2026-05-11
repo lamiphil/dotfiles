@@ -461,10 +461,10 @@ HELPER = '''
   // [pi-config patch:mode-border-color]
   function getModeBorderFn(theme: Theme): (s: string) => string {
     try {
-      const status = footerDataRef?.getExtensionStatuses().get("plan-mode") ?? "";
-      if (status.includes("APPLYING")) return (s: string) => theme.fg("thinkingHigh", s);
-      if (status.includes("BUILD")) return (s: string) => theme.fg("error", s);
-      if (status.includes("PLAN")) return (s: string) => theme.fg("success", s);
+      const status = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";
+      if (status.includes("NORMAL")) return (s: string) => theme.fg("success", s);
+      if (status.includes("INSERT")) return (s: string) => theme.fg("thinkingLow", s);
+      if (status.includes("VISUAL")) return (s: string) => theme.fg("warning", s);
     } catch { /* fallthrough */ }
     return (s: string) => theme.fg("borderMuted", s);
   }
