@@ -143,6 +143,12 @@ NEW_MODE = '''\t// [pi-config patch:vim-mode-status]
 \tprivate setMode(mode: Mode): void {
 \t\tthis.mode = mode;
 \t\tthis._onModeChange?.(mode);
+\t\t// DECSCUSR: beam for insert, block for normal/visual
+\t\tif (mode === "insert") {
+\t\t\tprocess.stdout.write("\\x1b[6 q");
+\t\t} else {
+\t\t\tprocess.stdout.write("\\x1b[2 q");
+\t\t}
 \t\tthis.requestRender();
 \t}'''
 

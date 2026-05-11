@@ -499,5 +499,52 @@ open(path, "w").write(src)
 print("✓ index.ts (mode-border-color)")
 PYBORDERCOLOR
 
+# ── 8. Wire vim mode status + cursor shape into powerline editor factory ─────
+python3 - "$PKG/index.ts" <<'PYVIMWIRE'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+changes = 0
+
+# 8a. Publish vim mode + initial cursor
+if "[pi-config patch:vim-mode-wire]" not in src:
+    N = "      currentEditor = editor;"
+    R = '''      currentEditor = editor;
+      // [pi-config patch:vim-mode-wire] Publish vim mode to powerline status
+      if (typeof editor.setModeChangeCallback === "function") {
+        const publishVimMode = (mode: string) => {
+          const label = mode.toUpperCase();
+          const color = label === "NORMAL" ? "success"
+            : label.startsWith("VISUAL") ? "warning"
+            : "thinkingLow";
+          ctx.ui.setStatus("vim-mode", ctx.ui.theme.fg(color, `\u25cf ${label}`));
+        };
+        editor.setModeChangeCallback(publishVimMode);
+        publishVimMode("insert");
+        process.stdout.write("\\x1b[6 q");
+      }'''
+    if N not in src:
+        print("vim-mode-wire: needle not found", file=sys.stderr); sys.exit(1)
+    src = src.replace(N, R, 1)
+    changes += 1
+else:
+    print("✓ index.ts (vim-mode-wire already patched)")
+
+# 8b. Reset cursor on shutdown
+if "[pi-config patch:cursor-reset]" not in src:
+    N2 = '  pi.on("session_shutdown", async () => {\n    sessionGeneration++;'
+    R2 = '  pi.on("session_shutdown", async () => {\n    // [pi-config patch:cursor-reset] Reset cursor shape to default on exit\n    process.stdout.write("\\x1b[0 q");\n    sessionGeneration++;'
+    if N2 not in src:
+        print("cursor-reset: needle not found", file=sys.stderr); sys.exit(1)
+    src = src.replace(N2, R2, 1)
+    changes += 1
+else:
+    print("✓ index.ts (cursor-reset already patched)")
+
+if changes:
+    open(path, 'w').write(src)
+    print(f"✓ index.ts ({changes} vim/cursor patches)")
+PYVIMWIRE
+
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
 
