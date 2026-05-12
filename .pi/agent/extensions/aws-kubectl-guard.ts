@@ -25,7 +25,7 @@
  * Also exposes status segments:  ctx.ui.setStatus("aws", …),  ctx.ui.setStatus("kube", …)
  */
 
-import { isToolCallEventType, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { isToolCallEventType, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const AWS_WRITE_PROFILES = new Set<string>(["personal"]);
 const KUBE_WRITE_CONTEXTS = new Set<string>(["foundation-personal-phil", "homelab"]);
@@ -114,9 +114,25 @@ function shortPath(): string {
 	return home && cwd.startsWith(home) ? `~${cwd.slice(home.length)}` : cwd;
 }
 
+function detectAwsProfileFromConfig(): string | undefined {
+	try {
+		const home = process.env.HOME ?? "";
+		const fs = require("fs");
+		const path = require("path");
+		const configPath = path.join(home, ".aws", "config");
+		if (!fs.existsSync(configPath)) return undefined;
+		const content: string = fs.readFileSync(configPath, "utf-8");
+		// Return the first [profile X] name found
+		const m = content.match(/^\[profile\s+(.+?)\]/m);
+		return m ? m[1] : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 export default function (pi: ExtensionAPI) {
 	let kubeContext: string | undefined;
-	let awsProfile: string | undefined = process.env.AWS_PROFILE;
+	let awsProfile: string | undefined = process.env.AWS_PROFILE || detectAwsProfileFromConfig();
 
 	const refreshKube = async () => {
 		const r = await pi
@@ -126,7 +142,7 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const refreshAws = () => {
-		awsProfile = process.env.AWS_PROFILE;
+		awsProfile = process.env.AWS_PROFILE || detectAwsProfileFromConfig();
 	};
 
 	const updateStatuses = (ctx: any) => {
