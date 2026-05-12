@@ -30,7 +30,7 @@ const MODES: Record<string, ModeConfig> = {
 		model: "kimi-for-coding",
 		provider: "kimi-coding",
 		thinking: "off",
-		color: "accent",
+		color: "error",
 	},
 	smart: {
 		icon: "",
@@ -51,7 +51,7 @@ const MODES: Record<string, ModeConfig> = {
 };
 
 const MODE_ORDER = ["rush", "smart", "deep"];
-const DEFAULT_MODE = "smart";
+const DEFAULT_MODE = "rush";
 
 function nextMode(current: string): string {
 	const idx = MODE_ORDER.indexOf(current);
