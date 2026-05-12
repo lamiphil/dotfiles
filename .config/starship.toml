@@ -48,7 +48,7 @@ add_newline = true
 
 [character] # The name of the module we are configuring is 'character'
 success_symbol = '[❯](bold green)'
-error_symbol = '[❯](bold red) '
+error_symbol = '[❯](bold red)'
 
 [directory]
 format = 'in [$path]($style)[$read_only]($read_only_style) '
@@ -71,7 +71,7 @@ trim_at = "."
 disabled = false
 
 [git_branch]
-format = 'on [$symbol$branch(:$remote_branch)]($style)'
+format = 'on [$symbol$branch(:$remote_branch)]($style) '
 symbol = " "
 
 [git_commit]
@@ -82,5 +82,16 @@ contexts = [
   { context_pattern = "*po", style = "blink red", context_alias = "prod"},
   { context_pattern = "*ti", style = "green", context_alias = "ti" },
 ]
-format = ' [☸ $context]($style) '
+style = 'blue'
+format = '[☸ $context]($style) '
 disabled = false
+
+[aws]
+symbol = '☁️ '
+format = '[$symbol($profile)(\($region\))]($style) '
+
+[gcloud]
+format = '[$symbol$account(@$domain)(\($region\))]($style) '
+
+[azure]
+format = '[$symbol($subscription)]($style) '
