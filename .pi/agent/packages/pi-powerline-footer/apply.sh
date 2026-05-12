@@ -54,7 +54,7 @@ src = open(path).read()
 
 new_default = (
     "  default: {\n"
-    "    leftSegments: [\"model\", \"thinking\", \"path\"],\n"
+    "    leftSegments: [\"path\"],\n"
     "    rightSegments: [],\n"
     "    secondarySegments: [\"shell_mode\", \"git\"],\n"
     "    separator: \"powerline-thin\",\n"
@@ -365,7 +365,7 @@ NM = '''  for (const item of customItems) {
 RM = '''  const secondaryRight: StatusLineSegmentId[] = [];
   for (const item of customItems) {
     const segmentId: StatusLineSegmentId = `custom:${item.id}`;
-    if (item.position === "left") left.push(segmentId);
+    if (item.position === "left") left.unshift(segmentId);
     else if (item.position === "secondary") secondary.push(segmentId);
     else if ((item.position as string) === "secondary-right") secondaryRight.push(segmentId);
     else right.push(segmentId);

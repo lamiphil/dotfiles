@@ -3,7 +3,7 @@
   "defaultProvider": "anthropic",
   "theme": "onedark-pro",
   "defaultModel": "claude-opus-4-6",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "off",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
@@ -25,6 +25,13 @@
     "fixedEditor": true,
     "mouseScroll": true,
     "customItems": [
+      {
+        "id": "agent-mode",
+        "statusKey": "agent-mode",
+        "position": "left",
+        "hideWhenMissing": false,
+        "excludeFromExtensionStatuses": true
+      },
       {
         "id": "kube",
         "statusKey": "kube",
