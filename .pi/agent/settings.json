@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "anthropic",
   "theme": "onedark-pro",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-powerline-footer",

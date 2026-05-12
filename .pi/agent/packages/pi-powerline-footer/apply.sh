@@ -546,5 +546,38 @@ if changes:
     print(f"✓ index.ts ({changes} vim/cursor patches)")
 PYVIMWIRE
 
+# ── 9. Remove powerline's own editor border lines (rounded borders are enough) ─
+python3 - "$PKG/index.ts" <<'PYNOLINES'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:no-editor-lines]" in src:
+    print("✓ index.ts (no-editor-lines already patched)")
+    sys.exit(0)
+
+N1 = '''        const result: string[] = [];
+        result.push(" " + bc("─".repeat(width - 2)));'''
+R1 = '''        const result: string[] = [];
+        // [pi-config patch:no-editor-lines] suppressed — powerline rounded borders are enough
+        result.push(" ".repeat(width));'''
+
+N2 = '''        result.push(" " + bc("─".repeat(width - 2)));
+
+        for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'''
+R2 = '''        result.push(" ".repeat(width));
+
+        for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'''
+
+if N1 not in src:
+    print("no-editor-lines: top needle not found", file=sys.stderr); sys.exit(1)
+if N2 not in src:
+    print("no-editor-lines: bottom needle not found", file=sys.stderr); sys.exit(1)
+
+src = src.replace(N1, R1, 1).replace(N2, R2, 1)
+open(path, 'w').write(src)
+print("✓ index.ts (no-editor-lines)")
+PYNOLINES
+
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
 
