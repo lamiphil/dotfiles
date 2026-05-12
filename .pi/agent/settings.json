@@ -10,7 +10,8 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:pi-lsp-extension",
     "npm:pi-web-access",
-    "npm:vim-motions-pi"
+    "npm:vim-motions-pi",
+    "npm:pi-answer"
   ],
   "compaction": {
     "enabled": true
