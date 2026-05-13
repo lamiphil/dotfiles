@@ -2,8 +2,8 @@
   "lastChangelogVersion": "0.74.0",
   "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
-  "defaultModel": "gpt-5.3-codex",
-  "defaultThinkingLevel": "off",
+  "defaultModel": "gpt-5.4",
+  "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",

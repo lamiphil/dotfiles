@@ -4,14 +4,67 @@
 
 set -euo pipefail
 
-PKG="$(dirname "$(readlink -f /opt/homebrew/bin/pi)")"
-[[ -d "$PKG" ]] || { echo "Cannot locate pi-coding-agent" >&2; exit 1; }
+NPM_ROOT="$(npm root -g 2>/dev/null || true)"
+
+resolve_realpath() {
+  python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$1"
+}
+
+resolve_pi_pkg() {
+  local pi_bin pi_real pkg candidate
+
+  pi_bin="$(command -v pi 2>/dev/null || true)"
+  if [[ -n "${pi_bin:-}" ]]; then
+    pi_real="$(resolve_realpath "$pi_bin")"
+    pkg="$(dirname "$pi_real")"
+    if [[ -f "$pkg/package.json" ]]; then
+      printf '%s\n' "$pkg"
+      return 0
+    fi
+  fi
+
+  for candidate in \
+    /opt/pi-coding-agent \
+    /usr/local/lib/pi-coding-agent \
+    "${NPM_ROOT:-}/pi-coding-agent"; do
+    if [[ -f "$candidate/package.json" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+find_session_selector() {
+  local root selector
+
+  for root in "$@"; do
+    [[ -n "${root:-}" && -d "$root" ]] || continue
+
+    if [[ -f "$root/modes/interactive/components/session-selector.js" ]]; then
+      printf '%s\n' "$root/modes/interactive/components/session-selector.js"
+      return 0
+    fi
+
+    selector="$(find "$root" -path '*/pi-coding-agent/dist/modes/interactive/components/session-selector.js' -print -quit 2>/dev/null || true)"
+    if [[ -n "${selector:-}" ]]; then
+      printf '%s\n' "$selector"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+PKG="$(resolve_pi_pkg || true)"
+[[ -n "${PKG:-}" && -d "$PKG" ]] || { echo "Cannot locate pi-coding-agent" >&2; exit 1; }
 
 echo "→ Package: $PKG"
 
 # ── 1. Session selector: purple named sessions ───────────────────────────────
-SELECTOR="$PKG/modes/interactive/components/session-selector.js"
-if [[ -f "$SELECTOR" ]]; then
+SELECTOR="$(find_session_selector "$PKG" "$NPM_ROOT" || true)"
+if [[ -n "${SELECTOR:-}" && -f "$SELECTOR" ]]; then
   python3 - "$SELECTOR" <<'PY'
 import sys
 path = sys.argv[1]

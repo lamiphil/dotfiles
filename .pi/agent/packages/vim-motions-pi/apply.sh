@@ -6,11 +6,44 @@
 
 set -euo pipefail
 
-VIM_PKG="/opt/homebrew/lib/node_modules/vim-motions-pi"
-PL_PKG="/opt/homebrew/lib/node_modules/pi-powerline-footer"
+NPM_ROOT="$(npm root -g 2>/dev/null || true)"
 
-[[ -d "${VIM_PKG:-}" ]] || { echo "vim-motions-pi not found" >&2; exit 1; }
-[[ -d "${PL_PKG:-}" ]] || { echo "pi-powerline-footer not found" >&2; exit 1; }
+resolve_pkg() {
+  local pkg="$1"
+  local resolved=""
+
+  resolved="$(NODE_PATH="$NPM_ROOT" node -e "try { console.log(require.resolve('${pkg}/package.json')); } catch (e) {}" 2>/dev/null || true)"
+
+  if [[ -n "${resolved:-}" ]]; then
+    dirname "$resolved"
+    return 0
+  fi
+
+  for candidate in \
+    "/opt/homebrew/lib/node_modules/${pkg}" \
+    "/usr/local/lib/node_modules/${pkg}" \
+    "${NPM_ROOT:-}/${pkg}"; do
+    if [[ -d "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+VIM_PKG="$(resolve_pkg vim-motions-pi || true)"
+PL_PKG="$(resolve_pkg pi-powerline-footer || true)"
+
+if [[ -z "${VIM_PKG:-}" || ! -d "$VIM_PKG" ]]; then
+  echo "vim-motions-pi not installed — skipping" >&2
+  exit 0
+fi
+
+if [[ -z "${PL_PKG:-}" || ! -d "$PL_PKG" ]]; then
+  echo "pi-powerline-footer not installed — skipping vim patch" >&2
+  exit 0
+fi
 
 echo "→ vim-motions-pi: $VIM_PKG"
 echo "→ pi-powerline-footer: $PL_PKG"

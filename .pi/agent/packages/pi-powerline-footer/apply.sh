@@ -15,22 +15,31 @@
 set -euo pipefail
 
 NPM_ROOT="$(npm root -g 2>/dev/null || true)"
-PKG=$(NODE_PATH="$NPM_ROOT" node -e 'console.log(require.resolve("pi-powerline-footer/package.json"))' 2>/dev/null \
-  | xargs -r dirname \
-  || true)
 
-if [[ -z "${PKG:-}" || ! -d "$PKG" ]]; then
-  # Fallback: probe common global npm locations (macOS Homebrew, Linux/NVM).
+resolve_pkg() {
+  local pkg="$1"
+  local resolved=""
+
+  resolved="$(NODE_PATH="$NPM_ROOT" node -e "try { console.log(require.resolve('${pkg}/package.json')); } catch (e) {}" 2>/dev/null || true)"
+  if [[ -n "${resolved:-}" ]]; then
+    dirname "$resolved"
+    return 0
+  fi
+
   for candidate in \
-    /opt/homebrew/lib/node_modules/pi-powerline-footer \
-    /usr/local/lib/node_modules/pi-powerline-footer \
-    "${NPM_ROOT:-}/pi-powerline-footer"; do
+    "/opt/homebrew/lib/node_modules/${pkg}" \
+    "/usr/local/lib/node_modules/${pkg}" \
+    "${NPM_ROOT:-}/${pkg}"; do
     if [[ -d "$candidate" ]]; then
-      PKG="$candidate"
-      break
+      printf '%s\n' "$candidate"
+      return 0
     fi
   done
-fi
+
+  return 1
+}
+
+PKG="$(resolve_pkg pi-powerline-footer || true)"
 
 if [[ -z "${PKG:-}" || ! -d "$PKG" ]]; then
   echo "Cannot locate pi-powerline-footer. Is it installed?" >&2
@@ -223,14 +232,26 @@ PY
 
 # 5a. Suppress the editor's own horizontal borders (replace with empty lines)
 # Search both vendor namespaces (pi was forked from @mariozechner to @earendil-works)
-EDITOR_JS="$(find \
-  /opt/homebrew/lib/node_modules/@earendil-works \
-  /opt/homebrew/lib/node_modules/@mariozechner \
-  /usr/local/lib/node_modules/@earendil-works \
-  /usr/local/lib/node_modules/@mariozechner \
-  "${NPM_ROOT:-}/@earendil-works" \
-  "${NPM_ROOT:-}/@mariozechner" \
-  -path '*/pi-tui/dist/components/editor.js' -print -quit 2>/dev/null || true)"
+find_editor_js() {
+  local root hit
+
+  for root in \
+    "$PKG/node_modules" \
+    "${NPM_ROOT:-}" \
+    "/opt/homebrew/lib/node_modules" \
+    "/usr/local/lib/node_modules"; do
+    [[ -n "${root:-}" && -d "$root" ]] || continue
+    hit="$(find "$root" \( -path '*/@earendil-works/pi-tui/dist/components/editor.js' -o -path '*/@mariozechner/pi-tui/dist/components/editor.js' \) -print -quit 2>/dev/null || true)"
+    if [[ -n "${hit:-}" ]]; then
+      printf '%s\n' "$hit"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+EDITOR_JS="$(find_editor_js || true)"
 if [[ -n "$EDITOR_JS" && -f "$EDITOR_JS" ]]; then
   python3 - "$EDITOR_JS" <<'PYEDITOR'
 import sys
