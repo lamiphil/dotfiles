@@ -1,9 +1,9 @@
 {
   "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "anthropic",
+  "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
-  "defaultModel": "claude-opus-4-6",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "gpt-5.3-codex",
+  "defaultThinkingLevel": "off",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
@@ -72,6 +72,7 @@
   "shellCommandPrefix": "shopt -s expand_aliases\nsource ~/.bash_aliases 2>/dev/null",
   "steeringMode": "one-at-a-time",
   "doubleEscapeAction": "tree",
+  "quietStartup": true,
   "treeFilterMode": "default",
   "warnings": {
     "anthropicExtraUsage": true
