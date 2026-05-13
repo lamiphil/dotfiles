@@ -3,7 +3,7 @@
   "defaultProvider": "anthropic",
   "theme": "onedark-pro",
   "defaultModel": "claude-opus-4-6",
-  "defaultThinkingLevel": "off",
+  "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
