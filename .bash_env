@@ -1,6 +1,8 @@
 # Source machine-specific env vars (not tracked in git)
 [ -f ~/.env.local ] && source ~/.env.local
 
+export XDG_CONFIG_HOME="$HOME/.config"
+
 export EDITOR=nvim
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
