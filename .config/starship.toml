@@ -46,9 +46,10 @@ $character"""
 # Inserts a blank line between shell prompts
 add_newline = true
 
-[character] # The name of the module we are configuring is 'character'
-success_symbol = '[❯](bold green)'
+[character]
+success_symbol = '[❯](bold purple)'  # insert mode
 error_symbol = '[❯](bold red)'
+vicmd_symbol = '[❯](bold green)'     # normal mode
 
 [directory]
 format = 'in [$path]($style)[$read_only]($read_only_style) '
