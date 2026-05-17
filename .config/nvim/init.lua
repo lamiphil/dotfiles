@@ -210,8 +210,8 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --  See `lua/custom/plugins/vim-tmux-navigator.lua`
 
 -- Resize splits with <C-S-h/j/k/l>
-vim.keymap.set('n', '<C-S-h>', '<cmd>vertical resize +2<CR>', { desc = 'Resize split left' })
-vim.keymap.set('n', '<C-S-l>', '<cmd>vertical resize -2<CR>', { desc = 'Resize split right' })
+vim.keymap.set('n', '<C-S-h>', '<cmd>vertical resize -2<CR>', { desc = 'Resize split left' })
+vim.keymap.set('n', '<C-S-l>', '<cmd>vertical resize +2<CR>', { desc = 'Resize split right' })
 vim.keymap.set('n', '<C-S-j>', '<cmd>resize -2<CR>', { desc = 'Resize split down' })
 vim.keymap.set('n', '<C-S-k>', '<cmd>resize +2<CR>', { desc = 'Resize split up' })
 
