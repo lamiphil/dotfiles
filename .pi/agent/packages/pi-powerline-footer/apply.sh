@@ -484,7 +484,7 @@ HELPER = '''
     try {
       const status = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";
       if (status.includes("NORMAL")) return (s: string) => theme.fg("success", s);
-      if (status.includes("INSERT")) return (s: string) => theme.fg("thinkingLow", s);
+      if (status.includes("INSERT")) { const _p = ansi.getFgAnsi(198, 120, 221); return (s: string) => \`\${_p}\${s}\\x1b[39m\`; }
       if (status.includes("VISUAL")) return (s: string) => theme.fg("warning", s);
     } catch { /* fallthrough */ }
     return (s: string) => theme.fg("borderMuted", s);
@@ -535,10 +535,11 @@ if "[pi-config patch:vim-mode-wire]" not in src:
       if (typeof editor.setModeChangeCallback === "function") {
         const publishVimMode = (mode: string) => {
           const label = mode.toUpperCase();
-          const color = label === "NORMAL" ? "success"
-            : label.startsWith("VISUAL") ? "warning"
-            : "thinkingLow";
-          ctx.ui.setStatus("vim-mode", ctx.ui.theme.fg(color, `\u25cf ${label}`));
+          // [pi-config patch:vim-mode-wire-purple] INSERT uses raw ANSI purple (#c678dd)
+          const _statusText = label === "NORMAL" ? ctx.ui.theme.fg("success", `\u25cf ${label}`)
+            : label.startsWith("VISUAL") ? ctx.ui.theme.fg("warning", `\u25cf ${label}`)
+            : (() => { const _p = ansi.getFgAnsi(198, 120, 221); return `${_p}\u25cf ${label}\\x1b[39m`; })();
+          ctx.ui.setStatus("vim-mode", _statusText);
         };
         editor.setModeChangeCallback(publishVimMode);
         publishVimMode("insert");
@@ -599,6 +600,41 @@ src = src.replace(N1, R1, 1).replace(N2, R2, 1)
 open(path, 'w').write(src)
 print("✓ index.ts (no-editor-lines)")
 PYNOLINES
+
+# ── 10. vim-mode-aware prompt glyph (❯ changes color with mode) ─────────────
+python3 - "$PKG/index.ts" <<'PYVIMPROMPT'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:vim-mode-prompt-glyph]" in src:
+    print("✓ index.ts (vim-mode-prompt-glyph already patched)")
+    sys.exit(0)
+
+NEEDLE = (
+    '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n'
+    '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n'
+    '        const prompt = `${ansi.getFgAnsi(152, 195, 121)}${promptGlyph}${ansi.reset}`;'
+)
+
+REPL = (
+    '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n'
+    '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n'
+    '        // [pi-config patch:vim-mode-prompt-glyph]\n'
+    '        const _vimSt = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";\n'
+    '        const _promptRgb = _vimSt.includes("INSERT") ? ansi.getFgAnsi(198, 120, 221)\n'
+    '          : _vimSt.includes("VISUAL") ? ansi.getFgAnsi(229, 192, 123)\n'
+    '          : ansi.getFgAnsi(152, 195, 121);\n'
+    '        const prompt = `${_promptRgb}${promptGlyph}${ansi.reset}`;'
+)
+
+if NEEDLE not in src:
+    print("vim-mode-prompt-glyph: needle not found (upstream changed?)", file=sys.stderr)
+    sys.exit(1)
+
+open(path, 'w').write(src.replace(NEEDLE, REPL, 1))
+print("✓ index.ts (vim-mode-prompt-glyph)")
+PYVIMPROMPT
 
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
 
