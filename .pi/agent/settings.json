@@ -11,7 +11,9 @@
     "npm:pi-lsp-extension",
     "npm:pi-web-access",
     "npm:vim-motions-pi",
-    "npm:pi-answer"
+    "npm:pi-answer",
+    "npm:pi-observational-memory",
+    "git:github.com/elpapi42/pi-fork"
   ],
   "compaction": {
     "enabled": true

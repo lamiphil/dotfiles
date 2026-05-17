@@ -1,7 +1,7 @@
 /**
  * Agent Modes — Amp-style mode switching for pi.
  *
- *   ⚡ rush   — Kimi, thinking off                 (fast, cheap)
+ *   ⚡ rush   — Kimi K2 Instruct (Fireworks), thinking off  (fast, cheap)
  *   ◆ oracle — Claude 4.6, thinking medium      (balanced)
  *   🧠 omnissiah — Claude 4.7, thinking xhigh   (max reasoning)
  *
@@ -28,8 +28,8 @@ const MODES: Record<string, ModeConfig> = {
 	rush: {
 		icon: "",
 		label: "rush",
-		model: "kimi-for-coding",
-		provider: "kimi-coding",
+		model: "accounts/fireworks/models/kimi-k2-instruct",
+		provider: "fireworks",
 		thinking: "off",
 		color: "error",
 	},
@@ -109,7 +109,7 @@ function findTargetModel(ctx: ExtensionContext, mode: ModeConfig): { model?: any
 
 			return { model: m, score };
 		})
-		.filter((entry) => entry.score > 0)
+		.filter((entry) => entry.score > 4) // require at least a provider match, not just a name hint
 		.sort((a, b) => b.score - a.score);
 
 	return { model: scored[0]?.model, fuzzy: !!scored[0] };
@@ -122,11 +122,10 @@ function fallbackScore(model: any, mode: ModeConfig): number {
 	let score = 0;
 
 	if (mode.label === "rush") {
-		if (provider.includes("kimi")) score += 50;
+		if (provider.includes("fireworks")) score += 55;
 		if (provider.includes("openai") || provider.includes("codex")) score += 35;
 		if (provider.includes("google") || provider.includes("gemini")) score += 25;
 		if (provider.includes("anthropic")) score += 15;
-		if (id.includes("kimi")) score += 20;
 		if (id.includes("gpt-5") || id.includes("gpt-4.1") || id.includes("codex")) score += 15;
 		if (id.includes("flash") || id.includes("mini") || id.includes("haiku")) score += 12;
 		if (!isReasoning) score += 10;
