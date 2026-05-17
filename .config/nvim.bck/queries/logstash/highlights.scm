@@ -1,1 +1,0 @@
-/home/REDACTED/code/perso/dotfiles/repos/tree-sitter-logstash/queries/highlights.scm
