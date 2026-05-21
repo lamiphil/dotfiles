@@ -212,7 +212,7 @@ eval $(ssh-agent -s) > /dev/null
 ssh-add ~/.ssh/github > /dev/null 2>&1
 
 # Apply pywal color theme (if installed), except in Ghostty or tmux sessions
-if [ "${TERM_PROGRAM:-}" != "ghostty" ] && [ -z "${TMUX:-}" ]; then
+if [ "${TERM_PROGRAM:-}" != "ghostty" ] && [ -z "${GHOSTTY_RESOURCES_DIR:-}" ] && [ -z "${GHOSTTY_BIN_DIR:-}" ] && [ -z "${TMUX:-}" ]; then
   if [ -f ~/.cache/wal/sequences ]; then
     (cat ~/.cache/wal/sequences &)
     # Alternative (blocks terminal for 0-3ms)
