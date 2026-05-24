@@ -7,10 +7,36 @@
 set -euo pipefail
 
 NPM_ROOT="$(npm root -g 2>/dev/null || true)"
+SETTINGS_FILE="${HOME}/.pi/agent/settings.json"
+
+settings_npm_prefix() {
+  [[ -f "$SETTINGS_FILE" ]] || return 1
+  python3 - "$SETTINGS_FILE" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    data = json.load(open(path))
+except Exception:
+    raise SystemExit(1)
+cmd = data.get("npmCommand") or []
+for i, token in enumerate(cmd):
+    if token == "--prefix" and i + 1 < len(cmd):
+        print(cmd[i + 1])
+        raise SystemExit(0)
+raise SystemExit(1)
+PY
+}
 
 resolve_pkg() {
   local pkg="$1"
   local resolved=""
+  local prefix=""
+
+  prefix="$(settings_npm_prefix 2>/dev/null || true)"
+  if [[ -n "${prefix:-}" && -d "$prefix/lib/node_modules/${pkg}" ]]; then
+    printf '%s\n' "$prefix/lib/node_modules/${pkg}"
+    return 0
+  fi
 
   resolved="$(NODE_PATH="$NPM_ROOT" node -e "try { console.log(require.resolve('${pkg}/package.json')); } catch (e) {}" 2>/dev/null || true)"
 

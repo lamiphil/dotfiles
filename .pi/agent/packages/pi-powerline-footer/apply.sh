@@ -15,10 +15,36 @@
 set -euo pipefail
 
 NPM_ROOT="$(npm root -g 2>/dev/null || true)"
+SETTINGS_FILE="${HOME}/.pi/agent/settings.json"
+
+settings_npm_prefix() {
+  [[ -f "$SETTINGS_FILE" ]] || return 1
+  python3 - "$SETTINGS_FILE" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    data = json.load(open(path))
+except Exception:
+    raise SystemExit(1)
+cmd = data.get("npmCommand") or []
+for i, token in enumerate(cmd):
+    if token == "--prefix" and i + 1 < len(cmd):
+        print(cmd[i + 1])
+        raise SystemExit(0)
+raise SystemExit(1)
+PY
+}
 
 resolve_pkg() {
   local pkg="$1"
   local resolved=""
+  local prefix=""
+
+  prefix="$(settings_npm_prefix 2>/dev/null || true)"
+  if [[ -n "${prefix:-}" && -d "$prefix/lib/node_modules/${pkg}" ]]; then
+    printf '%s\n' "$prefix/lib/node_modules/${pkg}"
+    return 0
+  fi
 
   resolved="$(NODE_PATH="$NPM_ROOT" node -e "try { console.log(require.resolve('${pkg}/package.json')); } catch (e) {}" 2>/dev/null || true)"
   if [[ -n "${resolved:-}" ]]; then
@@ -484,7 +510,7 @@ HELPER = '''
     try {
       const status = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";
       if (status.includes("NORMAL")) return (s: string) => theme.fg("success", s);
-      if (status.includes("INSERT")) { const _p = ansi.getFgAnsi(198, 120, 221); return (s: string) => \`\${_p}\${s}\\x1b[39m\`; }
+      if (status.includes("INSERT")) { const _p = ansi.getFgAnsi(198, 120, 221); return (s: string) => _p + s + "\\x1b[39m"; }
       if (status.includes("VISUAL")) return (s: string) => theme.fg("warning", s);
     } catch { /* fallthrough */ }
     return (s: string) => theme.fg("borderMuted", s);
@@ -629,12 +655,11 @@ REPL = (
 )
 
 if NEEDLE not in src:
-    print("vim-mode-prompt-glyph: needle not found (upstream changed?)", file=sys.stderr)
-    sys.exit(1)
+    print("vim-mode-prompt-glyph: needle not found — skipping", file=sys.stderr)
+    sys.exit(0)
 
 open(path, 'w').write(src.replace(NEEDLE, REPL, 1))
 print("✓ index.ts (vim-mode-prompt-glyph)")
 PYVIMPROMPT
 
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
-
