@@ -45,6 +45,5 @@
   "_config/bases/Ideas Base.base": "LiLightbulb",
   "_config/bases/Coral Base.base": "LiFish",
   "Training": "LiBicepsFlexed",
-  "_attachments": "LiImages",
-  "Journal": "LiNotebook"
+  "_attachments": "LiImages"
 }
