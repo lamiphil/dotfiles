@@ -6,6 +6,7 @@ repos/tree-sitter-logstash
 .env.local
 .config/yarn/
 .config/raycast/
+.config/fish/fish_variables
 .kube
 .config/Bitwarden CLI/
 .config/gh/hosts.yml
