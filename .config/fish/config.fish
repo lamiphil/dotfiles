@@ -6,6 +6,7 @@ set -gx XDG_CONFIG_HOME "$HOME/.config"
 set -gx EDITOR nvim
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8
+set -g fish_greeting
 
 # Linux-specific
 set -gx HYPRSHOT_DIR "$HOME/Pictures/"
@@ -15,9 +16,9 @@ set -gx GTK_THEME "Adwaita:dark"
 # PATH #
 ########
 
-# Homebrew (macOS)
-if test -x /opt/homebrew/bin/brew
-    eval (/opt/homebrew/bin/brew shellenv)
+# Homebrew
+if command -q brew
+    eval (brew shellenv)
 end
 
 # Local bin + nvim (Linux)
@@ -105,3 +106,7 @@ bind -M default \cl 'clear; commandline -f repaint'
 
 # FZF key bindings and completions (must come after vi bindings to keep Ctrl+R)
 fzf --fish | source
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH
