@@ -3,12 +3,12 @@ configuration {
 }
 
 * {
-    background:                  #121214f2;
-    background-alt:              #1a1b20ff;
-    foreground:                  #f5f5f7ff;
-    selected:                    #ffffffff;
-    selected-text:               #121214ff;
-    border-colour:               #ffffff14;
+    background:                  rgba(18, 18, 20, 0.58);
+    background-alt:              rgba(26, 27, 32, 0.72);
+    foreground:                  rgba(245, 245, 247, 0.92);
+    selected:                    rgba(255, 255, 255, 0.92);
+    selected-text:               rgba(18, 18, 20, 0.98);
+    border-colour:               rgba(255, 255, 255, 0.08);
 }
 
 window {
@@ -17,8 +17,8 @@ window {
     anchor:                      north east;
     fullscreen:                  false;
     width:                       260px;
-    x-offset:                    -12px;
-    y-offset:                    34px;
+    x-offset:                    -5px;
+    y-offset:                    5px;
     border:                      1px solid;
     border-radius:               14px;
     border-color:                @border-colour;
@@ -81,7 +81,17 @@ element normal.normal {
     text-color:                  @foreground;
 }
 
+element normal.hover {
+    background-color:            @background-alt;
+    text-color:                  @foreground;
+}
+
 element selected.normal {
+    background-color:            @selected;
+    text-color:                  @selected-text;
+}
+
+element selected.hover {
     background-color:            @selected;
     text-color:                  @selected-text;
 }
