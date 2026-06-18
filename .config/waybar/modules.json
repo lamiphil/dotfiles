@@ -114,9 +114,20 @@
   },
 
   "clock": {
-      "format": "{:%a %H:%M}",
-      "interval": 1,
-      "tooltip-format": "{:%A, %B %d %Y}"
+    "format": "{:%a %H:%M}",
+    "interval": 1,
+    "tooltip": true,
+    "tooltip-format": "<tt><big>{calendar}</big></tt>",
+    "calendar": {
+      "mode": "month",
+      "format": {
+        "months": "<span color='#E5E5EA'><b>{}</b></span>",
+        "days": "<span color='#E5E5EA'><b>{}</b></span>",
+        "weeks": "<span color='#8E8E93'><b>W{}</b></span>",
+        "weekdays": "<span color='#A1A1A6'><b>{}</b></span>",
+        "today": "<span foreground='#000000' background='#FFFFFF'><b>{}</b></span>"
+      }
+    }
   },
 
 
