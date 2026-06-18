@@ -1,108 +1,134 @@
 @import url("file:///home/lamiphil/.cache/wal/colors-waybar.css");
 
-/* ------- */
-/* GENERAL */
-/* ------- */
 * {
-  font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
-  font-weight: bold;
-  font-size: 16px;
+  font-family: "BerkeleyMono Nerd Font Mono", "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
+  font-weight: 600;
+  font-size: 15px;
+  min-height: 0;
 }
 
-window#waybar{
-    all:unset;
-}
-
-#window {
-  font-weight: 500;
-  font-style: italic;
+window#waybar {
+  all: unset;
+  background: rgba(18, 18, 20, 0.58);
+  color: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 tooltip {
-    background:@background;
-    color: @color7;
+  background: rgba(18, 18, 20, 0.94);
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
 }
 
-.modules-left {
-    padding:8px;
-    margin:8px 0px 5px 8px;
-    background: alpha(@background,.6);
-    border-radius:8px;
-    box-shadow: 0px 0px 2px rgba(0, 0, 0, .6);
-}
-
-.modules-center {
-    padding:8px;
-    margin:8px 0px 5px 0px;
-    border-radius:8px;
-    background: alpha(@background,.6);
-    box-shadow: 0px 0px 2px rgba(0, 0, 0, .6);
-}
-
+.modules-left,
+.modules-center,
 .modules-right {
-    padding: 3px 8px;
-    margin: 8px 8px 5px 0px;
-    border-radius:8px;
-    background: alpha(@background,.6);
-    box-shadow: 0px 0px 2px rgba(0, 0, 0, .6);
+  background: transparent;
+  margin: 0;
+  padding: 0 10px;
+}
+
+#workspaces {
+  margin: 0;
+  padding: 0;
 }
 
 #workspaces button {
   all: unset;
-  padding: 0 6px;
-  min-width: 22px;
-  min-height: 22px;
-  font-size: 16px;
+  min-width: 20px;
+  padding: 0 7px;
+  font-family: "Symbols Nerd Font Mono", "BerkeleyMono Nerd Font Mono";
+  font-size: 17px;
+  color: alpha(white, 0.62);
+  transition: color 0.2s ease;
 }
+
 #workspaces button:hover {
-    color:@color9;
-    border: none;
-    text-shadow: 0px 0px 1.5px rgba(0, 0, 0, .5);
-    transition: all 0.3s ease;
+  color: alpha(white, 0.9);
 }
 
 #workspaces button.active {
-    color: @color6;
-    border: none;
-    text-shadow: 0px 0px 2px rgba(0, 0, 0, .5);
+  color: white;
 }
 
-/* -------------- */
-/* MODULES CENTER */
-/* -------------- */
-
-#clock:hover{
-    transition: all .3s ease;
-    color:@color9;
-}
-
-/* ------------- */
-/* MODULES RIGHT */
-/* ------------- */
+#tray,
+#network,
+#pulseaudio,
+#battery,
+#cpu,
+#memory,
+#custom-weather,
+#clock,
 #custom-power {
-  padding: 0 10px 0 6px;
-}
-#custom-power:hover,
-#battery:hover,
-#pulseaudio:hover,
-#bluetooth:hover,
-#network:hover,
-#tray:hover,
-#custom-notification:hover{
-    transition: all .3s ease;
-    color:@color9;
+  margin: 0;
+  padding: 0 7px;
 }
 
-#pulseaudior,
-#network{
-  margin-right: 8px;
-  padding: 8px;
+#tray,
+#network,
+#pulseaudio,
+#battery,
+#clock,
+#custom-power {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+#network,
+#pulseaudio,
+#battery,
+#cpu,
+#memory,
+#custom-weather,
+#custom-power {
+  font-size: 15px;
+}
+
+#cpu,
+#memory,
+#custom-weather {
+  color: alpha(white, 0.58);
+}
+
+#network {
+  padding-right: 9px;
+}
+
+#clock {
+  padding-right: 4px;
+}
+
+#custom-power {
+  font-family: "BerkeleyMono Nerd Font Mono", "Symbols Nerd Font Mono";
+  padding-left: 8px;
+  padding-right: 6px;
+  padding-top: 1px;
+  font-size: 13px;
+  font-weight: 400;
+  min-width: 20px;
+}
+
+#network:hover,
+#pulseaudio:hover,
+#battery:hover,
+#cpu:hover,
+#memory:hover,
+#custom-weather:hover,
+#clock:hover,
+#tray:hover,
+#custom-power:hover {
+  color: white;
 }
 
 #pulseaudio.muted {
-  color: #FFFFFF;
+  color: alpha(white, 0.7);
 }
 
-#tray{
-  padding: 8px; 
+#battery.warning,
+#battery.critical {
+  color: #ffb86b;
+}
+
+#battery.charging {
+  color: #8bd5a0;
 }

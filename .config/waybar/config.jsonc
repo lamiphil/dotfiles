@@ -2,8 +2,8 @@
   // General
   "layer": "top",
   "position": "top",
-  "height": 42,
-  "spacing": 0,
+  "height": 34,
+  "spacing": 10,
 
   // Load modules
   "include": ["~/.config/waybar/modules.json"],
@@ -14,15 +14,18 @@
   ],
 
   // Center modules
-  "modules-center": ["clock"],
+  "modules-center": [],
 
   // Right modules
   "modules-right": [
     "tray",
     "network",
-    "bluetooth",
     "pulseaudio",
     "battery",
+    "cpu",
+    "memory",
+    "custom/weather",
+    "clock",
     "custom/power"
   ]
 }

@@ -1,0 +1,93 @@
+configuration {
+    show-icons: false;
+}
+
+* {
+    background:                  #121214f2;
+    background-alt:              #1a1b20ff;
+    foreground:                  #f5f5f7ff;
+    selected:                    #ffffffff;
+    selected-text:               #121214ff;
+    border-colour:               #ffffff14;
+}
+
+window {
+    transparency:                "real";
+    location:                    north east;
+    anchor:                      north east;
+    fullscreen:                  false;
+    width:                       260px;
+    x-offset:                    -12px;
+    y-offset:                    34px;
+    border:                      1px solid;
+    border-radius:               14px;
+    border-color:                @border-colour;
+    background-color:            @background;
+}
+
+mainbox {
+    spacing:                     10px;
+    padding:                     12px;
+    background-color:            transparent;
+    children:                    [ "inputbar", "listview" ];
+}
+
+inputbar {
+    spacing:                     10px;
+    padding:                     10px 12px;
+    border:                      0px;
+    border-radius:               10px;
+    background-color:            @background-alt;
+    text-color:                  @foreground;
+    children:                    [ "textbox-prompt-colon", "prompt" ];
+}
+
+textbox-prompt-colon {
+    expand:                      false;
+    str:                         "";
+    text-color:                  @foreground;
+    background-color:            transparent;
+}
+
+prompt {
+    background-color:            transparent;
+    text-color:                  @foreground;
+}
+
+listview {
+    columns:                     1;
+    lines:                       3;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    fixed-height:                true;
+    spacing:                     6px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+}
+
+element {
+    spacing:                     10px;
+    padding:                     10px 12px;
+    border:                      0px;
+    border-radius:               10px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+}
+
+element normal.normal {
+    background-color:            transparent;
+    text-color:                  @foreground;
+}
+
+element selected.normal {
+    background-color:            @selected;
+    text-color:                  @selected-text;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+}

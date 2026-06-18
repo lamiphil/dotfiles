@@ -8,13 +8,13 @@
     "*":[1,2,3,4,5,6]
     },
     "format-icons": {
-      "1": "",   // Terminal
-      "2": "",   // Browser
-      "3": "󰠮",   // Obsidian
-      "4": "",   // Discord
-      "5": "󰇮",   // Emails
-      "6": "",   // Steam
-      "default": "" // Fallback si non défini
+      "1": "<span font_desc='Symbols Nerd Font Mono 11'></span>",   // Terminal
+      "2": "<span font_desc='Symbols Nerd Font Mono 11'></span>",   // Browser
+      "3": "<span font_desc='Symbols Nerd Font Mono 11'>󰠮</span>",   // Obsidian
+      "4": "<span font_desc='Symbols Nerd Font Mono 11'></span>",   // Discord
+      "5": "<span font_desc='Symbols Nerd Font Mono 11'>󰇮</span>",   // Emails
+      "6": "<span font_desc='Symbols Nerd Font Mono 11'></span>",   // Steam
+      "default": "<span font_desc='Symbols Nerd Font Mono 11'></span>" // Fallback si non défini
     }
   },
 
@@ -25,9 +25,10 @@
       "escape": true
   },
   "custom/power": {
-    "format": "<span></span>",
-    "on-click": "~/.config/rofi/powermenu/type-1/powermenu.sh",
-    "tooltip": true
+    "format": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+    "on-click": "~/.config/waybar/scripts/power-menu.sh",
+    "tooltip": true,
+    "tooltip-format": "Power menu"
   },
   "custom/kblayout": {
     "exec": "~/.config/waybar/scripts/kblayout.sh",
@@ -46,12 +47,12 @@
   },
 
   "network": {
-      "format-wifi": "",
-      "format-ethernet":"",
-      "format-disconnected": "",
-      "tooltip-format-disconnected": "Error",
-      "tooltip-format-wifi": "{essid} ({signalStrength}%) ",
-      "tooltip-format-ethernet": "{ifname} 🖧 ",
+      "format-wifi": "<span font_desc='Symbols Nerd Font Mono 11'></span> ",
+      "format-ethernet":"<span font_desc='Symbols Nerd Font Mono 11'></span> ",
+      "format-disconnected": "<span font_desc='Symbols Nerd Font Mono 11'></span> ",
+      "tooltip-format-disconnected": "Disconnected",
+      "tooltip-format-wifi": "{essid} ({signalStrength}%)",
+      "tooltip-format-ethernet": "{ifname}",
       "on-click": "kitty nmtui"
   },
 
@@ -60,27 +61,27 @@
       "warning": 30,
       "critical": 15
     },
-    "format": "<span color='#28CD41'> {icon} </span>{capacity}% ",
-    "format-charging": " 󱐋{capacity}%",
-	  "interval": 1,
-    "format-icons": ["󰂎", "󰁼", "󰁿", "󰂁", "󰁹"],
+    "format": "{icon} {capacity}%",
+    "format-charging": "<span font_desc='Symbols Nerd Font Mono 11'>󱐋</span> {capacity}%",
+	  "interval": 5,
+    "format-icons": ["<span font_desc='Symbols Nerd Font Mono 11'>󰂎</span>", "<span font_desc='Symbols Nerd Font Mono 11'>󰁼</span>", "<span font_desc='Symbols Nerd Font Mono 11'>󰁿</span>", "<span font_desc='Symbols Nerd Font Mono 11'>󰂁</span>", "<span font_desc='Symbols Nerd Font Mono 11'>󰁹</span>"],
     "tooltip": true
   },
 
   "pulseaudio": {
-    "format": "<span>{icon}</span> {volume}% ",
-    "format-muted": "<span> 󰖁 </span>0% ",
+    "format": "{icon}  {volume}%",
+    "format-muted": "<span font_desc='Symbols Nerd Font Mono 11'>󰖁</span>  0%",
     "format-icons": {
-      "headphone": "<span>  </span>",
-      "hands-free": "<span>  </span>",
-      "headset": "<span>  </span>",
-      "phone": "<span>  </span>",
-      "portable": "<span>  </span>",
-      "car": "<span>  </span>",
+      "headphone": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+      "hands-free": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+      "headset": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+      "phone": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+      "portable": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+      "car": "<span font_desc='Symbols Nerd Font Mono 11'></span>",
       "default": [
-        "<span>  </span>",
-        "<span>  </span>",
-        "<span>  </span>"
+        "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+        "<span font_desc='Symbols Nerd Font Mono 11'></span>",
+        "<span font_desc='Symbols Nerd Font Mono 11'></span>"
       ]
     },
     "on-click-right": "pavucontrol -t 3",
@@ -94,23 +95,34 @@
   },
 
   "memory": {
-    "format": "<span color='#8A2BE2'>  </span>{used:0.1f}G/{total:0.1f}G "
+    "format": "<span font_desc='Symbols Nerd Font Mono 11'></span> {used:0.1f}G",
+    "tooltip-format": "RAM {used:0.1f}G / {total:0.1f}G",
+    "on-click": "~/.config/waybar/scripts/open-btop.sh"
   },
 
   "cpu": {
-    "format": "<span color='#FF9F0A'>  </span>{usage}% ",
-    "tooltip": true
+    "format": "<span font_desc='Symbols Nerd Font Mono 11'>󰍛</span> {usage}%",
+    "tooltip": true,
+    "on-click": "~/.config/waybar/scripts/open-btop.sh"
+  },
+
+  "custom/weather": {
+    "exec-if": "command -v curl >/dev/null 2>&1",
+    "exec": "sh -c \"curl -sf 'https://wttr.in/Montreal?format=%c+%t' | tr -s ' ' || echo ' --'\"",
+    "interval": 1800,
+    "tooltip": false
   },
 
   "clock": {
-      "format": "{:%m/%d - %H:%M}",
-      "interval": 1
+      "format": "{:%a %H:%M}",
+      "interval": 1,
+      "tooltip-format": "{:%A, %B %d %Y}"
   },
 
 
   "tray": {
-    "icon-size": 17,
-    "spacing": 6
+    "icon-size": 16,
+    "spacing": 8
   },
 
   "backlight": {
