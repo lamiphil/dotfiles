@@ -10,7 +10,7 @@ set -g fish_greeting
 
 # Linux-specific
 set -gx HYPRSHOT_DIR "$HOME/Pictures/"
-set -gx GTK_THEME "Adwaita:dark"
+set -gx ADW_DISABLE_PORTAL 1
 
 ########
 # PATH #

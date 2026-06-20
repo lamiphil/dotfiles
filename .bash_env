@@ -8,5 +8,5 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 export HYPRSHOT_DIR=~/Pictures/
-export GTK_THEME=Adwaita:dark
+export ADW_DISABLE_PORTAL=1
 
