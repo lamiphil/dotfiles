@@ -101,7 +101,15 @@ stow .
 
 This symlinks everything to `$HOME`, except files listed in `.stow-local-ignore` (scripts, README, git metadata, etc.).
 
-### 6. Tmux Plugins
+### 6. Claude Code MCP Servers
+
+`~/.claude.json` mixes conversation history with config, so it isn't stowed directly. User-scope MCP servers are instead reapplied via script (safe to re-run any time):
+
+```bash
+~/dotfiles/scripts/init/claude_mcp.sh
+```
+
+### 7. Tmux Plugins
 
 Install [TPM](https://github.com/tmux-plugins/tpm):
 
@@ -111,7 +119,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 Open Tmux, then press `Ctrl+Space` followed by `I` (capital) to install plugins.
 
-### 7. Neovim Plugins
+### 8. Neovim Plugins
 
 Open Neovim — lazy.nvim will automatically bootstrap and install all plugins:
 
@@ -119,7 +127,7 @@ Open Neovim — lazy.nvim will automatically bootstrap and install all plugins:
 nvim
 ```
 
-### 8. Create Workspaces
+### 9. Create Workspaces
 
 Workspaces are project directories under `~/workspaces/`. Each workspace contains repos, an Obsidian vault for notes, and shared Obsidian configuration symlinked from this dotfiles repo.
 
