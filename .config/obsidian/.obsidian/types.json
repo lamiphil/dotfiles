@@ -8,6 +8,7 @@
     "status": "checkbox",
     "Date de création": "date",
     "Statut": "text",
-    "": "date"
+    "": "date",
+    "link": "text"
   }
 }

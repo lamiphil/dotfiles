@@ -24,7 +24,7 @@
     },
     {
       "folder": "Atlas",
-      "template": "_config/templates/idea.md"
+      "template": "_config/templates/atlas.md"
     }
   ],
   "enable_file_templates": false,

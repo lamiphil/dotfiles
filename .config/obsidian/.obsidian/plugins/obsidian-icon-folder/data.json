@@ -6,11 +6,11 @@
     "emojiStyle": "native",
     "iconColor": null,
     "recentlyUsedIcons": [
+      "LiCheckSquare",
       "LiImages",
       "LiImage",
       "LiBicepsFlexed",
-      "LiNotebook",
-      "LiMap"
+      "LiNotebook"
     ],
     "recentlyUsedIconsSize": 5,
     "rules": [],
@@ -37,7 +37,7 @@
   "Autres/Templates": "LiBookTemplate",
   "Documents": "LiFiles",
   "Rencontres": "LiNotebookPen",
-  "Issues": "LiTicket",
+  "Issues": "LiCheckSquare",
   "Meetings": "LiUserPen",
   "Atlas": "LiMap",
   "_config": "LiFileCog",
@@ -45,5 +45,6 @@
   "_config/bases/Ideas Base.base": "LiLightbulb",
   "_config/bases/Coral Base.base": "LiFish",
   "Training": "LiBicepsFlexed",
-  "_attachments": "LiImages"
+  "_attachments": "LiImages",
+  "Journal": "LiNotebook"
 }
