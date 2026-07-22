@@ -13,6 +13,3 @@ scripts
 
 # Ignore repos folder
 repos
-
-# Ignore CLAUDE.md
-CLAUDE.md
