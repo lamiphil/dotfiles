@@ -1,9 +1,9 @@
 # Font
 font-family = BerkeleyMono Nerd Font Mono
-font-style = SemiBold
-font-style-bold = SemiBold
+font-style = Bold
+font-style-bold = Bold
 font-style-italic = SemiBold Oblique
-font-style-bold-italic = SemiBold Oblique
+font-style-bold-italic = Bold Oblique
 font-size = 18
 
 # Emoji font fallback
