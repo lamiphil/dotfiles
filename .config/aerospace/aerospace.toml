@@ -177,6 +177,10 @@ on-mode-changed = []
     alt-shift-g = 'move-node-to-workspace --focus-follows-window 5'
     alt-shift-m = 'move-node-to-workspace --focus-follows-window 6'
 
+
+    # Toogle floating mode
+    alt-f = "layout floating tiling"
+
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'exec-and-forget aerospace workspace-back-and-forth && /Users/philippe.lamy/.config/sketchybar/plugins/workspaces.sh'
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
@@ -184,6 +188,7 @@ on-mode-changed = []
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
+
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
