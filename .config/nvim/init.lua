@@ -677,6 +677,7 @@ require('lazy').setup({
         ts_ls = {},
         tailwindcss = {},
         eslint = {},
+        terraformls = {},
 
         -- Special Lua Config, as recommended by neovim help docs
         lua_ls = {
