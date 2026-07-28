@@ -1,3 +1,4 @@
+onboarding = false
 # herdr configuration
 # Place this file at ~/.config/herdr/config.toml
 
@@ -90,10 +91,7 @@ next_workspace = "prefix+shift+n"     # optional, unset by default
 # close_tab = "prefix+shift+x"
 # rename_pane = "prefix+shift+p"
 # edit_scrollback = "prefix+e"
-focus_pane_left = "ctrl+h"
-focus_pane_down = "ctrl+j"
-focus_pane_up = "ctrl+k"
-focus_pane_right = "ctrl+l"
+copy_mode = "prefix+["
 # cycle_pane_next = "prefix+tab"
 # cycle_pane_previous = "prefix+shift+tab"
 # last_pane = ""          # optional, unset by default; bind e.g. "prefix+tab" for global back-and-forth
@@ -122,28 +120,49 @@ focus_pane_right = "ctrl+l"
 # type = "pane"
 # command = "lazygit"
 
-# Dedicated one-shot pane resize keys (no modal resize_mode needed).
-# Each press nudges the focused pane's border toward that direction.
-# Tune --amount to taste (fraction of the split, e.g. 0.05 = 5%).
+[[keys.command]]
+key = "ctrl+h"
+type = "plugin_action"
+command = "vim-herdr-navigation.left"
+description = "navigate left (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+j"
+type = "plugin_action"
+command = "vim-herdr-navigation.down"
+description = "navigate down (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+k"
+type = "plugin_action"
+command = "vim-herdr-navigation.up"
+description = "navigate up (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "plugin_action"
+command = "vim-herdr-navigation.right"
+description = "navigate right (vim/herdr)"
+
 [[keys.command]]
 key = "ctrl+alt+h"
 type = "shell"
-command = "herdr pane resize --direction left --amount 0.05"
+command = "herdr pane resize --current --direction left --amount 0.05"
 
 [[keys.command]]
 key = "ctrl+alt+l"
 type = "shell"
-command = "herdr pane resize --direction right --amount 0.05"
+command = "herdr pane resize --current --direction right --amount 0.05"
 
 [[keys.command]]
 key = "ctrl+alt+k"
 type = "shell"
-command = "herdr pane resize --direction up --amount 0.05"
+command = "herdr pane resize --current --direction up --amount 0.05"
 
 [[keys.command]]
 key = "ctrl+alt+j"
 type = "shell"
-command = "herdr pane resize --direction down --amount 0.05"
+command = "herdr pane resize --current --direction down --amount 0.05"
 
 # Legacy indexed shortcut config is still parsed for compatibility.
 # Prefer switch_tab, switch_workspace, and focus_agent for new configs.
