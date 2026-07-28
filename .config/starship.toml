@@ -89,10 +89,12 @@ disabled = false
 
 [aws]
 symbol = '☁️ '
-format = '[$symbol($profile)(\($region\))]($style) '
+format = '[($symbol$profile(\($region\)) )]($style)'
 
 [gcloud]
-format = '[$symbol$account(@$domain)(\($region\))]($style) '
+format = '[($symbol$account(@$domain)(\($region\)) )]($style)'
 
 [azure]
 format = '[$symbol($subscription)]($style) '
+style = 'bold 117'
+disabled = false
