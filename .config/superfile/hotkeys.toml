@@ -1,0 +1,89 @@
+##############################################
+#                                            #
+#         Superfile Vim-like hotkeys          #
+#                                            #
+##############################################
+
+# Navigation mirrors Neovim: h/j/k/l, v for visual selection,
+# y/x/p/d for file operations.  Superfile does not expose gg/G actions.
+
+###############################################################################
+#                                Global hotkeys                               #
+###############################################################################
+
+#-- Basic Actions
+confirm = ['enter', 'right', 'l']
+cd_quit = ['Q', '']
+quit = ['q', 'esc']
+
+#-- Navigation
+list_down = ['down', 'j']
+list_up = ['up', 'k']
+page_down = ['ctrl+d', 'pgdown']
+page_up = ['ctrl+u', 'pgup']
+
+#-- File Panel Controls
+close_file_panel = ['w', '']
+create_new_file_panel = ['n', '']
+next_file_panel = ['ctrl+shift+l', '']
+open_sort_options_menu = ['o', '']
+pinned_directory = ['P', '']
+previous_file_panel = ['ctrl+shift+h', '']
+split_file_panel = ['N', '']
+toggle_file_preview_panel = ['f', '']
+toggle_reverse_sort = ['R', '']
+
+#-- Focus Manipulation
+focus_on_metadata = ['ctrl+m', '']
+focus_on_process_bar = ['ctrl+p', '']
+focus_on_sidebar = ['ctrl+s', '']
+
+#-- File/Dir Creation/Renaming
+file_panel_item_create = ['a', '']
+file_panel_item_rename = ['r', '']
+
+#-- Main File Operations
+copy_items = ['y', '']
+cut_items = ['x', '']
+delete_items = ['d', 'delete', '']
+paste_items = ['p', '']
+permanently_delete_items = ['D', '']
+
+#-- Archive Manipulation
+compress_file = ['ctrl+a', '']
+extract_file = ['ctrl+e', '']
+
+#-- Editor Actions
+open_current_directory_with_editor = ['E', '']
+open_file_with_editor = ['e', '']
+
+#-- Other Actions
+change_panel_mode = ['v', '']
+copy_path = ['Y', '']
+copy_present_working_directory = ['c', '']
+open_command_line = [':', '']
+open_help_menu = ['?', '']
+open_spf_prompt = ['>', '']
+open_zoxide = ['z', '']
+toggle_dot_file = ['.', '']
+toggle_footer = ['ctrl+f', '']
+
+###############################################################################
+#                                Typing hotkeys                               #
+###############################################################################
+
+confirm_typing = ['enter', '']
+cancel_typing = ['ctrl+c', 'esc']
+
+###############################################################################
+#                            Mode-Specific Hotkeys                            #
+###############################################################################
+
+#-- Normal Mode Actions
+parent_directory = ['h', 'left', 'backspace']
+search_bar = ['/', '']
+
+#-- Selection Mode Actions
+file_panel_select_mode_items_select_down = ['shift+down', 'J']
+file_panel_select_mode_items_select_up = ['shift+up', 'K']
+file_panel_select_all_items = ['A', '']
