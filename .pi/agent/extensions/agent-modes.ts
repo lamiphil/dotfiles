@@ -1,9 +1,9 @@
 /**
  * Agent Modes — Amp-style mode switching for pi.
  *
- *   ⚡ rush   — Luna, thinking off  (fast, cheap)
- *   ◆ oracle — Terra, thinking medium      (balanced)
- *   🧠 omnissiah — Sol, thinking high   (max reasoning)
+ *   ⚡ rush   — GPT-5.4 Mini (OpenAI), thinking medium  (fast, cheap)
+ *   ◆ oracle — GPT-5.4 (OpenAI), thinking medium      (balanced)
+ *   🧠 omnissiah — GPT-5.5 (OpenAI), thinking high   (max reasoning)
  *
  * Commands:
  *   /mode [rush|oracle|omnissiah]   — switch mode (or show current)
@@ -27,26 +27,26 @@ interface ModeConfig {
 const MODES: Record<string, ModeConfig> = {
 	rush: {
 		icon: "",
-		label: "luna",
-		model: "accounts/fireworks/models/kimi-k2-instruct",
-		provider: "fireworks",
-		thinking: "off",
+		label: "rush",
+		model: "luna",
+		provider: "openai-codex",
+		thinking: "medium",
 		color: "error",
 	},
 	oracle: {
 		icon: "",
-		label: "terra",
-		model: "claude-sonnet-4-6",
-		provider: "anthropic",
+		label: "oracle",
+		model: "terra",
+		provider: "openai-codex",
 		thinking: "medium",
 		fallbackThinking: "medium",
 		color: "success",
 	},
 	omnissiah: {
 		icon: "",
-		label: "sol",
-		model: "claude-opus-4-7",
-		provider: "anthropic",
+		label: "omnissiah",
+		model: "sol",
+		provider: "openai-codex",
 		thinking: "high",
 		fallbackThinking: "high",
 		color: "thinkingHigh",
@@ -264,7 +264,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("mode", {
-		description: "Switch agent mode (luna / terra / sol)",
+		description: "Switch agent mode (rush / oracle / omnissiah)",
 		getArgumentCompletions: (prefix: string) => {
 			const items = MODE_ORDER.map((name) => ({
 				value: name,
@@ -298,7 +298,7 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			if (!MODES[requested]) {
-				ctx.ui.notify(`Unknown mode "${requested}". Available: luna, terra, sol`, "error");
+				ctx.ui.notify(`Unknown mode "${requested}". Available: ${MODE_ORDER.join(", ")}`, "error");
 				return;
 			}
 
@@ -323,7 +323,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerShortcut("ctrl+alt+m", {
-		description: "Cycle agent mode (luna → terra → sol)",
+		description: "Cycle agent mode (rush → oracle → omnissiah)",
 		handler: async (ctx) => {
 			const next = nextMode(currentMode);
 			const result = await applyMode(pi, ctx, next);
