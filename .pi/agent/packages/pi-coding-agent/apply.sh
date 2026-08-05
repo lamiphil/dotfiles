@@ -16,16 +16,19 @@ resolve_pi_pkg() {
   pi_bin="$(command -v pi 2>/dev/null || true)"
   if [[ -n "${pi_bin:-}" ]]; then
     pi_real="$(resolve_realpath "$pi_bin")"
-    pkg="$(dirname "$pi_real")"
-    if [[ -f "$pkg/package.json" ]]; then
-      printf '%s\n' "$pkg"
-      return 0
-    fi
+    # The CLI is normally <package>/dist/cli.js, not at the package root.
+    for pkg in "$(dirname "$pi_real")" "$(dirname "$(dirname "$pi_real")")"; do
+      if [[ -f "$pkg/package.json" ]]; then
+        printf '%s\n' "$pkg"
+        return 0
+      fi
+    done
   fi
 
   for candidate in \
     /opt/pi-coding-agent \
     /usr/local/lib/pi-coding-agent \
+    "${NPM_ROOT:-}/@earendil-works/pi-coding-agent" \
     "${NPM_ROOT:-}/pi-coding-agent"; do
     if [[ -f "$candidate/package.json" ]]; then
       printf '%s\n' "$candidate"

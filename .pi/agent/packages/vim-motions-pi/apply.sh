@@ -7,6 +7,8 @@
 set -euo pipefail
 
 NPM_ROOT="$(npm root -g 2>/dev/null || true)"
+# Pi installs npm packages in its own config directory, not globally.
+PI_NPM_ROOT="${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}/npm/node_modules"
 SETTINGS_FILE="${HOME}/.pi/agent/settings.json"
 
 settings_npm_prefix() {
@@ -46,6 +48,7 @@ resolve_pkg() {
   fi
 
   for candidate in \
+    "${PI_NPM_ROOT}/${pkg}" \
     "/opt/homebrew/lib/node_modules/${pkg}" \
     "/usr/local/lib/node_modules/${pkg}" \
     "${NPM_ROOT:-}/${pkg}"; do
