@@ -1,5 +1,5 @@
 /**
- * AWS profile + kubectl context guard.
+ * AWS/Azure profile + kubectl context guard.
  *
  * Blocks write operations against the wrong AWS profile / k8s cluster.
  *
@@ -22,7 +22,7 @@
  * Anything not on these lists is treated as a write, the user is prompted, and pi
  * blocks the command if the user declines.
  *
- * Also exposes status segments:  ctx.ui.setStatus("aws", …),  ctx.ui.setStatus("kube", …)
+ * Also exposes status segments:  ctx.ui.setStatus("cloud", …),  ctx.ui.setStatus("kube", …)
  */
 
 import { isToolCallEventType, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -133,6 +133,7 @@ function detectAwsProfileFromConfig(): string | undefined {
 export default function (pi: ExtensionAPI) {
 	let kubeContext: string | undefined;
 	let awsProfile: string | undefined = process.env.AWS_PROFILE || detectAwsProfileFromConfig();
+	let azureSubscription: string | undefined;
 
 	const refreshKube = async () => {
 		const r = await pi
@@ -145,36 +146,54 @@ export default function (pi: ExtensionAPI) {
 		awsProfile = process.env.AWS_PROFILE || detectAwsProfileFromConfig();
 	};
 
+	const refreshAzure = async () => {
+		const r = await pi
+			.exec("az", ["account", "show", "--query", "name", "-o", "tsv"], { timeout: 3000 })
+			.catch(() => undefined);
+		azureSubscription = r?.stdout.trim() || undefined;
+	};
+
+	const refreshCloud = async () => {
+		refreshAws();
+		await refreshAzure();
+	};
+
 	const updateStatuses = (ctx: any) => {
 		const thm = ctx.ui.theme;
 		const okAws = awsProfile ? AWS_WRITE_PROFILES.has(awsProfile) : false;
 		const okKube = kubeContext ? KUBE_WRITE_CONTEXTS.has(kubeContext) : false;
-
-		const awsLabel = awsProfile ?? "—";
-		const kubeLabel = kubeContext ?? "—";
+		const cloudLabel = azureSubscription ?? awsProfile;
+		const cloudKind = azureSubscription ? "azure" : awsProfile ? "aws" : undefined;
 
 		// Nerd Font icons:
-		//   AWS           (nf-fa-aws)         → OneDark Pro yellow (warning)
-		//   Kubernetes  󱃾  (nf-md-kubernetes)  → OneDark Pro blue   (accent)
+		//   Cloud       ☁  → Azure when available, otherwise AWS
+		//   Kubernetes  󱃾  → OneDark Pro blue   (accent)
 		// Color is fixed regardless of safety state. Writes against the wrong
 		// profile/cluster are still gated by `tool_call` further down.
 		void okAws;
 		void okKube;
-		ctx.ui.setStatus(
-			"aws",
-			thm.fg("warning", "☁") + thm.fg("dim", " aws ") + thm.fg("warning", awsLabel),
-		);
+		const blue = (s: string) => `\x1b[34m${s}\x1b[0m`;
+		const green = (s: string) => `\x1b[32m${s}\x1b[0m`;
+		if (cloudLabel && cloudKind) {
+			if (azureSubscription) {
+				ctx.ui.setStatus("cloud", blue("☁") + blue(" azure ") + green(cloudLabel));
+			} else {
+				ctx.ui.setStatus("cloud", thm.fg("warning", "☁") + thm.fg("dim", " aws ") + green(cloudLabel));
+			}
+		} else {
+			ctx.ui.setStatus("cloud", undefined);
+		}
 		// #61afef = rgb(97,175,239) — hardcoded blue since accent is now orange.
 		const kubeBlue = (s: string) => `\x1b[38;2;97;175;239m${s}\x1b[0m`;
 		ctx.ui.setStatus(
 			"kube",
-			kubeBlue("󱃾") + thm.fg("dim", " k8s ") + kubeBlue(kubeLabel),
+			kubeContext ? kubeBlue("󱃾") + thm.fg("dim", " k8s ") + kubeBlue(kubeContext) : undefined,
 		);
 	};
 
 	pi.on("session_start", async (_event, ctx) => {
 		await refreshKube();
-		refreshAws();
+		await refreshCloud();
 		updateStatuses(ctx);
 	});
 
@@ -182,19 +201,20 @@ export default function (pi: ExtensionAPI) {
 		// Re-detect after each turn in case the user/agent switched profile/context
 		const oldKube = kubeContext;
 		const oldAws = awsProfile;
+		const oldAzure = azureSubscription;
 		await refreshKube();
-		refreshAws();
-		if (oldKube !== kubeContext || oldAws !== awsProfile) updateStatuses(ctx);
+		await refreshCloud();
+		if (oldKube !== kubeContext || oldAws !== awsProfile || oldAzure !== azureSubscription) updateStatuses(ctx);
 	});
 
 	pi.registerCommand("ctx-refresh", {
-		description: "Refresh AWS profile / kubectl context indicators",
+		description: "Refresh AWS/Azure profile / kubectl context indicators",
 		handler: async (_args, ctx) => {
 			await refreshKube();
-			refreshAws();
+			await refreshCloud();
 			updateStatuses(ctx);
 			ctx.ui.notify(
-				`AWS: ${awsProfile ?? "(unset)"}    k8s: ${kubeContext ?? "(unknown)"}`,
+				`Azure: ${azureSubscription ?? "(unset)"}    AWS: ${awsProfile ?? "(unset)"}    k8s: ${kubeContext ?? "(unknown)"}`,
 				"info",
 			);
 		},
@@ -259,8 +279,12 @@ export default function (pi: ExtensionAPI) {
 		}
 		if (/aws-switch-profile|aws\s+sso\s+login/.test(cmd)) {
 			setTimeout(() => {
-				refreshAws();
-				updateStatuses(ctx);
+				refreshCloud().then(() => updateStatuses(ctx));
+			}, 250);
+		}
+		if (/\baz\s+account\s+set\b|\baz\s+login\b/.test(cmd)) {
+			setTimeout(() => {
+				refreshCloud().then(() => updateStatuses(ctx));
 			}, 250);
 		}
 	});

@@ -1,14 +1,9 @@
 {
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.80.6",
   "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
-  "defaultModel": "gpt-5.4",
-  "defaultThinkingLevel": "medium",
-  "npmCommand": [
-    "npm",
-    "--prefix",
-    "/home/lamiphil/.pi/agent/npm-global"
-  ],
+  "defaultModel": "gpt-5.4-mini",
+  "defaultThinkingLevel": "off",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
@@ -17,7 +12,8 @@
     "npm:pi-web-access",
     "npm:vim-motions-pi",
     "npm:pi-observational-memory",
-    "git:github.com/elpapi42/pi-fork"
+    "git:github.com/elpapi42/pi-fork",
+    "npm:pi-event-monitor"
   ],
   "compaction": {
     "enabled": true
@@ -46,8 +42,8 @@
         "excludeFromExtensionStatuses": true
       },
       {
-        "id": "aws",
-        "statusKey": "aws",
+        "id": "cloud",
+        "statusKey": "cloud",
         "position": "secondary",
         "hideWhenMissing": true,
         "excludeFromExtensionStatuses": true

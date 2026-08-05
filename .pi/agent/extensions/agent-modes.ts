@@ -1,9 +1,9 @@
 /**
  * Agent Modes — Amp-style mode switching for pi.
  *
- *   ⚡ rush   — Kimi K2 Instruct (Fireworks), thinking off  (fast, cheap)
- *   ◆ oracle — Claude 4.6, thinking medium      (balanced)
- *   🧠 omnissiah — Claude 4.7, thinking xhigh   (max reasoning)
+ *   ⚡ rush   — Luna, thinking off  (fast, cheap)
+ *   ◆ oracle — Terra, thinking medium      (balanced)
+ *   🧠 omnissiah — Sol, thinking high   (max reasoning)
  *
  * Commands:
  *   /mode [rush|oracle|omnissiah]   — switch mode (or show current)
@@ -27,7 +27,7 @@ interface ModeConfig {
 const MODES: Record<string, ModeConfig> = {
 	rush: {
 		icon: "",
-		label: "rush",
+		label: "luna",
 		model: "accounts/fireworks/models/kimi-k2-instruct",
 		provider: "fireworks",
 		thinking: "off",
@@ -35,7 +35,7 @@ const MODES: Record<string, ModeConfig> = {
 	},
 	oracle: {
 		icon: "",
-		label: "oracle",
+		label: "terra",
 		model: "claude-sonnet-4-6",
 		provider: "anthropic",
 		thinking: "medium",
@@ -44,10 +44,10 @@ const MODES: Record<string, ModeConfig> = {
 	},
 	omnissiah: {
 		icon: "",
-		label: "omnissiah",
+		label: "sol",
 		model: "claude-opus-4-7",
 		provider: "anthropic",
-		thinking: "xhigh",
+		thinking: "high",
 		fallbackThinking: "high",
 		color: "thinkingHigh",
 	},
@@ -264,7 +264,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("mode", {
-		description: "Switch agent mode (rush / oracle / omnissiah)",
+		description: "Switch agent mode (luna / terra / sol)",
 		getArgumentCompletions: (prefix: string) => {
 			const items = MODE_ORDER.map((name) => ({
 				value: name,
@@ -298,7 +298,7 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			if (!MODES[requested]) {
-				ctx.ui.notify(`Unknown mode "${requested}". Available: ${MODE_ORDER.join(", ")}`, "error");
+				ctx.ui.notify(`Unknown mode "${requested}". Available: luna, terra, sol`, "error");
 				return;
 			}
 
@@ -323,7 +323,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerShortcut("ctrl+alt+m", {
-		description: "Cycle agent mode (rush → oracle → omnissiah)",
+		description: "Cycle agent mode (luna → terra → sol)",
 		handler: async (ctx) => {
 			const next = nextMode(currentMode);
 			const result = await applyMode(pi, ctx, next);

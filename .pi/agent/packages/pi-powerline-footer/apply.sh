@@ -15,6 +15,8 @@
 set -euo pipefail
 
 NPM_ROOT="$(npm root -g 2>/dev/null || true)"
+# Pi installs npm packages in its own config directory, not globally.
+PI_NPM_ROOT="${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}/npm/node_modules"
 SETTINGS_FILE="${HOME}/.pi/agent/settings.json"
 
 settings_npm_prefix() {
@@ -53,6 +55,7 @@ resolve_pkg() {
   fi
 
   for candidate in \
+    "${PI_NPM_ROOT}/${pkg}" \
     "/opt/homebrew/lib/node_modules/${pkg}" \
     "/usr/local/lib/node_modules/${pkg}" \
     "${NPM_ROOT:-}/${pkg}"; do
@@ -332,8 +335,9 @@ if "[pi-config patch:rounded-powerline]" in src:
     print("✓ index.ts (rounded-powerline already patched)")
     sys.exit(0)
 
-# Patch renderPowerlineTopLines to wrap content in ╭───╮
-NT = '''  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+# Patch renderPowerlinePrimaryLines to wrap content in ╭───╮.
+# pi-powerline-footer 0.7 renamed the former "Top" renderer to "Primary".
+NT = '''  function renderPowerlinePrimaryLines(width: number, theme: Theme): string[] {
     if (!currentCtx) return [];
 
     const layout = getResponsiveLayout(width, theme);
@@ -341,7 +345,7 @@ NT = '''  function renderPowerlineTopLines(width: number, theme: Theme): string[
   }'''
 
 RT = '''  // [pi-config patch:rounded-powerline]
-  function renderPowerlineTopLines(width: number, theme: Theme): string[] {
+  function renderPowerlinePrimaryLines(width: number, theme: Theme): string[] {
     if (!currentCtx) return [];
     const layout = getResponsiveLayout(width, theme);
     if (!layout.topContent) return [];
@@ -401,29 +405,37 @@ RN = '''function normalizeCustomItemPosition(value: unknown): CustomItemPosition
   return "right";
 }'''
 
-NM = '''  for (const item of customItems) {
-    const segmentId: StatusLineSegmentId = `custom:${item.id}`;
-    if (item.position === "left") left.push(segmentId);
-    else if (item.position === "secondary") secondary.push(segmentId);
-    else right.push(segmentId);
-  }
-
-  return { leftSegments: left, rightSegments: right, secondarySegments: secondary };'''
-RM = '''  const secondaryRight: StatusLineSegmentId[] = [];
-  for (const item of customItems) {
-    const segmentId: StatusLineSegmentId = `custom:${item.id}`;
-    if (item.position === "left") left.unshift(segmentId);
-    else if (item.position === "secondary") secondary.push(segmentId);
-    else if ((item.position as string) === "secondary-right") secondaryRight.push(segmentId);
-    else right.push(segmentId);
-  }
-
-  return { leftSegments: left, rightSegments: right, secondarySegments: secondary, secondaryRightSegments: secondaryRight } as any;'''
+# Version 0.7 derives rows through buildRow(), so add the right-aligned
+# secondary group to its returned layout instead of patching its old direct loop.
+NM = '''  return {
+    leftSegments: buildRow("left", layout?.left, presetDef.leftSegments),
+    rightSegments: buildRow("right", layout?.right, presetDef.rightSegments),
+    secondarySegments: buildRow("secondary", layout?.secondary, presetDef.secondarySegments ?? []),
+  };'''
+RM = '''  return {
+    leftSegments: buildRow("left", layout?.left, presetDef.leftSegments),
+    rightSegments: buildRow("right", layout?.right, presetDef.rightSegments),
+    secondarySegments: buildRow("secondary", layout?.secondary, presetDef.secondarySegments ?? []),
+    secondaryRightSegments: customItems
+      .filter((item) => (item.position as string) === "secondary-right")
+      .map((item) => `custom:${item.id}` as StatusLineSegmentId)
+      .filter((id) => !disabled.has(id)),
+  } as any;'''
 
 for needle, repl in [(NN, RN), (NM, RM)]:
     if needle not in src:
         print("powerline-config.ts: needle not found", file=sys.stderr); sys.exit(1)
     src = src.replace(needle, repl, 1)
+
+# Keep the declared position union aligned with the accepted configuration.
+types_path = path.rsplit("/", 1)[0] + "/types.ts"
+types = open(types_path).read()
+types_needle = 'export type CustomItemPosition = "left" | "right" | "secondary";'
+types_repl = 'export type CustomItemPosition = "left" | "right" | "secondary" | "secondary-right"; // [pi-config patch:secondary-right]'
+if types_needle in types:
+    open(types_path, "w").write(types.replace(types_needle, types_repl, 1))
+elif "[pi-config patch:secondary-right]" not in types:
+    print("types.ts: CustomItemPosition needle not found", file=sys.stderr); sys.exit(1)
 
 open(path, "w").write(src)
 print("✓ powerline-config.ts (secondary-right)")
@@ -580,8 +592,8 @@ else:
 
 # 8b. Reset cursor on shutdown
 if "[pi-config patch:cursor-reset]" not in src:
-    N2 = '  pi.on("session_shutdown", async () => {\n    sessionGeneration++;'
-    R2 = '  pi.on("session_shutdown", async () => {\n    // [pi-config patch:cursor-reset] Reset cursor shape to default on exit\n    process.stdout.write("\\x1b[0 q");\n    sessionGeneration++;'
+    N2 = '  pi.on("session_shutdown", async (event) => {'
+    R2 = '  pi.on("session_shutdown", async (event) => {\n    // [pi-config patch:cursor-reset] Reset cursor shape to default on exit\n    process.stdout.write("\\x1b[0 q");'
     if N2 not in src:
         print("cursor-reset: needle not found", file=sys.stderr); sys.exit(1)
     src = src.replace(N2, R2, 1)
