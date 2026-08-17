@@ -674,4 +674,50 @@ open(path, 'w').write(src.replace(NEEDLE, REPL, 1))
 print("✓ index.ts (vim-mode-prompt-glyph)")
 PYVIMPROMPT
 
+# ── 11. Fixed-editor custom shortcuts: scroll three lines ───────────────────
+python3 - "$PKG/fixed-editor/terminal-split.ts" <<'PYSCROLLLINES'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:custom-scroll-lines]" in src:
+    print("✓ terminal-split.ts (custom scroll lines already patched)")
+    sys.exit(0)
+
+NEEDLE = '''  if (shortcuts.up && (
+    matchesConfiguredShortcut(data, shortcuts.up)
+    || matchesKey(data, "pageUp")
+    || matchesKey(data, "ctrl+shift+up")
+    || /^\\x1b\\[(?:5;9(?::[12])?~|1;6(?::[12])?A|57421;9(?::[12])?u|57419;6(?::[12])?u)$/.test(data)
+  )) return 10;
+  if (shortcuts.down && (
+    matchesConfiguredShortcut(data, shortcuts.down)
+    || matchesKey(data, "pageDown")
+    || matchesKey(data, "ctrl+shift+down")
+    || /^\\x1b\\[(?:6;9(?::[12])?~|1;6(?::[12])?B|57422;9(?::[12])?u|57420;6(?::[12])?u)$/.test(data)
+  )) return -10;'''
+
+REPL = '''  // [pi-config patch:custom-scroll-lines] Custom shortcuts move three lines;
+  // page-based shortcuts keep the package's existing ten-line behavior.
+  if (shortcuts.up && matchesConfiguredShortcut(data, shortcuts.up)) return 3;
+  if (shortcuts.down && matchesConfiguredShortcut(data, shortcuts.down)) return -3;
+  if (shortcuts.up && (
+    matchesKey(data, "pageUp")
+    || matchesKey(data, "ctrl+shift+up")
+    || /^\\x1b\\[(?:5;9(?::[12])?~|1;6(?::[12])?A|57421;9(?::[12])?u|57419;6(?::[12])?u)$/.test(data)
+  )) return 10;
+  if (shortcuts.down && (
+    matchesKey(data, "pageDown")
+    || matchesKey(data, "ctrl+shift+down")
+    || /^\\x1b\\[(?:6;9(?::[12])?~|1;6(?::[12])?B|57422;9(?::[12])?u|57420;6(?::[12])?u)$/.test(data)
+  )) return -10;'''
+
+if NEEDLE not in src:
+    print("terminal-split.ts: keyboard scroll needle not found", file=sys.stderr)
+    sys.exit(1)
+
+open(path, "w").write(src.replace(NEEDLE, REPL, 1))
+print("✓ terminal-split.ts (custom shortcuts scroll three lines)")
+PYSCROLLLINES
+
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."

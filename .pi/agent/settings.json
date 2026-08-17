@@ -68,7 +68,9 @@
   "powerlineShortcuts": {
     "stashHistory": "ctrl+alt+h",
     "copyEditor": "ctrl+alt+c",
-    "cutEditor": "ctrl+alt+x"
+    "cutEditor": "ctrl+alt+x",
+    "scrollChatUp": "ctrl+shift+k",
+    "scrollChatDown": "ctrl+shift+j"
   },
   "editorPaddingX": 0,
   "shellCommandPrefix": "shopt -s expand_aliases\nsource ~/.bash_aliases 2>/dev/null",
