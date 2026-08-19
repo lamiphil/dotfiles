@@ -2,8 +2,8 @@
   "lastChangelogVersion": "0.80.6",
   "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
-  "defaultModel": "gpt-5.4-mini",
-  "defaultThinkingLevel": "off",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
@@ -13,7 +13,9 @@
     "npm:vim-motions-pi",
     "npm:pi-observational-memory",
     "git:github.com/elpapi42/pi-fork",
-    "npm:pi-event-monitor"
+    "npm:pi-event-monitor",
+    "npm:@mobrienv/pi-tidy-tools",
+    "npm:@mobrienv/pi-tidy-subagents"
   ],
   "compaction": {
     "enabled": true
@@ -81,5 +83,5 @@
   "warnings": {
     "anthropicExtraUsage": true
   },
-  "hideThinkingBlock": true
+  "hideThinkingBlock": false
 }
