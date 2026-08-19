@@ -1,5 +1,5 @@
 {
   "format": "YYYY/MM - MMMM/YYYY-MM-DD",
-  "template": "config/templates/journal",
+  "template": "_config/templates/journal.md",
   "folder": "Journal"
 }
