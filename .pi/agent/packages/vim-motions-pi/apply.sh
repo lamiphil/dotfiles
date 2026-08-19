@@ -146,11 +146,13 @@ if "[pi-config patch:vim-in-powerline]" in src:
     sys.exit(0)
 
 # 2a. Add VimEditor import near BashModeEditor import
-BASH_IMPORT = 'import { BashModeEditor } from "./bash-mode/editor.ts";'
-if BASH_IMPORT not in src:
-    BASH_IMPORT = 'import { BashModeEditor } from "./bash-mode/editor.js";'
-if BASH_IMPORT not in src:
+# Match any BashModeEditor import line (may include other named exports like isPrintableInput)
+import re as _re
+_bash_import_pat = _re.compile(r'^import \{ BashModeEditor[^}]*\} from "\./bash-mode/editor\.(?:ts|js)";$', _re.M)
+_bash_import_match = _bash_import_pat.search(src)
+if not _bash_import_match:
     print("Could not find BashModeEditor import", file=sys.stderr); sys.exit(1)
+BASH_IMPORT = _bash_import_match.group(0)
 
 NEW_IMPORT = (
     f'{BASH_IMPORT}\n'
