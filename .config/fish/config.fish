@@ -3,6 +3,7 @@
 ###############
 
 set -gx XDG_CONFIG_HOME "$HOME/.config"
+set -gx PI_TIDY_SUBAGENT_EXECUTABLE pi
 set -gx EDITOR nvim
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8
