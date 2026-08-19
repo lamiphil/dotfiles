@@ -56,8 +56,20 @@ palette = 7=#e6e6e6
 palette = 15=#E6E6E6
 
 # Keybinds
+# Canadian CSA uses Option combinations to produce brackets and braces; preserve
+# macOS text input instead of turning Option into terminal Alt/Meta.
+macos-option-as-alt = false
 keybind = ctrl+kp_add=increase_font_size:2
 keybind = ctrl+minus=decrease_font_size:2
+# Delete the previous word in Fish, Bash, and terminal TUIs on macOS and Linux.
+# Ctrl-W is the portable backward-word deletion sequence.
+keybind = alt+backspace=text:\x17
+# Canadian CSA: emit the four programming delimiters directly so they reach
+# terminal TUIs (including Herdr) instead of relying on Option text translation.
+keybind = alt+7=text:{
+keybind = alt+8=text:}
+keybind = alt+9=text:[
+keybind = alt+0=text:]
 keybind = ctrl+backspace=text:\x17
 
 # Ghostty's defaults bind these to next_tab / previous_tab; use Cmd+Shift+[ / ] instead.
