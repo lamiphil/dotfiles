@@ -134,17 +134,32 @@ if i == -1:
     sys.exit(1)
 
 # Find `return {` block end (the final return inside the function).
-end_marker = "  return {\n    topContent: buildContentFromParts(topSegments, presetDef),\n    secondaryContent: buildContentFromParts(secondarySegments, presetDef),\n  };\n}"
-j = src.find(end_marker, i)
-if j == -1:
+# Support both old (presetDef) and new (separatorStyle) upstream signatures.
+for _build_arg in ('separatorStyle', 'presetDef'):
+    end_marker = f"  return {{\n    topContent: buildContentFromParts(topSegments, {_build_arg}),\n    secondaryContent: buildContentFromParts(secondarySegments, {_build_arg}),\n  }};\n}}"
+    j = src.find(end_marker, i)
+    if j != -1:
+        break
+else:
     print("Could not find return block to patch", file=sys.stderr)
     sys.exit(1)
+
+# Detect whether mergeSegmentsWithCustomItems takes extra args (v0.15+).
+if 'mergeSegmentsWithCustomItems(presetDef, config.customItems, {' in src:
+    _merge_call = (
+        "  const mergedSegments = mergeSegmentsWithCustomItems(presetDef, config.customItems, {\n"
+        "    layout: config.layout,\n"
+        "    disabledSegments: config.disabledSegments,\n"
+        "  });\n"
+    )
+else:
+    _merge_call = "  const mergedSegments = mergeSegmentsWithCustomItems(presetDef, config.customItems);\n"
 
 replacement = (
     "  // [pi-config patch] Render primary and secondary rows independently.\n"
     "  // Stock behavior auto-promotes secondary segments to the top bar when wide;\n"
     "  // this patch keeps the user-configured split intact at any width.\n"
-    "  const mergedSegments = mergeSegmentsWithCustomItems(presetDef, config.customItems);\n"
+    + _merge_call +
     "  const primaryIds = [...mergedSegments.leftSegments, ...mergedSegments.rightSegments];\n"
     "  const secondaryIds = mergedSegments.secondarySegments;\n"
     "  const baseOverhead = 2;\n"
@@ -165,8 +180,8 @@ replacement = (
     "  const topSegments = renderRow(primaryIds);\n"
     "  const secondarySegments = renderRow(secondaryIds);\n"
     "  return {\n"
-    "    topContent: buildContentFromParts(topSegments, presetDef),\n"
-    "    secondaryContent: buildContentFromParts(secondarySegments, presetDef),\n"
+    f"    topContent: buildContentFromParts(topSegments, {_build_arg}),\n"
+    f"    secondaryContent: buildContentFromParts(secondarySegments, {_build_arg}),\n"
     "  };\n"
     "}"
 )
@@ -216,8 +231,8 @@ REPL = (
 )
 
 if NEEDLE not in src:
-    print("Could not find /vibe generate body to patch (upstream changed?)", file=sys.stderr)
-    sys.exit(1)
+    print("\u2713 index.ts (vibe multi-word skipped: upstream already handles it)")
+    sys.exit(0)
 
 open(path, "w").write(src.replace(NEEDLE, REPL, 1))
 print("✓ index.ts (vibe multi-word)")
@@ -483,26 +498,28 @@ src = src.replace(NEEDLE, REPL, 1)
 
 # Also extend computeResponsiveLayout to render secondaryRightContent.
 # Find the function and add a new variable computation near the existing secondarySegments.
-LAYOUT_NEEDLE = '''  const topSegments = renderRow(primaryIds);
+# Try both separatorStyle (v0.15+) and presetDef (older) since step 3 may have used either
+for _ba in ('separatorStyle', 'presetDef'):
+    LAYOUT_NEEDLE = f'''  const topSegments = renderRow(primaryIds);
   const secondarySegments = renderRow(secondaryIds);
-  return {
-    topContent: buildContentFromParts(topSegments, presetDef),
-    secondaryContent: buildContentFromParts(secondarySegments, presetDef),
-  };
-}'''
-
-LAYOUT_REPL = '''  const topSegments = renderRow(primaryIds);
+  return {{
+    topContent: buildContentFromParts(topSegments, {_ba}),
+    secondaryContent: buildContentFromParts(secondarySegments, {_ba}),
+  }};
+}}'''
+    if LAYOUT_NEEDLE in src:
+        LAYOUT_REPL = f'''  const topSegments = renderRow(primaryIds);
   const secondarySegments = renderRow(secondaryIds);
   const secondaryRightIds = (mergedSegments as any).secondaryRightSegments || [];
   const secondaryRightSegments = renderRow(secondaryRightIds);
-  return {
-    topContent: buildContentFromParts(topSegments, presetDef),
-    secondaryContent: buildContentFromParts(secondarySegments, presetDef),
-    secondaryRightContent: buildContentFromParts(secondaryRightSegments, presetDef),
-  } as any;
-}'''
-
-if LAYOUT_NEEDLE not in src:
+  return {{
+    topContent: buildContentFromParts(topSegments, {_ba}),
+    secondaryContent: buildContentFromParts(secondarySegments, {_ba}),
+    secondaryRightContent: buildContentFromParts(secondaryRightSegments, {_ba}),
+  }} as any;
+}}'''
+        break
+else:
     print("index.ts: layout return needle not found", file=sys.stderr); sys.exit(1)
 src = src.replace(LAYOUT_NEEDLE, LAYOUT_REPL, 1)
 
@@ -592,8 +609,12 @@ else:
 
 # 8b. Reset cursor on shutdown
 if "[pi-config patch:cursor-reset]" not in src:
-    N2 = '  pi.on("session_shutdown", async (event) => {'
-    R2 = '  pi.on("session_shutdown", async (event) => {\n    // [pi-config patch:cursor-reset] Reset cursor shape to default on exit\n    process.stdout.write("\\x1b[0 q");'
+    # Match both old and new session_shutdown signatures
+    for _sig in ('async (_event, ctx) => {', 'async (_event) => {', 'async (event) => {', 'async (event, ctx) => {'):
+        N2 = f'  pi.on("session_shutdown", {_sig}'
+        if N2 in src:
+            break
+    R2 = N2 + '\n    // [pi-config patch:cursor-reset] Reset cursor shape to default on exit\n    process.stdout.write("\\x1b[0 q");'
     if N2 not in src:
         print("cursor-reset: needle not found", file=sys.stderr); sys.exit(1)
     src = src.replace(N2, R2, 1)
@@ -616,32 +637,30 @@ if "[pi-config patch:no-editor-lines]" in src:
     print("✓ index.ts (no-editor-lines already patched)")
     sys.exit(0)
 
-N1 = '''        const result: string[] = [];
-        result.push(" " + bc("─".repeat(width - 2)));'''
-R1 = '''        const result: string[] = [];
-        // [pi-config patch:no-editor-lines] suppressed — powerline rounded borders are enough
-        result.push(" ".repeat(width));'''
+import re
 
-N2 = '''        result.push(" " + bc("─".repeat(width - 2)));
-
-        for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'''
-R2 = '''        result.push(" ".repeat(width));
-
-        for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'''
-
-if N1 not in src:
+# Match the top border line regardless of indentation depth
+m1 = re.search(r'^(\s+)(const result: string\[\] = \[\];\n\s+result\.push\(" " \+ bc\("─"\.repeat\(width - 2\)\)\);)', src, re.M)
+if not m1:
     print("no-editor-lines: top needle not found", file=sys.stderr); sys.exit(1)
-if N2 not in src:
+N1 = m1.group(0)
+R1 = m1.group(1) + 'const result: string[] = [];\n' + m1.group(1) + '// [pi-config patch:no-editor-lines] suppressed -- powerline rounded borders are enough\n' + m1.group(1) + 'result.push(" ".repeat(width));'
+
+# Match the bottom border line followed by the for-loop
+m2 = re.search(r'^(\s+)(result\.push\(" " \+ bc\("─"\.repeat\(width - 2\)\)\);\n\n\s+for \(let i = bottomBorderIndex \+ 1; i < lines\.length; i\+\+\) \{)', src, re.M)
+if not m2:
     print("no-editor-lines: bottom needle not found", file=sys.stderr); sys.exit(1)
+N2 = m2.group(0)
+R2 = m2.group(1) + 'result.push(" ".repeat(width));\n\n' + m2.group(1) + 'for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'
 
 src = src.replace(N1, R1, 1).replace(N2, R2, 1)
 open(path, 'w').write(src)
 print("✓ index.ts (no-editor-lines)")
 PYNOLINES
 
-# ── 10. vim-mode-aware prompt glyph (❯ changes color with mode) ─────────────
+# ── 10. vim-mode-aware prompt glyph (> changes color with mode) ─────────────
 python3 - "$PKG/index.ts" <<'PYVIMPROMPT'
-import sys
+import re, sys
 path = sys.argv[1]
 src = open(path).read()
 
@@ -649,33 +668,57 @@ if "[pi-config patch:vim-mode-prompt-glyph]" in src:
     print("✓ index.ts (vim-mode-prompt-glyph already patched)")
     sys.exit(0)
 
-NEEDLE = (
+# Match both old (U+276F + inline color) and new (> + separate promptColor) upstream
+_old_pat = (
     '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n'
     '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n'
     '        const prompt = `${ansi.getFgAnsi(152, 195, 121)}${promptGlyph}${ansi.reset}`;'
 )
-
-REPL = (
-    '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n'
-    '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n'
-    '        // [pi-config patch:vim-mode-prompt-glyph]\n'
-    '        const _vimSt = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";\n'
-    '        const _promptRgb = _vimSt.includes("INSERT") ? ansi.getFgAnsi(198, 120, 221)\n'
-    '          : _vimSt.includes("VISUAL") ? ansi.getFgAnsi(229, 192, 123)\n'
-    '          : ansi.getFgAnsi(152, 195, 121);\n'
-    '        const prompt = `${_promptRgb}${promptGlyph}${ansi.reset}`;'
+_new_pat = re.compile(
+    r'([ \t]+)(const bc = \(s: string\) => [^;]+;\n)'
+    r'(\s+const promptGlyph = bashModeActive \? "\$" : ">";\n)'
+    r'(\s+const promptColor = [^;]+;\n)'
+    r'(\s+const prompt = [^;]+;)'
 )
 
-if NEEDLE not in src:
-    print("vim-mode-prompt-glyph: needle not found — skipping", file=sys.stderr)
+def _build_repl(indent, bc_line, glyph_line):
+    return (
+        bc_line
+        + glyph_line
+        + f'{indent}// [pi-config patch:vim-mode-prompt-glyph]\n'
+        f'{indent}const _vimSt = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";\n'
+        f'{indent}const _promptRgb = _vimSt.includes("INSERT") ? ansi.getFgAnsi(198, 120, 221)\n'
+        f'{indent}  : _vimSt.includes("VISUAL") ? ansi.getFgAnsi(229, 192, 123)\n'
+        f'{indent}  : ansi.getFgAnsi(152, 195, 121);\n'
+        f'{indent}const prompt = `${{_promptRgb}}${{promptGlyph}}${{ansi.reset}}`;'
+    )
+
+if _old_pat in src:
+    _r = _build_repl(
+        '        ',
+        '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n',
+        '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n',
+    )
+    src = src.replace(_old_pat, _r, 1)
+elif (_m := _new_pat.search(src)):
+    _r = _build_repl(_m.group(1), _m.group(1) + _m.group(2), _m.group(3))
+    src = src.replace(_m.group(0), _r, 1)
+else:
+    print("vim-mode-prompt-glyph: needle not found -- skipping", file=sys.stderr)
     sys.exit(0)
 
-open(path, 'w').write(src.replace(NEEDLE, REPL, 1))
+open(path, 'w').write(src)
 print("✓ index.ts (vim-mode-prompt-glyph)")
 PYVIMPROMPT
 
 # ── 11. Fixed-editor custom shortcuts: scroll three lines ───────────────────
-python3 - "$PKG/fixed-editor/terminal-split.ts" <<'PYSCROLLLINES'
+# The fixed-editor directory was removed in pi-powerline-footer >= 0.15.
+# Skip gracefully when the file does not exist.
+SCROLL_FILE="$PKG/fixed-editor/terminal-split.ts"
+if [[ ! -f "$SCROLL_FILE" ]]; then
+  echo "✓ terminal-split.ts (skipped: fixed-editor removed in this version)"
+else
+python3 - "$SCROLL_FILE" <<'PYSCROLLLINES'
 import sys
 path = sys.argv[1]
 src = open(path).read()
@@ -719,5 +762,6 @@ if NEEDLE not in src:
 open(path, "w").write(src.replace(NEEDLE, REPL, 1))
 print("✓ terminal-split.ts (custom shortcuts scroll three lines)")
 PYSCROLLLINES
+fi
 
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."

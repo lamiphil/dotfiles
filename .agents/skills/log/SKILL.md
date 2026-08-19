@@ -1,19 +1,17 @@
 ---
 name: log
-description: Add a timestamped log entry to notes. Summarizes recent work and adds it to either an issue note (if work relates to a specific Linear issue) or the daily journal note. Use when the user invokes /log or wants to log progress, document decisions, or capture what was accomplished.
+description: Add a timestamped log entry to the current customer's _log.md work journal. Summarizes recent work and appends it under the correct date heading. Use when the user invokes /log or wants to log progress, document decisions, or capture what was accomplished.
 ---
 
 # Log Entry Skill
 
-Add timestamped log entries summarizing recent work to the appropriate note file.
+Add timestamped log entries summarizing recent work to the current customer's `_log.md`.
 
 ## Language and Style
 
-- **Botpress vault** (`/Users/philippe.lamy/workspaces/botpress/notes`): write in **English**.
-- **Personal vault** (`/home/lamiphil/workspaces/personal/notes`): write in **French** by default.
-  - Concise first-person notes (`Je...`, `J'ai...`, `Je vais...`), practical/contextual wording.
-  - Keep technical terms in English when they are tool names or clearer as-is (`API`, `Docker`, `TUI`, etc.).
-  - Use Québec/French phrasing naturally; avoid overly formal or generic summaries.
+- Write in **French** (Québec), concise, first person (`Je...`, `J'ai...`, `Je vais...`).
+- Keep technical terms in English when they are tool names or clearer as-is (`API`, `Docker`, `TUI`, etc.).
+- Avoid overly formal or generic summaries.
 
 ## Timestamp Format
 
@@ -23,18 +21,44 @@ Always start log entries with a bold timestamp:
 **YYYY-MM-DD | HH:MM**
 ```
 
-## Note Locations
+## Resolve the Customer
 
-- **Daily notes:** `notes/Journal/<year>/<MM - Month>/YYYY-MM-DD.md`
-  - Example: `notes/Journal/2026/02 - February/2026-02-23.md`
-- **Issue notes:** `notes/Issues/<ID> - <Title>.md`
-  - Example: `notes/Issues/CR-50 - Clean Grafana alerts.md`
+1. Look for `notes/Customers/` in the current workspace and its ancestors.
+   Otherwise try `$HOME/workspaces/vooban/notes/Customers/`.
+2. Infer the customer from the current session context: prior discussion, repository names,
+   project terminology, or cwd path.
+3. Match customer names case-insensitively, tolerating spaces, hyphens, and slug forms.
+4. If no unique match exists, **ask the user** to select or name the customer. Never guess.
+5. Target file: `Customers/{CUSTOMER}/_log.md`.
 
-## Decision: Which Note to Use
+## Log File Structure
 
-1. **Issue note** — If the conversation clearly relates to a specific Linear issue (CR-*, etc.)
-2. **Daily note** — If work is general (exploration, meetings, setup, cross-cutting tasks)
-3. **Ask the user** — If uncertain which note is appropriate
+The `_log.md` file uses **date headings newest-first**, with timestamped entries beneath each
+date. A short topic summary follows each date heading.
+
+Example structure:
+
+```markdown
+---
+customer: som
+type: log
+tags: [som, log, infra]
+---
+# SOM - Journal de travail
+
+## 2026-08-19 - Code dbt non versionne
+
+**2026-08-19 | 14:21**
+Description of work done...
+
+- Bullet point details
+- More details
+
+## 2026-08-18 - Integration MCP
+
+**2026-08-18 | 08:37**
+Earlier entry...
+```
 
 ## Log Entry Format
 
@@ -43,61 +67,42 @@ Always start log entries with a bold timestamp:
 - Use **bullet points** when listing discrete items accomplished
 - Use **paragraphs** when explaining decisions, context, or reasoning
 - Combine both styles when appropriate
+- Include a short topic summary in the date heading (e.g., `## 2026-08-19 - Topic`)
 
-Example:
+## Placement Rules
 
-```markdown
-**2026-02-23 | 14:30**
-Restructured the workspace to better organize repos, notes, and issue files.
+1. **Same date exists:** Insert the new entry at the **end** of the existing date section
+   (before the next `## YYYY-MM-DD` heading or end of file).
+2. **New date (today):** Create a new `## YYYY-MM-DD - Topic` heading and insert it
+   **above** all existing date headings (newest-first order), but below the frontmatter
+   and top-level `#` title.
+3. Never reorder or modify existing entries.
 
-- Created `repos/`, `notes/`, `issues/` folder structure
-- Moved all git repositories into `repos/`
-- Moved Obsidian vault into `notes/`
-- Updated CLAUDE.md to reflect new structure
-```
+## Creating a Missing `_log.md`
 
-## Placement
-
-- **Daily notes:** Append under the `## Logs` section
-- **Issue notes:** Append at the end of the `# Logs` section
-
-## Creating Missing Files
-
-If today's daily note doesn't exist, create it with this template:
+If `_log.md` does not exist for the resolved customer, create it with:
 
 ```markdown
 ---
-date: YYYY-MM-DD
-tags:
-  - journal
+customer: <slug>
+type: log
+tags: [<slug>, log]
 ---
-# YYYY-MM-DD
-## Todos
+# <Customer Name> - Journal de travail
 
-## Logs
+## YYYY-MM-DD - Topic
 
-### Meetings
-\```dataview
-LIST
-FROM "Meetings"
-WHERE date = this.file.day
-\```
-
-### Issues
-\```dataview
-LIST
-FROM "Issues"
-WHERE file.mday = this.file.day
-\```
+**YYYY-MM-DD | HH:MM**
+<entry content>
 ```
 
-Also create the month folder if it doesn't exist (format: `MM - Month`).
+The `<slug>` is the lowercased, hyphenated customer name.
 
 ## Process
 
 1. Determine current timestamp
 2. Review conversation context to summarize recent work
-3. Decide which note to use (issue vs daily)
-4. Read the target note file (or create if daily note doesn't exist)
-5. Append the log entry with proper formatting
+3. Resolve the customer (see above)
+4. Read `Customers/{CUSTOMER}/_log.md` (or create if missing)
+5. Append the log entry under the correct date heading
 6. Confirm to user what was logged and where
