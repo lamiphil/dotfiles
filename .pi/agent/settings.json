@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.80.6",
+  "lastChangelogVersion": "0.84.2",
   "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
   "defaultModel": "gpt-5.6-sol",
@@ -75,6 +75,7 @@
     "scrollChatDown": "ctrl+shift+j"
   },
   "editorPaddingX": 0,
+  "tuiMode": "fullscreen",
   "shellCommandPrefix": "shopt -s expand_aliases\nsource ~/.bash_aliases 2>/dev/null",
   "steeringMode": "one-at-a-time",
   "doubleEscapeAction": "tree",
