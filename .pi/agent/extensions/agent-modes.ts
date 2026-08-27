@@ -1,69 +1,160 @@
-/**
- * Agent Modes — Amp-style mode switching for pi.
+/*
+ * Provider-aware agent modes.
  *
- *   ⚡ rush   — GPT-5.4 Mini (OpenAI), thinking medium  (fast, cheap)
- *   ◆ oracle — GPT-5.4 (OpenAI), thinking medium      (balanced)
- *   🧠 omnissiah — GPT-5.5 (OpenAI), thinking high   (max reasoning)
- *
- * Commands:
- *   /mode [rush|oracle|omnissiah]   — switch mode (or show current)
- *
- * Keybind:
- *   Ctrl+Alt+M  — cycle through modes
+ *   Ctrl+Alt+M — cycle rush → oracle → omnissiah
+ *   Ctrl+Alt+P — toggle OpenAI ↔ Anthropic, retaining the current mode
+ *   /mode      — inspect or select a mode within the active provider
  */
 
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+
+type ProviderProfile = "openai" | "anthropic";
+type ModeName = "rush" | "oracle" | "omnissiah";
 
 interface ModeConfig {
 	icon: string;
-	label: string;
+	label: ModeName;
 	model: string;
 	provider: string;
 	thinking: string;
-	fallbackThinking?: string;
 	color: string;
 }
 
-const MODES: Record<string, ModeConfig> = {
-	rush: {
-		icon: "",
-		label: "rush",
-		model: "luna",
-		provider: "openai-codex",
-		thinking: "medium",
-		color: "error",
+interface PersistedState {
+	provider: ProviderProfile;
+	mode: ModeName;
+}
+
+interface ApplyResult {
+	ok: boolean;
+	reason?: string;
+	model?: any;
+	thinking?: string;
+}
+
+const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
+	openai: {
+		rush: {
+			icon: "",
+			label: "rush",
+			model: "gpt-5.6-luna",
+			provider: "openai-codex",
+			thinking: "medium",
+			color: "error",
+		},
+		oracle: {
+			icon: "",
+			label: "oracle",
+			model: "gpt-5.6-terra",
+			provider: "openai-codex",
+			thinking: "medium",
+			color: "success",
+		},
+		omnissiah: {
+			icon: "",
+			label: "omnissiah",
+			model: "gpt-5.6-sol",
+			provider: "openai-codex",
+			thinking: "high",
+			color: "thinkingHigh",
+		},
 	},
-	oracle: {
-		icon: "",
-		label: "oracle",
-		model: "terra",
-		provider: "openai-codex",
-		thinking: "medium",
-		fallbackThinking: "medium",
-		color: "success",
-	},
-	omnissiah: {
-		icon: "",
-		label: "omnissiah",
-		model: "sol",
-		provider: "openai-codex",
-		thinking: "high",
-		fallbackThinking: "high",
-		color: "thinkingHigh",
+	anthropic: {
+		rush: {
+			icon: "",
+			label: "rush",
+			model: "claude-haiku-4-5",
+			provider: "anthropic",
+			thinking: "medium",
+			color: "error",
+		},
+		oracle: {
+			icon: "",
+			label: "oracle",
+			model: "claude-opus-4-7",
+			provider: "anthropic",
+			thinking: "high",
+			color: "success",
+		},
+		omnissiah: {
+			icon: "",
+			label: "omnissiah",
+			model: "claude-fable-5",
+			provider: "anthropic",
+			thinking: "max",
+			color: "thinkingHigh",
+		},
 	},
 };
 
-const MODE_ORDER = ["rush", "oracle", "omnissiah"];
-const DEFAULT_MODE = "rush";
+const MODE_ORDER: ModeName[] = ["rush", "oracle", "omnissiah"];
+const DEFAULT_PROVIDER: ProviderProfile = "openai";
+const DEFAULT_MODE: ModeName = "rush";
+const STATE_PATH = join(
+	process.env.XDG_STATE_HOME || join(homedir(), ".local", "state"),
+	"pi",
+	"agent-modes.json",
+);
 
-function nextMode(current: string): string {
-	const idx = MODE_ORDER.indexOf(current);
-	return MODE_ORDER[(idx + 1) % MODE_ORDER.length];
+const PROVIDER_META: Record<ProviderProfile, { label: string; marker: string }> = {
+	openai: { label: "OpenAI", marker: "Ⓞ" },
+	anthropic: { label: "Anthropic", marker: "Ⓐ" },
+};
+
+let stateWriteQueue: Promise<void> = Promise.resolve();
+
+function isModeName(value: unknown): value is ModeName {
+	return typeof value === "string" && MODE_ORDER.includes(value as ModeName);
 }
 
-function publishStatus(ctx: ExtensionContext, mode: ModeConfig): void {
-	const thm = ctx.ui.theme;
-	ctx.ui.setStatus("agent-mode", thm.fg(mode.color, `${mode.icon} ${mode.label}`));
+function isProviderProfile(value: unknown): value is ProviderProfile {
+	return value === "openai" || value === "anthropic";
+}
+
+async function readPersistedState(): Promise<PersistedState | undefined> {
+	try {
+		const parsed = JSON.parse(await readFile(STATE_PATH, "utf8"));
+		if (!isProviderProfile(parsed?.provider) || !isModeName(parsed?.mode)) return undefined;
+		return { provider: parsed.provider, mode: parsed.mode };
+	} catch {
+		return undefined;
+	}
+}
+
+function persistState(state: PersistedState): Promise<void> {
+	stateWriteQueue = stateWriteQueue
+		.catch(() => undefined)
+		.then(async () => {
+			await mkdir(dirname(STATE_PATH), { recursive: true });
+			const temporary = `${STATE_PATH}.${process.pid}.tmp`;
+			try {
+				await writeFile(temporary, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+				await rename(temporary, STATE_PATH);
+			} catch (error) {
+				await unlink(temporary).catch(() => undefined);
+				throw error;
+			}
+		});
+	return stateWriteQueue;
+}
+
+function nextMode(current: ModeName): ModeName {
+	const index = MODE_ORDER.indexOf(current);
+	return MODE_ORDER[(index + 1) % MODE_ORDER.length];
+}
+
+function otherProvider(current: ProviderProfile): ProviderProfile {
+	return current === "openai" ? "anthropic" : "openai";
+}
+
+function providerFromModel(model: any): ProviderProfile | undefined {
+	const provider = String(model?.provider ?? "").toLowerCase();
+	if (provider === "anthropic") return "anthropic";
+	if (provider === "openai" || provider === "openai-codex") return "openai";
+	return undefined;
 }
 
 function getRegistry(ctx: ExtensionContext): any | undefined {
@@ -77,103 +168,40 @@ function listModels(ctx: ExtensionContext): any[] {
 		if (typeof registry.listModels === "function") return registry.listModels();
 		if (typeof registry.getAvailable === "function") return registry.getAvailable();
 	} catch {
-		// ignore
+		// The caller reports the missing target model.
 	}
 	return [];
 }
 
-function findTargetModel(ctx: ExtensionContext, mode: ModeConfig): { model?: any; fuzzy: boolean } {
-	const models = listModels(ctx);
-	if (models.length === 0) return { model: undefined, fuzzy: false };
-
-	const exact = models.find((m: any) => m.id === mode.model && m.provider === mode.provider);
-	if (exact) return { model: exact, fuzzy: false };
-
-	const wantedProvider = mode.provider.toLowerCase();
-	const wantedModel = mode.model.toLowerCase();
-	const providerHint = wantedProvider.split(/[-_/]/)[0];
-	const modelHints = wantedModel.split(/[-_/]/).filter(Boolean);
-
-	const scored = models
-		.map((m: any) => {
-			const provider = String(m.provider ?? "").toLowerCase();
-			const id = String(m.id ?? "").toLowerCase();
-			let score = 0;
-
-			if (provider === wantedProvider) score += 10;
-			else if (provider.includes(providerHint) || wantedProvider.includes(provider)) score += 5;
-
-			if (id === wantedModel) score += 10;
-			if (id.includes(wantedModel) || wantedModel.includes(id)) score += 8;
-			if (modelHints.some((hint) => hint.length >= 3 && id.includes(hint))) score += 4;
-
-			return { model: m, score };
-		})
-		.filter((entry) => entry.score > 4) // require at least a provider match, not just a name hint
-		.sort((a, b) => b.score - a.score);
-
-	return { model: scored[0]?.model, fuzzy: !!scored[0] };
+function findExactModel(ctx: ExtensionContext, config: ModeConfig): any | undefined {
+	const registry = getRegistry(ctx);
+	try {
+		if (typeof registry?.find === "function") {
+			const found = registry.find(config.provider, config.model);
+			if (found) return found;
+		}
+	} catch {
+		// Fall through to the public model list.
+	}
+	return listModels(ctx).find(
+		(model: any) => model.provider === config.provider && model.id === config.model,
+	);
 }
 
-function fallbackScore(model: any, mode: ModeConfig): number {
-	const provider = String(model.provider ?? "").toLowerCase();
-	const id = String(model.id ?? "").toLowerCase();
-	const isReasoning = Boolean(model.reasoning);
-	let score = 0;
-
-	if (mode.label === "rush") {
-		if (provider.includes("fireworks")) score += 55;
-		if (provider.includes("openai") || provider.includes("codex")) score += 35;
-		if (provider.includes("google") || provider.includes("gemini")) score += 25;
-		if (provider.includes("anthropic")) score += 15;
-		if (id.includes("gpt-5") || id.includes("gpt-4.1") || id.includes("codex")) score += 15;
-		if (id.includes("flash") || id.includes("mini") || id.includes("haiku")) score += 12;
-		if (!isReasoning) score += 10;
-		if (id.includes("opus")) score -= 20;
-		if (id.includes("sonnet")) score -= 8;
+function matchingMode(model: any, thinking: string): { provider: ProviderProfile; mode: ModeName } | undefined {
+	for (const provider of Object.keys(PROFILES) as ProviderProfile[]) {
+		for (const mode of MODE_ORDER) {
+			const config = PROFILES[provider][mode];
+			if (
+				model?.provider === config.provider &&
+				model?.id === config.model &&
+				thinking === config.thinking
+			) {
+				return { provider, mode };
+			}
+		}
 	}
-
-	if (mode.label === "oracle") {
-		if (provider.includes("anthropic")) score += 55;
-		if (provider.includes("openai") || provider.includes("codex")) score += 35;
-		if (provider.includes("google") || provider.includes("gemini")) score += 22;
-		if (provider.includes("kimi")) score += 12;
-		if (id.includes("sonnet") && id.includes("4") && id.includes("6")) score += 40;
-		if (id.includes("sonnet")) score += 22;
-		if (id.includes("claude")) score += 12;
-		if (id.includes("gpt-5.4")) score += 32;
-		if (id.includes("gpt-5")) score += 18;
-		if (id.includes("opus")) score += 8;
-		if (id.includes("flash") || id.includes("mini") || id.includes("haiku")) score -= 10;
-		if (isReasoning) score += 6;
-	}
-
-	if (mode.label === "omnissiah") {
-		if (provider.includes("anthropic")) score += 60;
-		if (provider.includes("openai") || provider.includes("codex")) score += 38;
-		if (provider.includes("google") || provider.includes("gemini")) score += 24;
-		if (provider.includes("kimi")) score += 10;
-		if (id.includes("opus") && id.includes("4") && id.includes("7")) score += 45;
-		if (id.includes("opus")) score += 24;
-		if (id.includes("claude")) score += 12;
-		if (id.includes("gpt-5.5")) score += 34;
-		if (id.includes("gpt-5")) score += 20;
-		if (id.includes("sonnet")) score += 6;
-		if (id.includes("flash") || id.includes("mini") || id.includes("haiku")) score -= 18;
-		if (isReasoning) score += 15;
-	}
-
-	return score;
-}
-
-function findFallbackModel(ctx: ExtensionContext, mode: ModeConfig, exclude?: any): any | undefined {
-	const models = listModels(ctx)
-		.filter((m: any) => !exclude || !(m.provider === exclude.provider && m.id === exclude.id))
-		.map((m: any) => ({ model: m, score: fallbackScore(m, mode) }))
-		.filter((entry) => entry.score > 0)
-		.sort((a, b) => b.score - a.score);
-
-	return models[0]?.model;
+	return undefined;
 }
 
 function describeModel(model: any | undefined, thinking: string): string {
@@ -181,96 +209,193 @@ function describeModel(model: any | undefined, thinking: string): string {
 	return `${model.provider}/${model.id} (thinking: ${thinking})`;
 }
 
-async function applyMode(
+function publishStatus(
+	ctx: ExtensionContext,
+	provider: ProviderProfile,
+	mode: ModeName,
+	custom: boolean,
+): void {
+	const theme = ctx.ui.theme;
+	const marker = PROVIDER_META[provider].marker;
+	if (custom) {
+		ctx.ui.setStatus("agent-mode", theme.fg("dim", `? custom ${marker}`));
+		return;
+	}
+	const config = PROFILES[provider][mode];
+	ctx.ui.setStatus(
+		"agent-mode",
+		theme.fg(config.color, `${config.icon} ${config.label} ${marker}`),
+	);
+}
+
+async function applySelection(
 	pi: ExtensionAPI,
 	ctx: ExtensionContext,
-	modeName: string,
-): Promise<{ ok: boolean; reason?: string; triedModel?: string; appliedModel?: any; appliedThinking?: string }> {
-	const mode = MODES[modeName];
-	if (!mode) return { ok: false, reason: `Unknown mode: ${modeName}` };
-
-	const target = findTargetModel(ctx, mode);
-	const attempted = target.model;
-	const fallback = findFallbackModel(ctx, mode, attempted);
-
-	if (!attempted && !fallback) {
-		return { ok: false, reason: `No suitable model found for mode ${mode.label}` };
+	provider: ProviderProfile,
+	mode: ModeName,
+	currentModel: any,
+	currentThinking: string,
+	setSwitching: (value: boolean) => void,
+): Promise<ApplyResult> {
+	if (!ctx.isIdle()) {
+		return { ok: false, reason: "Pi is busy; wait for the current run to settle" };
 	}
 
-	const candidates = [attempted, fallback].filter(Boolean);
-	for (const candidate of candidates) {
-		let modelSwitched = false;
-		try {
-			const ok = await pi.setModel(candidate);
-			modelSwitched = ok !== false;
-		} catch {
-			modelSwitched = false;
-		}
-
-		if (!modelSwitched) continue;
-
-		const exactMatch = attempted && candidate.provider === attempted.provider && candidate.id === attempted.id;
-		const appliedThinking = exactMatch ? mode.thinking : (mode.fallbackThinking ?? mode.thinking);
-		try {
-			pi.setThinkingLevel(appliedThinking as any);
-		} catch {
-			// ignore
-		}
-
-		publishStatus(ctx, mode);
-		const suffix = exactMatch ? (target.fuzzy ? " (fuzzy)" : "") : " (fallback)";
+	const config = PROFILES[provider][mode];
+	const target = findExactModel(ctx, config);
+	if (!target) {
 		return {
-			ok: true,
-			triedModel: `${candidate.provider}/${candidate.id}${suffix}`,
-			appliedModel: candidate,
-			appliedThinking,
+			ok: false,
+			reason: `Required model is unavailable: ${config.provider}/${config.model}`,
 		};
 	}
 
-	return {
-		ok: false,
-		reason: attempted
-			? `Unable to switch to ${attempted.provider}/${attempted.id}${fallback ? ` or fallback ${fallback.provider}/${fallback.id}` : ""}`
-			: fallback
-				? `Unable to switch to fallback ${fallback.provider}/${fallback.id}`
-				: `No usable model found for mode ${mode.label}`,
-	};
+	let modelChanged = false;
+	setSwitching(true);
+	try {
+		const switched = await pi.setModel(target);
+		if (switched === false) {
+			return {
+				ok: false,
+				reason: `No configured authentication for ${config.provider}/${config.model}`,
+			};
+		}
+		modelChanged = true;
+		pi.setThinkingLevel(config.thinking as any);
+		const appliedThinking = String(pi.getThinkingLevel?.() ?? config.thinking);
+		if (appliedThinking !== config.thinking) {
+			throw new Error(`thinking level was clamped to ${appliedThinking}`);
+		}
+		return { ok: true, model: target, thinking: appliedThinking };
+	} catch (error) {
+		if (modelChanged && currentModel) {
+			try {
+				await pi.setModel(currentModel);
+				pi.setThinkingLevel(currentThinking as any);
+			} catch (rollbackError) {
+				return {
+					ok: false,
+					reason: `Switch failed and rollback also failed: ${String(rollbackError)}`,
+				};
+			}
+		}
+		return { ok: false, reason: `Switch failed: ${String(error)}` };
+	} finally {
+		setSwitching(false);
+	}
 }
 
-export default function (pi: ExtensionAPI) {
-	let currentMode = DEFAULT_MODE;
+export default function agentModes(pi: ExtensionAPI): void {
+	let currentProvider: ProviderProfile = DEFAULT_PROVIDER;
+	let currentMode: ModeName = DEFAULT_MODE;
 	let liveModel: any | undefined;
 	let liveThinking = "medium";
+	let custom = false;
+	let switching = false;
+
+	const saveState = (ctx: ExtensionContext): void => {
+		void persistState({ provider: currentProvider, mode: currentMode }).catch((error) => {
+			ctx.ui.notify(`Could not persist agent mode state: ${String(error)}`, "warning");
+		});
+	};
+
+	const reconcileExternalState = (ctx: ExtensionContext): void => {
+		if (switching) return;
+		const match = matchingMode(liveModel, liveThinking);
+		if (match) {
+			currentProvider = match.provider;
+			currentMode = match.mode;
+			custom = false;
+		} else {
+			currentProvider = providerFromModel(liveModel) ?? currentProvider;
+			custom = true;
+		}
+		publishStatus(ctx, currentProvider, currentMode, custom);
+		saveState(ctx);
+	};
+
+	const applyAndCommit = async (
+		ctx: ExtensionContext,
+		provider: ProviderProfile,
+		mode: ModeName,
+	): Promise<ApplyResult> => {
+		const previousProvider = currentProvider;
+		const previousMode = currentMode;
+		const previousCustom = custom;
+		const result = await applySelection(
+			pi,
+			ctx,
+			provider,
+			mode,
+			liveModel,
+			liveThinking,
+			(value) => {
+				switching = value;
+			},
+		);
+		if (!result.ok) {
+			currentProvider = previousProvider;
+			currentMode = previousMode;
+			custom = previousCustom;
+			liveModel = ctx.model;
+			liveThinking = String(pi.getThinkingLevel?.() ?? liveThinking);
+			publishStatus(ctx, currentProvider, currentMode, custom);
+			return result;
+		}
+
+		currentProvider = provider;
+		currentMode = mode;
+		custom = false;
+		liveModel = result.model;
+		liveThinking = result.thinking ?? PROFILES[provider][mode].thinking;
+		publishStatus(ctx, currentProvider, currentMode, custom);
+		await persistState({ provider: currentProvider, mode: currentMode }).catch((error) => {
+			ctx.ui.notify(`Mode switched, but state persistence failed: ${String(error)}`, "warning");
+		});
+		return result;
+	};
 
 	pi.on("session_start", async (_event, ctx) => {
+		const persisted = await readPersistedState();
+		currentProvider = persisted?.provider ?? DEFAULT_PROVIDER;
+		currentMode = persisted?.mode ?? DEFAULT_MODE;
 		liveModel = ctx.model;
 		liveThinking = String(pi.getThinkingLevel?.() ?? "medium");
 
-		for (const [name, config] of Object.entries(MODES)) {
-			if (liveModel?.id === config.model && liveThinking === config.thinking) {
-				currentMode = name;
-				break;
-			}
+		const match = matchingMode(liveModel, liveThinking);
+		if (match) {
+			currentProvider = match.provider;
+			currentMode = match.mode;
+			custom = false;
+		} else {
+			currentProvider = providerFromModel(liveModel) ?? currentProvider;
+			custom = true;
 		}
-		publishStatus(ctx, MODES[currentMode]);
+		publishStatus(ctx, currentProvider, currentMode, custom);
+		saveState(ctx);
 	});
 
-	pi.on("model_select", async (event) => {
+	pi.on("model_select", async (event, ctx) => {
 		liveModel = event.model;
+		reconcileExternalState(ctx);
 	});
 
-	pi.on("thinking_level_select", async (event) => {
+	pi.on("thinking_level_select", async (event, ctx) => {
 		liveThinking = String(event.level);
+		reconcileExternalState(ctx);
 	});
 
 	pi.registerCommand("mode", {
 		description: "Switch agent mode (rush / oracle / omnissiah)",
 		getArgumentCompletions: (prefix: string) => {
-			const items = MODE_ORDER.map((name) => ({
-				value: name,
-				label: `${MODES[name].icon} ${name} — ${MODES[name].model}, think:${MODES[name].thinking}`,
-			}));
-			return items.filter((i) => i.value.startsWith(prefix));
+			const items = MODE_ORDER.map((mode) => {
+				const config = PROFILES[currentProvider][mode];
+				return {
+					value: mode,
+					label: `${config.icon} ${mode} — ${config.model}, think:${config.thinking}`,
+				};
+			});
+			return items.filter((item) => item.value.startsWith(prefix));
 		},
 		handler: async (args, ctx) => {
 			const rawRequested = (args ?? "").trim().toLowerCase();
@@ -281,42 +406,37 @@ export default function (pi: ExtensionAPI) {
 					: rawRequested;
 
 			if (!requested) {
-				const mode = MODES[currentMode];
+				const meta = PROVIDER_META[currentProvider];
 				ctx.ui.notify(
-					`Current mode label: ${mode.icon} ${mode.label}\n` +
-						`  target: ${mode.provider}/${mode.model}\n` +
-						`  target thinking: ${mode.thinking}\n` +
-						`  using: ${describeModel(liveModel, liveThinking)}\n\n` +
-						MODE_ORDER.map((n) => {
-							const m = MODES[n];
-							const marker = n === currentMode ? "→ " : "  ";
-							return `${marker}${m.icon} ${m.label}  (${m.provider}/${m.model}, think:${m.thinking})`;
+					`${meta.label} ${meta.marker}${custom ? ` — custom (retained mode: ${currentMode})` : ""}\n` +
+						`Using: ${describeModel(liveModel, liveThinking)}\n\n` +
+						MODE_ORDER.map((mode) => {
+							const config = PROFILES[currentProvider][mode];
+							const marker = !custom && mode === currentMode ? "→ " : "  ";
+							return `${marker}${config.icon} ${mode}  (${config.provider}/${config.model}, think:${config.thinking})`;
 						}).join("\n"),
 					"info",
 				);
 				return;
 			}
 
-			if (!MODES[requested]) {
+			if (!isModeName(requested)) {
 				ctx.ui.notify(`Unknown mode "${requested}". Available: ${MODE_ORDER.join(", ")}`, "error");
 				return;
 			}
 
-			const result = await applyMode(pi, ctx, requested);
+			const result = await applyAndCommit(ctx, currentProvider, requested);
 			if (!result.ok) {
 				ctx.ui.notify(
-					`Mode switch failed: ${result.reason}\nCurrent using: ${describeModel(liveModel, liveThinking)}`,
+					`Mode switch failed: ${result.reason}\nStill using: ${describeModel(liveModel, liveThinking)}`,
 					"error",
 				);
 				return;
 			}
 
-			currentMode = requested;
-			if (result.appliedModel) liveModel = result.appliedModel;
-			if (result.appliedThinking) liveThinking = result.appliedThinking;
-			const mode = MODES[currentMode];
+			const config = PROFILES[currentProvider][currentMode];
 			ctx.ui.notify(
-				`${mode.icon} ${mode.label}\nTrying: ${result.triedModel ?? `${mode.provider}/${mode.model}`}\nUsing: ${describeModel(liveModel, liveThinking)}`,
+				`${config.icon} ${config.label} ${PROVIDER_META[currentProvider].marker}\nUsing: ${describeModel(liveModel, liveThinking)}`,
 				"info",
 			);
 		},
@@ -325,22 +445,39 @@ export default function (pi: ExtensionAPI) {
 	pi.registerShortcut("ctrl+alt+m", {
 		description: "Cycle agent mode (rush → oracle → omnissiah)",
 		handler: async (ctx) => {
-			const next = nextMode(currentMode);
-			const result = await applyMode(pi, ctx, next);
+			const targetMode = nextMode(currentMode);
+			const result = await applyAndCommit(ctx, currentProvider, targetMode);
 			if (!result.ok) {
 				ctx.ui.notify(
-					`Mode switch failed: ${result.reason}\nCurrent using: ${describeModel(liveModel, liveThinking)}`,
+					`Mode switch failed: ${result.reason}\nStill using: ${describeModel(liveModel, liveThinking)}`,
 					"error",
 				);
 				return;
 			}
-
-			currentMode = next;
-			if (result.appliedModel) liveModel = result.appliedModel;
-			if (result.appliedThinking) liveThinking = result.appliedThinking;
-			const mode = MODES[currentMode];
+			const config = PROFILES[currentProvider][currentMode];
 			ctx.ui.notify(
-				`${mode.icon} ${mode.label}\nTrying: ${result.triedModel ?? `${mode.provider}/${mode.model}`}\nUsing: ${describeModel(liveModel, liveThinking)}`,
+				`${config.icon} ${config.label} ${PROVIDER_META[currentProvider].marker}\nUsing: ${describeModel(liveModel, liveThinking)}`,
+				"info",
+			);
+		},
+	});
+
+	pi.registerShortcut("ctrl+alt+p", {
+		description: "Toggle provider (OpenAI ↔ Anthropic)",
+		handler: async (ctx) => {
+			const targetProvider = otherProvider(currentProvider);
+			const result = await applyAndCommit(ctx, targetProvider, currentMode);
+			if (!result.ok) {
+				ctx.ui.notify(
+					`Provider switch failed: ${result.reason}\nStill using: ${describeModel(liveModel, liveThinking)}`,
+					"error",
+				);
+				return;
+			}
+			const config = PROFILES[currentProvider][currentMode];
+			ctx.ui.notify(
+				`${PROVIDER_META[currentProvider].label} ${PROVIDER_META[currentProvider].marker}\n` +
+					`${config.icon} ${config.label} — ${describeModel(liveModel, liveThinking)}`,
 				"info",
 			);
 		},
