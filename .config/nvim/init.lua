@@ -432,8 +432,8 @@ require('lazy').setup({
           },
           mappings = {
             i = {
-              -- Toggle hidden files with <C-S-h> inside the Telescope prompt
-              ['<C-S-h>'] = function(prompt_bufnr)
+              -- Toggle hidden files with <C-d> (dotfiles) inside the Telescope prompt
+              ['<C-d>'] = function(prompt_bufnr)
                 local action_state = require 'telescope.actions.state'
                 local current_picker = action_state.get_current_picker(prompt_bufnr)
                 local prompt = current_picker:_get_prompt()
