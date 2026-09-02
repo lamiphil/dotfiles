@@ -62,12 +62,43 @@ Earlier entry...
 
 ## Log Entry Format
 
-- Start with bold timestamp on its own line
-- Add a blank line before any bullet list (required for Markdown rendering)
-- Use **bullet points** when listing discrete items accomplished
-- Use **paragraphs** when explaining decisions, context, or reasoning
-- Combine both styles when appropriate
-- Include a short topic summary in the date heading (e.g., `## 2026-08-19 - Topic`)
+1. **Line 1:** bold timestamp `**YYYY-MM-DD | HH:MM**`.
+2. **Line 2:** blank.
+3. **Line 3 (required):** a **very concise one-line French summary** of what was
+   done in this log instance. Under ~15 words. No lead-in. Verb-first phrasing
+   (`Ajouté...`, `Corrigé...`, `Validé...`, `Investigué...`, `Écrit...`).
+   This line is the source of truth used by `/scrum`; treat it as a headline.
+4. **Optional details** below: paragraphs and/or bullet points expanding the
+   summary. Add a blank line before any bullet list (Markdown rendering).
+5. **Optional `## Prochaine étape` sub-section** (recommended when relevant): a
+   short next-step block placed **immediately after the entry's details**. It is
+   harvested by `/scrum` as a candidate line for `Aujourd'hui:`. Use a level-3
+   heading so it stays scoped to the entry:
+
+   ```markdown
+   ### Prochaine étape
+
+   - <verb-first action, ≤ 15 words>
+   ```
+
+   One or two bullets max. Same French, verb-first, condensed style as the
+   headline.
+6. **Date heading topic:** include a short topic in `## YYYY-MM-DD - Topic`.
+
+Example:
+
+```markdown
+**2026-08-19 | 14:21**
+
+Investigué le code dbt manquant du sandbox SOM.
+
+- Le repo `som-data` ne contient aucun `dbt_project.yml`.
+- Message envoyé au collègue pour clarifier où se trouve le code.
+
+### Prochaine étape
+
+- Reconstruire le projet dbt à partir des colonnes de `exp_projets`.
+```
 
 ## Placement Rules
 
