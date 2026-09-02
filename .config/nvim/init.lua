@@ -411,8 +411,8 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
-      -- Track whether hidden files are shown (default: on)
-      local show_hidden = true
+      -- Track whether hidden files are shown (default: off)
+      local show_hidden = false
 
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
@@ -450,9 +450,9 @@ require('lazy').setup({
         },
         pickers = {
           find_files = {
-            -- Show hidden/dotfiles by default (respects .gitignore, excludes .git/)
-            hidden = true,
-            prompt_title = 'Find Files (hidden: on)',
+            -- Hide hidden/dotfiles by default (respects .gitignore, excludes .git/)
+            hidden = false,
+            prompt_title = 'Find Files (hidden: off)',
           },
         },
         extensions = {
