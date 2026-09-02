@@ -115,4 +115,46 @@ print("✓ session-selector.js (current session green + bullet)")
 PY2
 fi
 
+# ── 3. Extension selector/input: remove top & bottom border lines ───────────
+for NAME in extension-selector extension-input; do
+  FILE="$(find "$PKG" -path "*/pi-coding-agent/dist/modes/interactive/components/$NAME.js" -print -quit 2>/dev/null || true)"
+  [[ -z "${FILE:-}" ]] && FILE="$PKG/dist/modes/interactive/components/$NAME.js"
+  if [[ ! -f "$FILE" ]]; then
+    echo "$NAME.js not found — skipping" >&2
+    continue
+  fi
+  python3 - "$FILE" "$NAME" <<'PYBORDER'
+import re, sys
+path, name = sys.argv[1], sys.argv[2]
+src = open(path).read()
+
+MARKER = "[pi-config patch:no-dialog-borders]"
+if MARKER in src:
+    print(f"✓ {name}.js (no-dialog-borders already patched)")
+    sys.exit(0)
+
+# Drop every `this.addChild(new DynamicBorder());` line in the constructor.
+# The surrounding Spacer(1) calls stay, keeping the vertical padding.
+new, n = re.subn(
+    r'^[ \t]*this\.addChild\(new DynamicBorder\(\)\);\n',
+    '',
+    src,
+    flags=re.M,
+)
+if n == 0:
+    print(f"{name}.js: DynamicBorder call not found (upstream changed?)", file=sys.stderr)
+    sys.exit(1)
+
+# Leave a marker so the idempotency check picks it up next run.
+new = new.replace(
+    'import { DynamicBorder } from "./dynamic-border.js";',
+    f'// {MARKER} border lines removed from dialog dressing\nimport {{ DynamicBorder }} from "./dynamic-border.js";',
+    1,
+)
+
+open(path, 'w').write(new)
+print(f"✓ {name}.js (removed {n} DynamicBorder line{'s' if n != 1 else ''})")
+PYBORDER
+done
+
 echo "Done. Restart pi to pick up."
