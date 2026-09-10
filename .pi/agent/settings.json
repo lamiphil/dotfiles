@@ -71,9 +71,7 @@
   "powerlineShortcuts": {
     "stashHistory": "ctrl+alt+h",
     "copyEditor": "ctrl+alt+c",
-    "cutEditor": "ctrl+alt+x",
-    "scrollChatUp": "ctrl+shift+k",
-    "scrollChatDown": "ctrl+shift+j"
+    "cutEditor": "ctrl+alt+x"
   },
   "editorPaddingX": 0,
   "tuiMode": "fullscreen",

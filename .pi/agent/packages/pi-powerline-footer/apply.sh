@@ -764,4 +764,64 @@ print("✓ terminal-split.ts (custom shortcuts scroll three lines)")
 PYSCROLLLINES
 fi
 
+# ── 12. Native fullscreen transcript scrolling: three lines ────────────────
+find_tui_alt_screen_js() {
+  local root hit
+  for root in \
+    "${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}/npm/node_modules" \
+    "/opt/homebrew/lib/node_modules" \
+    "/usr/local/lib/node_modules"; do
+    [[ -d "$root" ]] || continue
+    hit="$(find "$root" -path '*/@earendil-works/pi-tui/dist/tui-alt-screen.js' -print -quit 2>/dev/null || true)"
+    if [[ -n "${hit:-}" ]]; then
+      printf '%s\n' "$hit"
+      return 0
+    fi
+  done
+  return 1
+}
+
+TUI_ALT_SCREEN_JS="$(find_tui_alt_screen_js || true)"
+if [[ -n "$TUI_ALT_SCREEN_JS" && -f "$TUI_ALT_SCREEN_JS" ]]; then
+  python3 - "$TUI_ALT_SCREEN_JS" <<'PYTUILINES'
+import sys
+path = sys.argv[1]
+src = open(path).read()
+
+if "[pi-config patch:three-line-transcript]" in src:
+    print("✓ tui-alt-screen.js (three-line transcript already patched)")
+    sys.exit(0)
+
+needle = '''        if (keybindings.matches(data, "tui.altScreen.lineUp")) {
+            if (!isRelease)
+                this.scrollBy(-1);
+            return { consume: true };
+        }
+        if (keybindings.matches(data, "tui.altScreen.lineDown")) {
+            if (!isRelease)
+                this.scrollBy(1);
+            return { consume: true };
+        }'''
+replacement = '''        // [pi-config patch:three-line-transcript]
+        if (keybindings.matches(data, "tui.altScreen.lineUp")) {
+            if (!isRelease)
+                this.scrollBy(-3);
+            return { consume: true };
+        }
+        if (keybindings.matches(data, "tui.altScreen.lineDown")) {
+            if (!isRelease)
+                this.scrollBy(3);
+            return { consume: true };
+        }'''
+
+if needle not in src:
+    print("tui-alt-screen.js: line scroll handlers not found", file=sys.stderr)
+    sys.exit(1)
+open(path, "w").write(src.replace(needle, replacement, 1))
+print("✓ tui-alt-screen.js (three-line transcript)")
+PYTUILINES
+else
+  echo "Could not find pi-tui tui-alt-screen.js — skipping native scroll patch" >&2
+fi
+
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
