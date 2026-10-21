@@ -157,4 +157,84 @@ print(f"✓ {name}.js (removed {n} DynamicBorder line{'s' if n != 1 else ''})")
 PYBORDER
 done
 
+# ── 4a. Bump pi-ai hardcoded Claude Code version so background workers
+#      (observational-memory observer, etc.) can call Opus 5.5+. The
+#      foreground stream already overrides this via Pi Black headers,
+#      but any path that falls through to the raw OAuth client needs it.
+ANTHROPIC_MSG_JS="$(find "$PKG" -path '*/pi-ai/dist/api/anthropic-messages.js' -print -quit 2>/dev/null || true)"
+[[ -z "${ANTHROPIC_MSG_JS:-}" ]] && ANTHROPIC_MSG_JS="$PKG/node_modules/@earendil-works/pi-ai/dist/api/anthropic-messages.js"
+if [[ ! -f "$ANTHROPIC_MSG_JS" ]]; then
+  echo "anthropic-messages.js not found — skipping claudeCodeVersion bump" >&2
+else
+  python3 - "$ANTHROPIC_MSG_JS" <<'PYCCVER'
+import re, sys
+path = sys.argv[1]
+src = open(path).read()
+TARGET = '2.1.280'
+if f'const claudeCodeVersion = "{TARGET}"' in src:
+    print(f'✓ anthropic-messages.js (claudeCodeVersion already {TARGET})')
+    sys.exit(0)
+new, n = re.subn(
+    r'const claudeCodeVersion = "[\d.]+";',
+    f'const claudeCodeVersion = "{TARGET}";',
+    src,
+    count=1,
+)
+if n == 0:
+    print('claudeCodeVersion const not found — upstream changed?', file=sys.stderr)
+    sys.exit(1)
+open(path, 'w').write(new)
+print(f'✓ anthropic-messages.js (bumped claudeCodeVersion to {TARGET})')
+PYCCVER
+fi
+
+# ── 4b. Add Claude Opus 5.5 to the Anthropic model catalog ──────────────
+ANTHROPIC_JSON="$(find "$PKG" -path '*/pi-ai/dist/providers/data/anthropic.json' -print -quit 2>/dev/null || true)"
+[[ -z "${ANTHROPIC_JSON:-}" ]] && ANTHROPIC_JSON="$PKG/node_modules/@earendil-works/pi-ai/dist/providers/data/anthropic.json"
+if [[ ! -f "$ANTHROPIC_JSON" ]]; then
+  echo "anthropic.json not found — skipping opus-5-5 patch" >&2
+else
+  python3 - "$ANTHROPIC_JSON" <<'PYOPUS55'
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    data = json.load(f)
+section = data.get("anthropic-messages")
+if section is None:
+    print("anthropic.json: anthropic-messages section missing", file=sys.stderr)
+    sys.exit(1)
+if "claude-opus-5-5" in section:
+    print("✓ anthropic.json (opus-5-5 already present)")
+    sys.exit(0)
+section["claude-opus-5-5"] = {
+    "id": "claude-opus-5-5",
+    "name": "Claude Opus 5.5",
+    "api": "anthropic-messages",
+    "provider": "anthropic",
+    "baseUrl": "https://api.anthropic.com",
+    "reasoning": True,
+    "input": ["text", "image"],
+    "cost": {"input": 4, "output": 20, "cacheRead": 0.2, "cacheWrite": 5},
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "thinkingLevelMap": {
+        "off": None, "minimal": None, "low": "low", "medium": "medium",
+        "high": "high", "xhigh": "xhigh", "max": "max",
+    },
+    "compat": {
+        "supportsMidConvoEffort": True,
+        "supportsMidConvoSystemMessages": True,
+        "supportsMidConvoToolChanges": True,
+        "forceAdaptiveThinking": True,
+        "supportsTemperature": False,
+        "supportsStrictTools": True,
+    },
+}
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+print("✓ anthropic.json (added claude-opus-5-5)")
+PYOPUS55
+fi
+
 echo "Done. Restart pi to pick up."
