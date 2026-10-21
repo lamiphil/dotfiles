@@ -127,9 +127,15 @@ if "[pi-config patch]" in src:
     print("✓ index.ts (already patched)")
     sys.exit(0)
 
-NEEDLE = "  // Get all segments: primary first, then secondary"
-i = src.find(NEEDLE)
-if i == -1:
+# v0.19 renamed the opening comment while keeping the same function contract.
+for NEEDLE in (
+    "  // Render all segments and get their widths",
+    "  // Get all segments: primary first, then secondary",
+):
+    i = src.find(NEEDLE)
+    if i != -1:
+        break
+else:
     print("Could not find computeResponsiveLayout body to patch", file=sys.stderr)
     sys.exit(1)
 
@@ -639,21 +645,46 @@ if "[pi-config patch:no-editor-lines]" in src:
 
 import re
 
-# Match the top border line regardless of indentation depth
-m1 = re.search(r'^(\s+)(const result: string\[\] = \[\];\n\s+result\.push\(" " \+ bc\("─"\.repeat\(width - 2\)\)\);)', src, re.M)
+# v0.19 routes editor border colors through colorEditorBorder(); older versions
+# used the local bc() helper. Match either form.
+border_call = r'(?:bc\("─"\.repeat\(width - 2\)\)|colorEditorBorder\(editor, "─"\.repeat\(width - 2\)\))'
+m1 = re.search(
+    rf'^(\s+)const result: string\[\] = \[\];\n\s+result\.push\(" " \+ {border_call}\);',
+    src,
+    re.M,
+)
 if not m1:
     print("no-editor-lines: top needle not found", file=sys.stderr); sys.exit(1)
 N1 = m1.group(0)
-R1 = m1.group(1) + 'const result: string[] = [];\n' + m1.group(1) + '// [pi-config patch:no-editor-lines] suppressed -- powerline rounded borders are enough\n' + m1.group(1) + 'result.push(" ".repeat(width));'
+indent = m1.group(1)
+R1 = (
+    indent + 'const result: string[] = [];\n'
+    + indent + '// [pi-config patch:no-editor-lines] rounded powerline borders are enough\n'
+    + indent + 'result.push(" ".repeat(width));'
+)
 
-# Match the bottom border line followed by the for-loop
-m2 = re.search(r'^(\s+)(result\.push\(" " \+ bc\("─"\.repeat\(width - 2\)\)\);\n\n\s+for \(let i = bottomBorderIndex \+ 1; i < lines\.length; i\+\+\) \{)', src, re.M)
+m2 = re.search(
+    rf'^(\s+)result\.push\(" " \+ {border_call}\);\n\n\s+for \(let i = bottomBorderIndex \+ 1; i < lines\.length; i\+\+\) \{{',
+    src,
+    re.M,
+)
 if not m2:
     print("no-editor-lines: bottom needle not found", file=sys.stderr); sys.exit(1)
 N2 = m2.group(0)
-R2 = m2.group(1) + 'result.push(" ".repeat(width));\n\n' + m2.group(1) + 'for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'
-
+indent = m2.group(1)
+R2 = (
+    indent + 'result.push(" ".repeat(width));\n\n'
+    + indent + 'for (let i = bottomBorderIndex + 1; i < lines.length; i++) {'
+)
 src = src.replace(N1, R1, 1).replace(N2, R2, 1)
+
+# v0.19 added a fast renderer for large drafts; suppress its borders too.
+fast_top = '  const lines = [border(viewport.hasBefore ? "↑" : "─")];'
+fast_bottom = '  lines.push(border(viewport.hasAfter ? "↓" : "─"));'
+if fast_top in src and fast_bottom in src:
+    src = src.replace(fast_top, '  const lines = [" ".repeat(width)];', 1)
+    src = src.replace(fast_bottom, '  lines.push(" ".repeat(width));', 1)
+
 open(path, 'w').write(src)
 print("✓ index.ts (no-editor-lines)")
 PYNOLINES
@@ -668,24 +699,21 @@ if "[pi-config patch:vim-mode-prompt-glyph]" in src:
     print("✓ index.ts (vim-mode-prompt-glyph already patched)")
     sys.exit(0)
 
-# Match both old (U+276F + inline color) and new (> + separate promptColor) upstream
-_old_pat = (
-    '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n'
-    '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n'
-    '        const prompt = `${ansi.getFgAnsi(152, 195, 121)}${promptGlyph}${ansi.reset}`;'
-)
-_new_pat = re.compile(
-    r'([ \t]+)(const bc = \(s: string\) => [^;]+;\n)'
-    r'(\s+const promptGlyph = bashModeActive \? "\$" : ">";\n)'
-    r'(\s+const promptColor = [^;]+;\n)'
-    r'(\s+const prompt = [^;]+;)'
+# Match both the regular editor and v0.19's fast renderer. Preserve each
+# renderer's promptGlyph expression while replacing its fixed prompt color.
+pat = re.compile(
+    r'^(?P<indent>[ \t]+)const promptGlyph = (?P<glyph>[^;]+);\n'
+    r'(?P=indent)const promptColor = [^;]+;\n'
+    r'(?P=indent)const prompt = [^;]+;',
+    re.M,
 )
 
-def _build_repl(indent, bc_line, glyph_line):
+def repl(m):
+    indent = m.group('indent')
+    glyph = m.group('glyph')
     return (
-        bc_line
-        + glyph_line
-        + f'{indent}// [pi-config patch:vim-mode-prompt-glyph]\n'
+        f'{indent}const promptGlyph = {glyph};\n'
+        f'{indent}// [pi-config patch:vim-mode-prompt-glyph]\n'
         f'{indent}const _vimSt = footerDataRef?.getExtensionStatuses().get("vim-mode") ?? "";\n'
         f'{indent}const _promptRgb = _vimSt.includes("INSERT") ? ansi.getFgAnsi(198, 120, 221)\n'
         f'{indent}  : _vimSt.includes("VISUAL") ? ansi.getFgAnsi(229, 192, 123)\n'
@@ -693,22 +721,23 @@ def _build_repl(indent, bc_line, glyph_line):
         f'{indent}const prompt = `${{_promptRgb}}${{promptGlyph}}${{ansi.reset}}`;'
     )
 
-if _old_pat in src:
-    _r = _build_repl(
-        '        ',
-        '        const bc = (s: string) => `${getFgAnsiCode("sep")}${s}${ansi.reset}`;\n',
-        '        const promptGlyph = bashModeActive ? "$" : "\u276f";\n',
-    )
-    src = src.replace(_old_pat, _r, 1)
-elif (_m := _new_pat.search(src)):
-    _r = _build_repl(_m.group(1), _m.group(1) + _m.group(2), _m.group(3))
-    src = src.replace(_m.group(0), _r, 1)
-else:
+src, count = pat.subn(repl, src)
+
+# v0.19's fast renderer inlines the fixed ANSI color instead of declaring
+# promptColor, so handle that shape separately.
+fast_pat = re.compile(
+    r'^(?P<indent>[ \t]+)const promptGlyph = (?P<glyph>options\.bashModeActive \? "\$" : ">");\n'
+    r'(?P=indent)const prompt = `\$\{ansi\.getFgAnsi\(200, 200, 200\)\}\$\{promptGlyph\}\$\{ansi\.reset\}`;',
+    re.M,
+)
+src, fast_count = fast_pat.subn(repl, src)
+count += fast_count
+if count == 0:
     print("vim-mode-prompt-glyph: needle not found -- skipping", file=sys.stderr)
     sys.exit(0)
 
 open(path, 'w').write(src)
-print("✓ index.ts (vim-mode-prompt-glyph)")
+print(f"✓ index.ts (vim-mode-prompt-glyph, {count} renderers)")
 PYVIMPROMPT
 
 # ── 11. Fixed-editor custom shortcuts: scroll three lines ───────────────────

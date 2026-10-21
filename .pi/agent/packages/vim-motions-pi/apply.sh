@@ -220,6 +220,18 @@ if OLD_MODE not in src:
     print("setMode needle not found", file=sys.stderr); sys.exit(1)
 src = src.replace(OLD_MODE, NEW_MODE, 1)
 
+# Route visual-mode transitions through setMode() too, otherwise the status and
+# cursor callbacks only fire for insert/normal transitions.
+mode_transitions = (
+    ('\t\tthis.mode = linewise ? "visual-line" : "visual";', '\t\tthis.setMode(linewise ? "visual-line" : "visual");'),
+    ('\t\tthis.mode = "normal";\n\t\tthis.pendingObjectPrefix', '\t\tthis.setMode("normal");\n\t\tthis.pendingObjectPrefix'),
+    ('\t\t\t\tthis.mode = "visual-line";\n\t\t\t\treturn;', '\t\t\t\tthis.setMode("visual-line");\n\t\t\t\treturn;'),
+)
+for old, new in mode_transitions:
+    if old not in src:
+        print("mode transition needle not found", file=sys.stderr); sys.exit(1)
+    src = src.replace(old, new, 1)
+
 open(path, 'w').write(src)
 print("✓ vim-motion.ts (arrows + mode callback)")
 PY3
