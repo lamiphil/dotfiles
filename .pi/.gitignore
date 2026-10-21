@@ -2,3 +2,5 @@ agent/auth.json
 agent/sessions/
 agent/npm-global/
 agent/pi-tidy-subagents/
+agent/models-store.json
+agent/trust.json
