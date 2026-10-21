@@ -82,9 +82,9 @@ const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 		omnissiah: {
 			icon: "",
 			label: "omnissiah",
-			model: "claude-fable-5",
+			model: "claude-opus-5-5",
 			provider: "anthropic",
-			thinking: "max",
+			thinking: "high",
 			color: "thinkingHigh",
 		},
 	},
