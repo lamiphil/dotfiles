@@ -172,20 +172,24 @@ Workspace keys use the **Colemak-DH home row** — consistent across tmux, Hyprl
 
 ## Commit Message Convention
 
-Format: `SCOPE - Description`
+Format: `<type>(<scope>): <description>`
 
-- **SCOPE**: Uppercase, represents the tool/config (NVIM, BASH, TMUX, HYPR, GIT, OSX, ARCH, etc.)
-- **Separator**: ` - ` (space-dash-space)
-- **Description**: Sentence case, concise
+- **type**: exactly one of `feat`, `fix`, `chore`, `refactor`
+- **scope**: lowercase, the affected tool/config (`nvim`, `bash`, `tmux`, `hypr`, `git`, `osx`, `arch`, `ci`, `docs`, etc.); required whenever obvious
+- **description**: short, imperative, lowercase first letter, no trailing period
+- **acronyms and proper nouns**: preserve original casing (`Kickstart.nvim`, `ZSH`, `Grafana`)
 - **Language**: French or English (both used)
 
 Examples:
 ```
-NVIM - Migrated from NvChad to Kickstart.nvim
-BASH - Ignore ZSH message on new shell
-HYPR - Fix ouverture discord sur workspace 4
-OPENCODE - Added config for Grafana & Github MCPs
+feat(nvim): migrate from NvChad to Kickstart.nvim
+chore(bash): ignore ZSH message on new shell
+fix(hypr): ouverture discord sur workspace 4
+chore(opencode): add config for Grafana & GitHub MCPs
+refactor(tmux): split keybinds into separate file
 ```
+
+See also: `.agents/skills/commit/SKILL.md`, `.agents/skills/gh/SKILL.md`, `.agents/skills/mr/SKILL.md`.
 
 ## AI Agent Skills
 
@@ -202,6 +206,11 @@ Custom skills in `.agents/skills/`:
 | `logging-best-practices` | Wide events / canonical log lines patterns |
 
 Each skill has a `SKILL.md` with frontmatter (name, description, tools) and instructions.
+
+## Command syntax
+
+- Write all shell commands intended for the user in Fish syntax, even though this repository manages Bash configuration.
+- Use Fish-native variable assignment, conditionals, loops, and command substitution; avoid Bash-only syntax unless the task explicitly concerns Bash.
 
 ## Communication style
 
