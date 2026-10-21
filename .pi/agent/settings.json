@@ -1,9 +1,9 @@
 {
   "lastChangelogVersion": "0.84.2",
-  "defaultProvider": "anthropic",
+  "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
-  "defaultModel": "claude-haiku-4-5",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
@@ -16,7 +16,9 @@
     "npm:pi-event-monitor",
     "npm:@mobrienv/pi-tidy-tools",
     "npm:@mobrienv/pi-tidy-subagents",
-    "git:github.com/paoloanzn/pi-black@v0.84.1-cc2.1.224.5"
+    "git:github.com/paoloanzn/pi-black@v0.84.1-cc2.1.280.1",
+    "git:github.com/DietrichGebert/ponytail",
+    "npm:pi-root-grant"
   ],
   "compaction": {
     "enabled": true
@@ -83,5 +85,5 @@
   "warnings": {
     "anthropicExtraUsage": false
   },
-  "hideThinkingBlock": false
+  "hideThinkingBlock": true
 }
