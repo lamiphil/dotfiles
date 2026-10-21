@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Stage and commit pending changes using a tight conventional-commits format with only chore/feat/fix types. Auto-stages all working-tree changes when nothing is staged yet; commits just the existing staged set when the user pre-staged a subset. Refuses to commit when the staged set is not one logical change. With arguments, uses them as the full commit message verbatim.
+description: Stage and commit pending changes using a tight conventional-commits format with only chore/feat/fix/refactor types. Auto-stages all working-tree changes when nothing is staged yet; commits just the existing staged set when the user pre-staged a subset. Refuses to commit when the staged set is not one logical change. With arguments, uses them as the full commit message verbatim.
 tools: Read, Bash
 allowedBashCommands: git status, git diff, git log, git add, git reset, git commit, git rev-parse, find
 model: haiku
@@ -51,35 +51,38 @@ so the same instructions apply uniformly.
 
 ## Format
 
+**Always use this exact format. No exceptions.**
+
 ```
 <type>(<scope>): <description>
 ```
 
-- `<type>` — exactly one of: `chore`, `feat`, `fix`
-- `<scope>` — lowercase, the affected component or area; in parentheses; optional, omit if unclear
+- `<type>` — exactly one of: `feat`, `fix`, `chore`, `refactor`
+- `<scope>` — lowercase, the affected component or area; in parentheses; **required whenever a scope is obvious**, omit only when truly cross-cutting
 - `<description>` — short, imperative, lowercase first letter, no trailing period
 - **Preserve acronyms and proper nouns** in their original casing even when the rest of the description is lowercase. Examples:
   - `chore(foundation): add VPC_CIDR_BLOCK fallback`
-  - `chore(foundation): write kubeconfig to dab in Infisical`
   - `feat(foundation): install kube-state-metrics`
-  - `feat(foundation): add log export to Grafana Cloud Loki`
   - `chore(ci): bump actions/checkout to v4`
 - Total subject ≤ 72 characters when possible
 - No body, no footer (keep it simple)
 
 ### Types
 
-- **chore** — Anything that isn't a new feature or a bug fix. Refactor, formatting, docs, CI, dependency bumps, config tweaks, dotfile changes.
 - **feat** — A new feature is added.
 - **fix** — A bug is fixed.
+- **refactor** — Code restructuring without changing behavior (rename, extract, reorganize, simplify).
+- **chore** — Everything else: docs, CI, dependency bumps, config tweaks, dotfile changes, formatting.
 
 ### Examples
 
 ```
+feat(ci): add deployment in dev
+chore(docs): add docs for ci
 feat(auth): add login page
 fix(auth): redirect after expired session
+refactor(api): extract user lookup into helper
 chore(ci): bump actions/checkout to v4
-chore: tidy gitignore
 ```
 
 ## With arguments

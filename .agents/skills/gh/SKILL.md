@@ -35,9 +35,32 @@ gh run view <run-id> --repo owner/repo --log-failed
 
 ## Create a PR
 
+**Always title PRs with this exact format:**
+
+```
+<type>(<scope>): <description>
+```
+
+- `<type>` — exactly one of: `feat`, `fix`, `chore`, `refactor`
+- `<scope>` — lowercase, the affected component or area; in parentheses; required when obvious
+- `<description>` — short, imperative, lowercase first letter, no trailing period
+- Preserve acronyms and proper nouns in their original casing
+- Total title ≤ 72 characters when possible
+
+Examples:
+
+```
+feat(ci): add deployment in dev
+chore(docs): add docs for ci
+fix(auth): redirect after expired session
+refactor(api): extract user lookup into helper
+```
+
+Commands:
+
 ```bash
-gh pr create --title "Title" --body "Description"
-gh pr create --fill  # Auto-fill from commits
+gh pr create --title "feat(ci): add deployment in dev" --body "Description"
+gh pr create --fill  # Auto-fill from commits (only OK when the first commit follows the format above)
 ```
 
 ## Merge a PR

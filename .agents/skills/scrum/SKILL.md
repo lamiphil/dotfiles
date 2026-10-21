@@ -1,11 +1,12 @@
 ---
 name: scrum
-description: Generate Philippe's daily standup (scrum) message. Reads the previous workday's entries from every `notes/Customers/*/_log.md` and today's daily journal note to produce three sections — "Hier:", "Aujourd'hui:", "Bloquant:" — each line formatted as `- <client>: <task> <summary>`. Use when the user invokes /scrum or asks for their scrum / standup / daily text.
+description: >-
+  Generate the user's daily standup (scrum) message. Reads the previous workday's entries from every `notes/Customers/*/_log.md` and today's daily journal note to produce three sections (Hier, Aujourd'hui, Bloquant), each line formatted as `- <client>: <task> <summary>`. Use when the user invokes /scrum or asks for their scrum / standup / daily text.
 ---
 
 # Scrum message generator
 
-Produce Philippe's daily standup, ready to copy. Output ONLY the formatted text
+Produce the user's daily standup, ready to copy. Output ONLY the formatted text
 (in one code block), with no preamble or commentary.
 
 ## Output format (exact)
