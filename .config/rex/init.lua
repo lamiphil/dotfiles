@@ -1,7 +1,6 @@
 local prefix = "ctrl+space>"
 
 -- Sessions (Herdr workspaces)
-rex.bind(prefix .. "w", "session.switch")
 rex.bind(prefix .. "shift+w", "session.new")
 rex.bind(prefix .. "shift+d", "session.close")
 rex.bind(prefix .. "shift+p", "session.previous")
@@ -116,6 +115,29 @@ rex.action {
     return true
   end,
 }
+-- terminal-browser (Chromium over Kitty graphics) in a right split.
+-- session.new_split ignores the block command, so go through `rex run`.
+local rex_cli = os.getenv("HOME")
+  .. "/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+
+rex.action {
+  name = "browser_split",
+  title = "Open Browser in Split",
+  run = function(ctx)
+    local cmd = { rex_cli, "run", "-s", ctx.session_id, "--split", "right", "--shell", "none", "--label", "browser" }
+    if ctx.block_id then
+      table.insert(cmd, "-b")
+      table.insert(cmd, ctx.block_id)
+    end
+    table.insert(cmd, "--")
+    table.insert(cmd, "/opt/homebrew/bin/terminal-browser")
+    local result = rex.exec(cmd)
+    if not result.ok then error(result.stderr, 0) end
+    return true
+  end,
+}
+rex.bind(prefix .. "shift+b", "browser_split")
+
 rex.bind(prefix .. "[", "scrollback_view")
 rex.bind(prefix .. "alt+9", "scrollback_view") -- "[" on Canadian CSA
 
@@ -129,7 +151,7 @@ end
 -- Panes
 rex.bind(prefix .. "v", "pane.split", { direction = "right" })
 rex.bind(prefix .. "h", "pane.split", { direction = "down" })
-rex.bind(prefix .. "x", "pane.close")
+rex.bind(prefix .. "w", "pane.close")
 rex.bind(prefix .. "z", "pane.zoom")
 rex.bind(prefix .. "tab", "pane.focus_next")
 rex.bind(prefix .. "shift+tab", "pane.focus_previous")
