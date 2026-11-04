@@ -106,7 +106,6 @@ on-mode-changed = []
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#layout
     alt-slash = 'layout tiles horizontal vertical'
-    alt-comma = 'layout accordion horizontal vertical'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#focus
     alt-h = 'focus left'
@@ -140,7 +139,7 @@ on-mode-changed = []
     alt-ctrl-down = 'resize height +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#close
-    alt-x = 'close --quit-if-last-window'
+    alt-w = 'close --quit-if-last-window'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = 'exec-and-forget aerospace workspace 1 && /Users/philippe.lamy/.config/sketchybar/plugins/workspaces.sh'
@@ -178,9 +177,6 @@ on-mode-changed = []
     alt-shift-g = 'move-node-to-workspace --focus-follows-window 5'
     alt-shift-m = 'move-node-to-workspace --focus-follows-window 6'
 
-
-    # Toogle floating mode
-    alt-f = "layout floating tiling"
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'exec-and-forget aerospace workspace-back-and-forth && /Users/philippe.lamy/.config/sketchybar/plugins/workspaces.sh'
