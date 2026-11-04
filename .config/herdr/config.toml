@@ -164,6 +164,25 @@ key = "ctrl+alt+j"
 type = "shell"
 command = "herdr pane resize --current --direction down --amount 0.05"
 
+# herdr-zen:start
+[[keys.command]]
+key = "prefix+shift+z"
+type = "plugin_action"
+command = "y4m3.herdr-zen.toggle"
+description = "toggle zen mode"
+
+[[keys.command]]
+key = "prefix+shift+l"
+type = "plugin_action"
+command = "y4m3.herdr-zen.wider"
+description = "widen zen pane"
+
+[[keys.command]]
+key = "prefix+shift+h"
+type = "plugin_action"
+command = "y4m3.herdr-zen.narrower"
+description = "narrow zen pane"
+# herdr-zen:end
 # Legacy indexed shortcut config is still parsed for compatibility.
 # Prefer switch_tab, switch_workspace, and focus_agent for new configs.
 # [keys.indexed]
