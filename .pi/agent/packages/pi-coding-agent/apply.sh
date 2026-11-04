@@ -65,26 +65,28 @@ PKG="$(resolve_pi_pkg || true)"
 
 echo "→ Package: $PKG"
 
-# ── 1. Session selector: purple named sessions ───────────────────────────────
+# ── 1. Session selector: orange named sessions ───────────────────────────────
 SELECTOR="$(find_session_selector "$PKG" "$NPM_ROOT" || true)"
 if [[ -n "${SELECTOR:-}" && -f "$SELECTOR" ]]; then
   python3 - "$SELECTOR" <<'PY'
+import re
 import sys
+
 path = sys.argv[1]
 src = open(path).read()
+marker = "[pi-config patch:session-color]"
+target = "syntaxNumber"  # OneDark orange
 
-if "[pi-config patch:session-color]" in src:
-    print("✓ session-selector.js (already patched)")
-    sys.exit(0)
-
-import re
-# Match any color value in the hasName branch
-m = re.search(r'(else if \(hasName\) \{\s+messageColor = ")([^"]+)(")', src)
+m = re.search(r'(else if \(hasName\) \{\s+messageColor = ")([^"]+)("[^\n]*)', src)
 if not m:
     print("session-selector.js: needle not found", file=sys.stderr); sys.exit(1)
-src = src[:m.start()] + m.group(1) + 'thinkingHigh' + m.group(3) + '; // [pi-config patch:session-color]' + src[m.end():]
+if m.group(2) == target and marker in m.group(3):
+    print("✓ session-selector.js (orange session names already patched)")
+    sys.exit(0)
+
+src = src[:m.start()] + m.group(1) + target + f'"; // {marker}' + src[m.end():]
 open(path, 'w').write(src)
-print("✓ session-selector.js (purple session names)")
+print("✓ session-selector.js (orange session names)")
 PY
 else
   echo "session-selector.js not found — skipping" >&2

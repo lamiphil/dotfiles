@@ -9,11 +9,11 @@
  *                        Persists across sessions. Updates the powerline
  *                        status segment.
  *
- * /todo a, b, c          Insert one or more todos at the TOP of today's
- *                        `## Todos` section in the active vault. Comma
- *                        separated. Each becomes `- [ ] <text>`.
+ * /todo <text>           Shortcut for the `todo` skill (Customers/_todo.md in
+ *                        the vooban vault). Sends `/skill:todo <text>`; the
+ *                        reply ends with the whole file.
  *
- * /todo                  (no args) → prompt for the comma list via input box.
+ * /todo                  (no args) → print Customers/_todo.md, no model call.
  *
  * Daily notes use the existing template:
  *
@@ -39,6 +39,7 @@ const VAULTS: Record<string, string> = {
 
 const DEFAULT_VAULT = "personal";
 
+const TODO_FILE = `${HOME}/workspaces/vooban/notes/Customers/_todo.md`;
 const STATE_DIR = `${HOME}/.pi/agent/state`;
 const STATE_FILE = join(STATE_DIR, "note-vault.txt");
 
@@ -186,30 +187,6 @@ async function appendNote(ctx: ExtensionContext, text: string): Promise<void> {
 	}
 }
 
-async function prependTodos(ctx: ExtensionContext, items: string[]): Promise<void> {
-	const vault = readActiveVault();
-	const vaultRoot = VAULTS[vault];
-	const { iso } = todayParts();
-	const path = dailyNotePath(vaultRoot);
-	try {
-		ensureDailyNote(path, iso);
-		const current = readFileSync(path, "utf8");
-		const newLines = items.map((it) => `- [ ] ${it}`);
-		const updated = insertAfterHeading(current, /^## Todos\s*$/, newLines);
-		if (updated === current) {
-			ctx.ui.notify(`Could not find "## Todos" heading in today's note.`, "error");
-			return;
-		}
-		writeFileSync(path, updated, "utf8");
-		ctx.ui.notify(
-			`Added ${items.length} todo${items.length === 1 ? "" : "s"} to ${vault}/${iso}.md`,
-			"success",
-		);
-	} catch (err) {
-		ctx.ui.notify(`Failed to update todos: ${(err as Error).message}`, "error");
-	}
-}
-
 function vaultListPretty(active: string): string {
 	return Object.entries(VAULTS)
 		.map(([name, root]) =>
@@ -328,30 +305,25 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// /todo is a shortcut for the `todo` skill (Customers/_todo.md in the vooban vault):
+	// the model infers the customer and adds context, so no direct file write here.
 	pi.registerCommand("todo", {
-		description: "Prepend comma-separated todos to today's `## Todos` list (active vault)",
+		description: "Show Customers/_todo.md, or add/complete a todo via the todo skill",
 		handler: async (rawArgs, ctx) => {
-			let raw = (rawArgs ?? "").trim();
+			const raw = (rawArgs ?? "").trim();
 			if (!raw) {
-				const input = await ctx.ui.input(
-					"Todos",
-					"Comma-separated, e.g. fix DNS, deploy portfolio, review PR",
-				);
-				raw = (input ?? "").trim();
-				if (!raw) {
-					ctx.ui.notify("Cancelled — no todos provided", "info");
-					return;
-				}
-			}
-			const items = raw
-				.split(",")
-				.map((s) => s.trim())
-				.filter((s) => s.length > 0);
-			if (items.length === 0) {
-				ctx.ui.notify("No non-empty entries after splitting on `,`.", "warning");
+				const content = existsSync(TODO_FILE) ? readFileSync(TODO_FILE, "utf8").trim() : "";
+				pi.sendMessage({
+					customType: "todo-list",
+					content: content ? `${TODO_FILE.replace(HOME, "~")}\n\n${content}` : "No todos yet.",
+					display: true,
+				});
 				return;
 			}
-			await prependTodos(ctx, items);
+			// The marker tells the skill to print the whole file at the end.
+			const message = `/skill:todo ${raw}\n\n[via /todo: show the file]`;
+			if (ctx.isIdle()) pi.sendUserMessage(message, { expandPromptTemplates: true });
+			else pi.sendUserMessage(message, { expandPromptTemplates: true, deliverAs: "followUp" });
 		},
 	});
 }

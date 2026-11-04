@@ -38,7 +38,7 @@ interface ApplyResult {
 const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 	openai: {
 		rush: {
-			icon: "",
+			icon: "🚀",
 			label: "rush",
 			model: "gpt-5.6-luna",
 			provider: "openai-codex",
@@ -46,7 +46,7 @@ const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 			color: "error",
 		},
 		oracle: {
-			icon: "",
+			icon: "🔮",
 			label: "oracle",
 			model: "gpt-5.6-terra",
 			provider: "openai-codex",
@@ -54,7 +54,7 @@ const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 			color: "success",
 		},
 		omnissiah: {
-			icon: "",
+			icon: "🤖",
 			label: "omnissiah",
 			model: "gpt-5.6-sol",
 			provider: "openai-codex",
@@ -64,7 +64,7 @@ const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 	},
 	anthropic: {
 		rush: {
-			icon: "",
+			icon: "🚀",
 			label: "rush",
 			model: "claude-haiku-4-5",
 			provider: "anthropic",
@@ -72,7 +72,7 @@ const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 			color: "error",
 		},
 		oracle: {
-			icon: "",
+			icon: "🔮",
 			label: "oracle",
 			model: "claude-opus-4-7",
 			provider: "anthropic",
@@ -80,7 +80,7 @@ const PROFILES: Record<ProviderProfile, Record<ModeName, ModeConfig>> = {
 			color: "success",
 		},
 		omnissiah: {
-			icon: "",
+			icon: "🤖",
 			label: "omnissiah",
 			model: "claude-opus-5-5",
 			provider: "anthropic",

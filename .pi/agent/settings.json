@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.84.2",
+  "lastChangelogVersion": "1.5.0",
   "defaultProvider": "openai-codex",
   "theme": "onedark-pro",
   "defaultModel": "gpt-5.6-sol",
@@ -16,9 +16,13 @@
     "npm:pi-event-monitor",
     "npm:@mobrienv/pi-tidy-tools",
     "npm:@mobrienv/pi-tidy-subagents",
-    "git:github.com/paoloanzn/pi-black@v0.84.1-cc2.1.280.1",
+    {
+      "source": "git:github.com/paoloanzn/pi-black@v0.84.1-cc2.1.280.1",
+      "extensions": []
+    },
     "git:github.com/DietrichGebert/ponytail",
-    "npm:pi-root-grant"
+    "https://github.com/earendil-works/pi-claude-code",
+    "npm:pi-artifacts"
   ],
   "compaction": {
     "enabled": true
@@ -29,8 +33,16 @@
   "showLastPrompt": false,
   "powerline": {
     "preset": "default",
+    "workingIndicatorPlacement": "above-powerline",
     "fixedEditor": true,
     "mouseScroll": true,
+    "layout": {
+      "left": [
+        "path",
+        "custom:agent-mode",
+        "session"
+      ]
+    },
     "customItems": [
       {
         "id": "agent-mode",
@@ -85,5 +97,13 @@
   "warnings": {
     "anthropicExtraUsage": false
   },
-  "hideThinkingBlock": true
+  "hideThinkingBlock": true,
+  "extensionChangelogVersions": {
+    "{\"source\":\"npm:pi-powerline-footer\",\"scope\":\"user\"}": "0.22.0",
+    "{\"source\":\"npm:pi-custom-compaction\",\"scope\":\"user\"}": "0.2.5",
+    "{\"source\":\"npm:pi-lsp-extension\",\"scope\":\"user\"}": "1.4.0",
+    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.46.0",
+    "{\"source\":\"npm:pi-event-monitor\",\"scope\":\"user\"}": "0.1.0",
+    "{\"source\":\"npm:@mobrienv/pi-tidy-subagents\",\"scope\":\"user\"}": "0.3.1"
+  }
 }

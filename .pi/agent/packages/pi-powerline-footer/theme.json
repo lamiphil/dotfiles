@@ -16,5 +16,9 @@
     "tokens": "muted",
     "separator": "dim",
     "border": "borderMuted"
+  },
+  "icons": {
+    "folder": "📁",
+    "session": "💬"
   }
 }
