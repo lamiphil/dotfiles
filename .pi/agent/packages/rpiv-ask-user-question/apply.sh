@@ -96,6 +96,16 @@ REPL = (
     '\t\t\tif (hasDialogUI(ctx.ui)) {'
 )
 
+# v2.15 hoists the gate into a `viaRpc` constant.
+NEEDLE_V2 = '\t\t\tconst viaRpc = (ctx as { mode?: string }).mode === "rpc" && hasDialogUI(ctx.ui);'
+if NEEDLE not in src and NEEDLE_V2 in src:
+    NEEDLE = NEEDLE_V2
+    REPL = (
+        f'\t\t\t// {MARKER} always use Pi\'s inline editor-area dialogs; the tabbed\n'
+        f'\t\t\t// overlay covers the assistant transcript above it.\n'
+        '\t\t\tconst viaRpc = hasDialogUI(ctx.ui);'
+    )
+
 if NEEDLE not in src:
     print("ask-user-question.ts: mode-gate needle not found (upstream changed?)", file=sys.stderr)
     sys.exit(1)

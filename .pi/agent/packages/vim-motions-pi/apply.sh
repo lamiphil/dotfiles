@@ -123,6 +123,24 @@ NEW_SESSION = '''	// [pi-config patch:vim-bash-merge] Don't call setEditorCompon
 		ctx.ui.notify(clipboardStatusMessage(), "info");
 	});'''
 
+# v0.2.0 tracks the editor instance for cursor restore and reports settings errors.
+OLD_SESSION_V2 = '''	pi.on("session_start", (_event, ctx) => {
+		ctx.ui.setEditorComponent((tui, theme, keybindings) => {
+			editor?.restoreCursor();
+			return (editor = new VimEditor(tui, theme, keybindings));
+		});
+		if (loadError) ctx.ui.notify(`Could not load ${settingsPath()}: ${loadError}`, "warning");
+		ctx.ui.notify(clipboardStatusMessage(), "info");
+	});'''
+if OLD_SESSION not in src and OLD_SESSION_V2 in src:
+    OLD_SESSION = OLD_SESSION_V2
+    NEW_SESSION = '''	// [pi-config patch:vim-bash-merge] Don't call setEditorComponent —
+	// powerline does it with VimEditor injected into its factory.
+	pi.on("session_start", (_event, ctx) => {
+		if (loadError) ctx.ui.notify(`Could not load ${settingsPath()}: ${loadError}`, "warning");
+		ctx.ui.notify(clipboardStatusMessage(), "info");
+	});'''
+
 if OLD_SESSION not in src:
     print("Could not find session_start block", file=sys.stderr); sys.exit(1)
 src = src.replace(OLD_SESSION, NEW_SESSION, 1)

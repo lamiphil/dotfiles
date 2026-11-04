@@ -141,10 +141,24 @@ else:
 
 # Find `return {` block end (the final return inside the function).
 # Support both old (presetDef) and new (separatorStyle) upstream signatures.
+# v0.22 returns `secondaryLines: string[]` (multi-row) instead of `secondaryContent`.
+_multi_row = False
 for _build_arg in ('separatorStyle', 'presetDef'):
     end_marker = f"  return {{\n    topContent: buildContentFromParts(topSegments, {_build_arg}),\n    secondaryContent: buildContentFromParts(secondarySegments, {_build_arg}),\n  }};\n}}"
     j = src.find(end_marker, i)
     if j != -1:
+        break
+    end_marker = (
+        "  return {\n"
+        f"    topContent: buildContentFromParts(topSegments, {_build_arg}),\n"
+        "    secondaryLines: secondaryRows\n"
+        "      .filter((row) => row.length > 0)\n"
+        f"      .map((row) => buildContentFromParts(row, {_build_arg})),\n"
+        "  };\n}"
+    )
+    j = src.find(end_marker, i)
+    if j != -1:
+        _multi_row = True
         break
 else:
     print("Could not find return block to patch", file=sys.stderr)
@@ -193,6 +207,23 @@ replacement = (
 )
 
 new_src = src[:i] + replacement + src[j + len(end_marker):]
+if _multi_row:
+    # Restore the single-row contract the later patches (rounded, secondary-right) expect.
+    for old, new in (
+        ("type ResponsiveLayout = { topContent: string; secondaryLines: string[] };",
+         "type ResponsiveLayout = { topContent: string; secondaryContent: string };"),
+        ('lastLayoutResult = { topContent: "", secondaryLines: [] };',
+         'lastLayoutResult = { topContent: "", secondaryContent: "" };'),
+        ("    return [...getResponsiveLayout(width, theme).secondaryLines];",
+         "    const layout = getResponsiveLayout(width, theme);\n    return layout.secondaryContent ? [layout.secondaryContent] : [];"),
+    ):
+        if old not in new_src:
+            print(f"index.ts: v0.22 needle not found: {old[:50]}", file=sys.stderr); sys.exit(1)
+        new_src = new_src.replace(old, new, 1)
+    new_src = new_src.replace(
+        "  return { topContent: \"\", secondaryLines: [] };",
+        "  return { topContent: \"\", secondaryContent: \"\" };",
+    )
 open(path, "w").write(new_src)
 print("✓ index.ts (computeResponsiveLayout)")
 PY
@@ -332,6 +363,16 @@ RB = '''        else {
             result.push(" ".repeat(width));
         }
         // Add autocomplete list if active'''
+
+# pi-tui 0.87 moved borders into renderTopBorder/renderBottomBorder helpers.
+HT = 'createScrollBorder("\u2191", hiddenLineCount, width) : "\u2500".repeat(width);'
+HB = 'createScrollBorder("\u2193", hiddenLineCount, width) : "\u2500".repeat(width);'
+if NT not in src and HT in src and HB in src:
+    src = src.replace(HT, HT.replace('"\u2500".repeat(width)', '" ".repeat(width) /* [pi-config patch:suppress-editor-border] */'), 1)
+    src = src.replace(HB, HB.replace('"\u2500".repeat(width)', '" ".repeat(width)'), 1)
+    open(path, 'w').write(src)
+    print("\u2713 editor.js (borders suppressed, helper form)")
+    sys.exit(0)
 
 if NT not in src:
     print("Could not find top border needle", file=sys.stderr); sys.exit(1)
@@ -654,13 +695,30 @@ m1 = re.search(
     re.M,
 )
 if not m1:
+    # v0.22 reuses an embedded editor status border when Pi provides one.
+    m1 = re.search(
+        r'^(\s+)const result: string\[\] = \[\];\n(?:\s+//[^\n]*\n)*'
+        r'\s+const embeddedTopBorder = editor\.renderEmbeddedTopBorder\(width - 2\);\n'
+        r'\s+result\.push\(" " \+ \(embeddedTopBorder \?\? colorEditorBorder\(editor, "─"\.repeat\(width - 2\)\)\)\);',
+        src,
+        re.M,
+    )
+    embedded = True
+else:
+    embedded = False
+if not m1:
     print("no-editor-lines: top needle not found", file=sys.stderr); sys.exit(1)
 N1 = m1.group(0)
 indent = m1.group(1)
 R1 = (
     indent + 'const result: string[] = [];\n'
     + indent + '// [pi-config patch:no-editor-lines] rounded powerline borders are enough\n'
-    + indent + 'result.push(" ".repeat(width));'
+    + (
+        indent + 'const embeddedTopBorder = editor.renderEmbeddedTopBorder(width - 2);\n'
+        + indent + 'result.push(embeddedTopBorder ? " " + embeddedTopBorder : " ".repeat(width));'
+        if embedded else
+        indent + 'result.push(" ".repeat(width));'
+    )
 )
 
 m2 = re.search(
@@ -852,5 +910,51 @@ PYTUILINES
 else
   echo "Could not find pi-tui tui-alt-screen.js — skipping native scroll patch" >&2
 fi
+
+# Pi >= 0.87 runs from a minified bundle; patch its copy of the handlers too.
+for PI_ROOT in /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent /usr/local/lib/node_modules/@earendil-works/pi-coding-agent; do
+  [[ -d "$PI_ROOT/dist/bundle/chunks" ]] || continue
+  python3 - "$PI_ROOT/dist/bundle/chunks" <<'PYBUNDLELINES'
+import glob, os, sys
+OLD = ('"tui.altScreen.lineUp"))return isRelease||this.scrollBy(-1)',
+       '"tui.altScreen.lineDown"))return isRelease||this.scrollBy(1)')
+NEW = ('"tui.altScreen.lineUp"))return isRelease||this.scrollBy(-3)',
+       '"tui.altScreen.lineDown"))return isRelease||this.scrollBy(3)')
+hits = 0
+for path in glob.glob(os.path.join(sys.argv[1], "*.js")):
+    src = open(path).read()
+    if NEW[0] in src:
+        hits += 1
+        continue
+    if OLD[0] in src and OLD[1] in src:
+        open(path, "w").write(src.replace(OLD[0], NEW[0], 1).replace(OLD[1], NEW[1], 1))
+        hits += 1
+if hits:
+    print(f"\u2713 pi bundle (three-line transcript, {hits} chunk)")
+else:
+    print("pi bundle: line scroll handlers not found", file=sys.stderr); sys.exit(1)
+PYBUNDLELINES
+done
+
+# ── 13. Session name: OneDark orange ─────────────────────────────────────────
+python3 - "$PKG/segments.ts" <<'PYSESSIONCOLOR'
+import sys
+
+path = sys.argv[1]
+src = open(path).read()
+marker = "[pi-config patch:orange-session-name]"
+if marker in src:
+    print("✓ segments.ts (orange session name already patched)")
+    sys.exit(0)
+
+needle = 'return { content: withIcon(icons.session, display), visible: true };'
+replacement = 'return { content: ctx.theme.fg("syntaxNumber", withIcon(icons.session, display)), visible: true }; // ' + marker
+if needle not in src:
+    print("segments.ts: session segment return not found", file=sys.stderr)
+    sys.exit(1)
+
+open(path, "w").write(src.replace(needle, replacement, 1))
+print("✓ segments.ts (orange session name)")
+PYSESSIONCOLOR
 
 echo "Done. Restart pi (Ctrl+D then pi) to pick up the changes."
