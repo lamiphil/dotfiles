@@ -1,6 +1,5 @@
 -- Seamless <C-h/j/k/l> navigation between vim splits and the surrounding
--- multiplexer: herdr panes (via vim-herdr-navigation) when inside herdr,
--- falling back to tmux panes when inside tmux instead.
+-- multiplexer: Herdr, Rex, or tmux.
 -- Replaces the default <C-h/j/k/l> split navigation keymaps in kickstart.
 --
 -- vim-tmux-navigator is kept (mappings disabled) purely to supply the
@@ -20,6 +19,9 @@ local function nav(wincmd, dir)
       herdr = 'herdr'
     end
     vim.fn.system { herdr, 'pane', 'focus', '--direction', dir, '--current' }
+  elseif vim.env.REX_SESSION and vim.env.REX_SESSION ~= '' then
+    local rex = vim.env.REX_BIN_DIR and (vim.env.REX_BIN_DIR .. '/rex') or 'rex'
+    vim.fn.system { rex, 'do', 'smart_navigate', 'direction=' .. dir, 'force=true' }
   elseif vim.env.TMUX and vim.env.TMUX ~= '' then
     local tmux = { left = 'Left', down = 'Down', up = 'Up', right = 'Right' }
     pcall(vim.cmd, 'TmuxNavigate' .. tmux[dir])
@@ -46,9 +48,9 @@ return {
     'TmuxNavigatePrevious',
   },
   config = function()
-    map('<C-h>', 'h', 'left', 'Navigate left (vim/herdr/tmux)')
-    map('<C-j>', 'j', 'down', 'Navigate down (vim/herdr/tmux)')
-    map('<C-k>', 'k', 'up', 'Navigate up (vim/herdr/tmux)')
-    map('<C-l>', 'l', 'right', 'Navigate right (vim/herdr/tmux)')
+    map('<C-h>', 'h', 'left', 'Navigate left (vim/herdr/rex/tmux)')
+    map('<C-j>', 'j', 'down', 'Navigate down (vim/herdr/rex/tmux)')
+    map('<C-k>', 'k', 'up', 'Navigate up (vim/herdr/rex/tmux)')
+    map('<C-l>', 'l', 'right', 'Navigate right (vim/herdr/rex/tmux)')
   end,
 }

@@ -17,8 +17,10 @@ set -gx ADW_DISABLE_PORTAL 1
 # PATH #
 ########
 
-# Homebrew
-if command -q brew
+# Homebrew (GUI apps do not inherit the login shell PATH on macOS)
+if test -x /opt/homebrew/bin/brew
+    eval (/opt/homebrew/bin/brew shellenv)
+else if command -q brew
     eval (brew shellenv)
 end
 
@@ -55,8 +57,8 @@ source_env ~/.env.local
 # PYWAL  #
 ##########
 
-# Apply pywal colors outside Ghostty and tmux
-if test "$TERM_PROGRAM" != ghostty; and not set -q TMUX
+# Apply pywal colors outside Ghostty, Rex, and tmux
+if test "$TERM_PROGRAM" != ghostty; and not set -q REX_SESSION; and not set -q TMUX
     if test -f ~/.cache/wal/sequences
         cat ~/.cache/wal/sequences
     end
@@ -104,6 +106,10 @@ set -g fish_key_bindings fish_vi_key_bindings
 # Restore Ctrl+L to clear screen (fish_vi_key_bindings removes it)
 bind -M insert \cl 'clear; commandline -f repaint'
 bind -M default \cl 'clear; commandline -f repaint'
+
+# Ctrl+Shift+L also clears (Rex uses Ctrl+L for pane navigation).
+bind -M insert ctrl-shift-l 'clear; commandline -f repaint'
+bind -M default ctrl-shift-l 'clear; commandline -f repaint'
 
 # FZF key bindings and completions (must come after vi bindings to keep Ctrl+R)
 fzf --fish | source
