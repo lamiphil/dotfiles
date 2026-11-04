@@ -16,6 +16,7 @@ PACMAN_PKGS=(
   unzip
   lsd
   bat
+  fish
   tmux
   fzf
   stow
