@@ -312,6 +312,8 @@ export default function (pi: ExtensionAPI) {
 		handler: async (rawArgs, ctx) => {
 			const raw = (rawArgs ?? "").trim();
 			if (!raw) {
+				// Fix numbering after hand edits in Obsidian before showing the list.
+				await pi.exec("python3", [`${HOME}/.agents/skills/todo/scripts/renumber.py`]);
 				const content = existsSync(TODO_FILE) ? readFileSync(TODO_FILE, "utf8").trim() : "";
 				pi.sendMessage({
 					customType: "todo-list",
