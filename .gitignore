@@ -8,6 +8,7 @@ repos/tree-sitter-logstash
 .config/raycast/
 .config/fish/fish_variables
 .agents/skills/v-devops-terraform-bootstrap
+.agents/skills/vooban-artifact
 .kube
 .config/Bitwarden CLI/
 .config/gh/hosts.yml
