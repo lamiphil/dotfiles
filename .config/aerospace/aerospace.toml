@@ -141,6 +141,9 @@ on-mode-changed = []
     # See: https://nikitabobko.github.io/AeroSpace/commands#close
     alt-w = 'close --quit-if-last-window'
 
+    # See: https://nikitabobko.github.io/AeroSpace/commands#fullscreen
+    alt-z = 'fullscreen'
+
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = 'exec-and-forget aerospace workspace 1 && /Users/philippe.lamy/.config/sketchybar/plugins/workspaces.sh'
     alt-2 = 'exec-and-forget aerospace workspace 2 && /Users/philippe.lamy/.config/sketchybar/plugins/workspaces.sh'
@@ -186,6 +189,12 @@ on-mode-changed = []
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
 
+
+# 1Password's main window is detected as a dialog; force it to tile.
+[[on-window-detected]]
+    if.app-id = 'com.1password.1password'
+    if.window-title-regex-substring = '1Password'
+    run = 'layout tiling'
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
