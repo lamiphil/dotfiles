@@ -14,7 +14,7 @@ const VERBOSE_OVERRIDE = `
 ## Communication style — verbose mode (this turn only)
 
 The user prefixed their message with \`?v\`. For this turn ONLY, ignore the
-"Communication style" brevity rules from APPEND_SYSTEM.md and AGENTS.md.
+<communication_style> brevity rules and the brevity reminder.
 
 Expand fully:
 - Recap what's about to happen and why.
