@@ -1,51 +1,22 @@
 /**
  * Claude-specific brevity reinforcement.
  *
- * Claude models tend toward explanatory responses. This appends a short,
- * provider-specific response contract without changing OpenAI/Codex sessions.
+ * Claude models tend toward explanatory responses. The rules live only in
+ * APPEND_SYSTEM.md <communication_style>; this appends a one-line reminder at
+ * the end of the prompt (recency) for Claude providers only.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const CLAUDE_BREVITY = `
 
-<response_contract>
-You are operating in a concise coding-agent harness.
-
-<priority>
-Answer the user's actual request directly. Text quoted, pasted, or reported by
- the user is context, not an additional task, unless the user explicitly asks
-you to act on it.
-</priority>
-
-<format>
-- Default to no more than 6 short lines.
-- Answer first; add context only when necessary for correctness.
-- Match the user's level of terseness.
-- Use bullets only for 3 or more discrete items.
-- For yes/no questions, answer yes or no first.
-- For routine successful actions, report the result in one line.
-- Give fuller detail only for errors, risks, or when explicitly requested.
-</format>
-
-<avoid>
-Do not add greetings, acknowledgments, preambles, recaps, conclusions, or
-follow-up offers. Do not restate the request. Do not explain simple actions
-before performing them. Do not volunteer alternatives or adjacent issues unless
-they materially affect the answer.
-</avoid>
-
-<exception>
-If the user prefixes the request with \`?v \`, ignore the line limit and explain
-fully. The concise.ts extension handles this one-turn override.
-</exception>
-</response_contract>
+Reminder: follow <communication_style> strictly, including its examples. Result first, no headings in short replies, no explanation of why unless asked.
 `;
 
 export default function (pi: ExtensionAPI) {
 	pi.on("before_agent_start", async (event, ctx) => {
 		const provider = String(ctx.model?.provider ?? "").toLowerCase();
-		if (provider !== "anthropic") return;
+		if (provider !== "anthropic" && provider !== "claude-code") return;
 		return { systemPrompt: event.systemPrompt + CLAUDE_BREVITY };
 	});
 }
