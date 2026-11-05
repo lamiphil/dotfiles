@@ -1,7 +1,7 @@
 ---
 name: scrum
 description: >-
-  Generate the user's daily standup (scrum) message. Reads the previous workday's entries from every `notes/Customers/*/_log.md` and today's daily journal note to produce three sections (Hier, Aujourd'hui, Bloquant), each line formatted as `- <client>: <task> <summary>`. Use when the user invokes /scrum or asks for their scrum / standup / daily text.
+  Generate the user's daily standup (scrum) message. Reads the previous workday's entries from every `notes/Customers/*/_log.md`, the todo archive and the todo list (`notes/Customers/_archive.md`, `_todo.md`) to produce three sections (Hier, Aujourd'hui, Bloquant), each line formatted as `- <client>: <task> <summary>`. Use when the user invokes /scrum or asks for their scrum / standup / daily text.
 ---
 
 # Scrum message generator
@@ -65,26 +65,28 @@ Read **every** `notes/Customers/*/_log.md` file. For each file:
 If several entries share the same date + client + task, merge them into one
 bullet.
 
-Also include non-customer work: training, personal projects, etc., pulled
-from the previous workday's daily journal note only if no customer log
-covers it (see below).
+Also read `notes/Customers/_archive.md` (format owned by the `todo` skill):
+every `- [x] <text> (YYYY-MM-DD - HH:MM)` stamped on the previous workday is
+work done. Add it under its section's slug unless a log bullet already covers
+it (logs win on wording). `## Personal` items count only if professional
+(see Scope).
 
 ### Today (`Aujourd'hui:`)
 
-Read today's daily journal note:
-`notes/Journal/<YYYY>/<MM> - <Month>/<YYYY-MM-DD>.md`.
+Read `notes/Customers/_todo.md` (newest first in each `## <Section>`).
 
-- The `## Todos` section's **unchecked** items are today's plan. They already
-  carry a `tag:` prefix — rewrite each as `- <tag>: <task> <summary>`.
+- For each customer that has a log entry on the previous workday, take its
+  newest 1–2 open items as today's plan: `- <slug>: <task> <summary>`, in French.
+  The user edits the list before sending, so stay short rather than exhaustive.
 - **`### Prochaine étape` blocks** in the previous workday's log entries are
-  harvested as `Aujourd'hui:` candidates. For each such block, emit one bullet
-  per next-step line, formatted as `- <client>: <task> <next-step>`. Deduplicate
-  against unchecked todos from the daily journal note (todos win on wording).
+  also `Aujourd'hui:` candidates: one bullet per next-step line,
+  `- <client>: <task> <next-step>`. Deduplicate against the todo items (todos win on wording).
+- Do not read daily journal notes.
 
 ### Blocking (`Bloquant:`)
 
 - Anything flagged as blocking (`⛔`, `bloqué`, `blocker`, `blocking`,
-  `blocked`) in yesterday's logs or today's todos.
+  `blocked`) in yesterday's logs or in open items of `_todo.md`.
 - Otherwise print `all good`.
 
 ## Date logic
