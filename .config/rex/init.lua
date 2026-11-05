@@ -157,7 +157,16 @@ rex.bind(prefix .. "tab", "pane.focus_next")
 rex.bind(prefix .. "shift+tab", "pane.focus_previous")
 rex.bind(prefix .. "b", "client.sidebar.toggle")
 
--- Preserve zoom while focusing the largest nearest pane in a direction.
+-- Preserve zoom while focusing the nearest pane in a direction. Among equally
+-- near panes (e.g. a stacked group), prefer the most recently visited one,
+-- then the largest. Rex keeps no focus history, so navigation records it
+-- (it lives until the config reloads).
+local last_visit, visit_clock = {}, 0
+
+local function mark_visited(block_id)
+  visit_clock = visit_clock + 1
+  last_visit[block_id] = visit_clock
+end
 local function collect_panes(node, panes)
   if node.block_id then
     table.insert(panes, { id = node.block_id, rect = node.rect })
@@ -188,7 +197,7 @@ local function pane_score(rect, current, direction)
   else
     return nil
   end
-  return { overlaps = overlap > 0, distance = distance, area = rect[3] * rect[4], cross = cross }
+  return { overlaps = overlap > 0, distance = distance, area = rect[3] * rect[4], cross = cross, visit = 0 }
 end
 
 local function better_score(candidate, current)
@@ -198,13 +207,16 @@ local function better_score(candidate, current)
   if math.abs(candidate.distance - current.distance) > 0.000001 then
     return candidate.distance < current.distance
   end
+  if candidate.visit ~= current.visit then
+    return candidate.visit > current.visit
+  end
   if math.abs(candidate.area - current.area) > 0.000001 then
     return candidate.area > current.area
   end
   return candidate.cross < current.cross
 end
 
-local function focus_largest(direction)
+local function focus_direction(direction)
   local view, err = rex.session.view {}
   if err ~= nil then error(err, 0) end
 
@@ -229,12 +241,15 @@ local function focus_largest(direction)
   for _, pane in ipairs(panes) do
     if pane.id ~= window.focused_block_id then
       local score = pane_score(pane.rect, current, direction)
+      if score then score.visit = last_visit[pane.id] or 0 end
       if score and better_score(score, target_score) then
         target, target_score = pane.id, score
       end
     end
   end
   if target == nil then return end
+  mark_visited(window.focused_block_id)
+  mark_visited(target)
 
   if window.zoomed_block_id ~= nil then
     -- One atomic call avoids briefly restoring the layout and resizing every terminal.
@@ -268,7 +283,7 @@ rex.action {
         return true
       end
     end
-    focus_largest(args.direction)
+    focus_direction(args.direction)
     return true
   end,
 }
