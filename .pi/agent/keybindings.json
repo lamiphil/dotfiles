@@ -1,4 +1,6 @@
 {
   "tui.altScreen.lineUp": "ctrl+shift+k",
-  "tui.altScreen.lineDown": "ctrl+shift+j"
+  "tui.altScreen.lineDown": "ctrl+shift+j",
+  "tui.altScreen.bottom": ["ctrl+end", "ctrl+shift+g"],
+  "tui.altScreen.top": ["ctrl+home", "ctrl+shift+t"]
 }
