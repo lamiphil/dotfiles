@@ -190,10 +190,10 @@ on-mode-changed = []
     alt-shift-semicolon = 'mode service'
 
 
-# 1Password's main window is detected as a dialog; force it to tile.
+# Tile every new window, even ones AeroSpace detects as dialogs.
+# check-further-callbacks lets later [[on-window-detected]] rules still run.
 [[on-window-detected]]
-    if.app-id = 'com.1password.1password'
-    if.window-title-regex-substring = '1Password'
+    check-further-callbacks = true
     run = 'layout tiling'
 
 # 'service' binding mode declaration.
