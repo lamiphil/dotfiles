@@ -59,7 +59,7 @@ const cleanTitle = (t: string) =>
 
 // "a · ✅ perso - sub task" -> "perso"
 function rootName(label: string): string {
-	return label.replace(/^\p{Ll} · /u, "").replace(/^(?:🔄|❓|⛔|✅|💤)\s*/u, "").split(" - ")[0].trim();
+	return label.replace(/^[\p{Ll}\d] · /u, "").replace(/^(?:🔄|❓|⛔|✅|💤)\s*/u, "").split(" - ")[0].trim();
 }
 
 type Level = "rush" | "oracle" | "omnissiah";
@@ -428,7 +428,7 @@ export default function (pi: ExtensionAPI) {
 				windows.find((w) => w.window_id === meta.window_id) ??
 				windows.find((w) => process.env.REX_BLOCK && containsBlock(w.layers, process.env.REX_BLOCK));
 			if (!win) return;
-			const prefix = (win.label ?? "").match(/^\p{Ll} · /u)?.[0] ?? ""; // keep Rex's tab letter
+			const prefix = (win.label ?? "").match(/^[\p{Ll}\d] · /u)?.[0] ?? ""; // keep Rex's tab letter
 			await rex("api", "call", "session.set_window_label", JSON.stringify({ session_id: session, window_id: win.window_id, label: `${prefix}${emoji} ${meta.name}` }));
 		} catch {
 			shownEmoji = "";
