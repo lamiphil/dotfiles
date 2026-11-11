@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
-type TargetKey = "core" | "powerline" | "vim";
+type TargetKey = "core" | "powerline" | "vim" | "monitor";
 
 interface Target {
 	key: TargetKey;
@@ -29,9 +29,14 @@ const TARGETS: Record<TargetKey, Target> = {
 		label: "vim-motions-pi",
 		script: join(HOME, "dotfiles", ".pi", "agent", "packages", "vim-motions-pi", "apply.sh"),
 	},
+	monitor: {
+		key: "monitor",
+		label: "pi-event-monitor",
+		script: join(HOME, "dotfiles", ".pi", "agent", "packages", "pi-event-monitor", "apply.sh"),
+	},
 };
 
-const APPLY_ORDER: TargetKey[] = ["core", "powerline", "vim"];
+const APPLY_ORDER: TargetKey[] = ["core", "powerline", "vim", "monitor"];
 
 function parseTargets(rawArgs: string): { targets?: Target[]; error?: string } {
 	const arg = rawArgs.trim().toLowerCase();
@@ -44,6 +49,9 @@ function parseTargets(rawArgs: string): { targets?: Target[]; error?: string } {
 	}
 	if (arg === "powerline" || arg === "footer") {
 		return { targets: [TARGETS.powerline] };
+	}
+	if (arg === "monitor" || arg === "monitors") {
+		return { targets: [TARGETS.monitor] };
 	}
 	if (arg === "vim" || arg === "motions") {
 		return { targets: [TARGETS.vim] };
