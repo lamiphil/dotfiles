@@ -7,76 +7,17 @@ rex.bind(prefix .. "shift+p", "session.previous")
 rex.bind(prefix .. "shift+n", "session.next")
 
 -- Tabs (Rex windows), scoped to the current session.
--- The app numbers tabs across all attached sessions, so translate a
--- session-local index into the client's global tab index.
-local function session_tabs(ctx)
-  local attached = {}
-  local client = ctx.client_id and rex.call("client.inspect", { client_id = ctx.client_id })
-  for _, id in ipairs(client and client.client and client.client.session_ids or {}) do
-    attached[id] = true
-  end
-
-  local list, err = rex.call("session.list")
-  if err ~= nil then error(err, 0) end
-  local offset = 0
-  for _, session in ipairs(list.sessions or {}) do
-    if next(attached) == nil or attached[session.session_id] then
-      -- Actions only see their own session until they attach to others.
-      if session.session_id ~= ctx.session_id then
-        rex.call("session.attach", { session_id = session.session_id })
-      end
-      local view, view_err = rex.session.view { session_id = session.session_id }
-      if view_err ~= nil then error(view_err, 0) end
-      if session.session_id == ctx.session_id then
-        return view, offset
-      end
-      offset = offset + #(view.windows or {})
-    end
-  end
-  error("current session not found", 0)
-end
-
-local label_tabs -- defined below
+-- Colemak-DH home row picks tabs in the app's global order (all sessions,
+-- like Rex's default numbering). tab-letters.lua keeps each letter in the
+-- tab name ("a · dotfiles") so the sidebar shows it.
+local tab_keys = { "a", "r", "s", "t", "g", "m", "n", "e", "i", "o", "1", "2", "3", "4", "5", "6", "7", "8", "9" }
 
 rex.action {
   name = "session_tab_goto",
-  title = "Go to Session Tab",
+  title = "Go to Tab",
   args = { index = "integer" },
-  run = function(ctx, args)
-    pcall(label_tabs, ctx.session_id)
-    local view, offset = session_tabs(ctx)
-    if args.index >= 1 and args.index <= #(view.windows or {}) then
-      rex.client.queue("client.tab.goto", { index = offset + args.index })
-    end
-    return true
-  end,
-}
-
--- Colemak-DH home row picks tabs; each tab's letter is kept in its name
--- ("a · dotfiles") so the sidebar shows it.
-local tab_keys = { "a", "r", "s", "t", "g", "m", "n", "e", "i", "o" }
-
-label_tabs = function(session_id)
-  rex.call("session.attach", { session_id = session_id })
-  local view = session_id and rex.session.view { session_id = session_id }
-  for i, window in ipairs(view and view.windows or {}) do
-    local name = (window.label or ""):gsub("^%l · ", "")
-    local label = tab_keys[i] and (tab_keys[i] .. " · " .. name) or name
-    if label ~= window.label then
-      rex.call("session.set_window_label", { session_id = session_id, window_id = window.window_id, label = label })
-    end
-  end
-end
-
--- Rex Beta has no init.lua event hooks yet, so letters are refreshed on
--- every tab jump (and on demand via the "Relabel Session Tabs" action).
-rex.action {
-  name = "label_tabs",
-  title = "Relabel Session Tabs",
-  run = function()
-    for _, session in ipairs(rex.call("session.list").sessions or {}) do
-      label_tabs(session.session_id)
-    end
+  run = function(_, args)
+    rex.client.queue("client.tab.goto", { index = args.index })
     return true
   end,
 }
