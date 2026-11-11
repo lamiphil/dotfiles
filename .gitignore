@@ -15,3 +15,8 @@ repos/tree-sitter-logstash
 .config/gatsby/config.json
 .config/obsidian/.obsidian/workspace.json
 .config/obsidian/_config/attachments/
+
+# Machine-local agent state
+.agents/skills/synced/
+.agents/skills/terminal-browser
+.pi/agent/pi-web-access/
