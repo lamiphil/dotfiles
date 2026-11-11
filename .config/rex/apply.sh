@@ -57,4 +57,32 @@ defaults write "$APP_ID" Workspace.lightThemeID -string "$current_theme"
 
 "$REX" config reload
 
+# Tab-letter listener: restarts with the Rex server, waits while it is down.
+AGENT_ID="com.lamiphil.rex-tab-letters"
+AGENT_PLIST="$HOME/Library/LaunchAgents/$AGENT_ID.plist"
+mkdir -p "$HOME/Library/LaunchAgents"
+cat > "$AGENT_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$AGENT_ID</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$REX</string>
+    <string>do</string>
+    <string>--autostart=false</string>
+    <string>--all</string>
+    <string>$HOME/.config/rex/tab-letters.lua</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>StandardErrorPath</key><string>/tmp/$AGENT_ID.log</string>
+</dict>
+</plist>
+EOF
+launchctl bootout "gui/$(id -u)/$AGENT_ID" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$AGENT_PLIST"
+
 echo "Rex configured."
