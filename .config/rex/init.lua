@@ -1,7 +1,7 @@
 local prefix = "ctrl+space>"
 
 -- Sessions (Herdr workspaces)
-rex.bind(prefix .. "shift+w", "session.new")
+rex.bind(prefix .. "shift+c", "session.new")
 rex.bind(prefix .. "shift+d", "session.close")
 rex.bind(prefix .. "shift+p", "session.previous")
 rex.bind(prefix .. "shift+n", "session.next")
@@ -84,7 +84,7 @@ rex.bind(prefix .. "alt+9", "scrollback_view") -- "[" on Canadian CSA
 
 rex.bind(prefix .. "c", "client.tab.new")
 rex.bind(prefix .. "shift+t", "client.tab.rename")
-rex.bind(prefix .. "shift+x", "client.tab.close")
+rex.bind(prefix .. "shift+w", "client.tab.close")
 for index, key in ipairs(tab_keys) do
   rex.bind(prefix .. key, "session_tab_goto", { index = index })
 end
