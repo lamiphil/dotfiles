@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "slack": {
+      "url": "https://mcp.slack.com/mcp",
+      "description": "Search, read and post Slack messages, channels and canvases",
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "callbackUrl": "http://localhost:3118/callback"
+      }
+    }
+  }
+}

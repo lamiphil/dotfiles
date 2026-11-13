@@ -4,3 +4,5 @@ agent/npm-global/
 agent/pi-tidy-subagents/
 agent/models-store.json
 agent/trust.json
+agent/mcp-auth.json
+agent/mcp.log*
