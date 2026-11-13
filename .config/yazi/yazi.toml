@@ -1,2 +1,13 @@
 [mgr]
 show_hidden = true
+
+[opener]
+mdd = [
+  { run = 'mdd %s1', block = true, desc = "Preview (mdd)", for = "macos" },
+]
+
+[open]
+# Enter edits Markdown in $EDITOR; O offers the mdd preview (mdd is macOS-only).
+prepend_rules = [
+  { url = "*.{md,markdown}", use = [ "edit", "mdd", "reveal" ] },
+]

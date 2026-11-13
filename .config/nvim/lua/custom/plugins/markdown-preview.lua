@@ -47,10 +47,11 @@ local function window_root()
   end
 end
 
-local function open_rex_pane(url)
+-- Opens `command` in a full-height Rex pane on the right (40% wide).
+local function open_rex_pane(command, label)
   close_rex_pane()
-  -- terminal-browser needs a real TTY to detect graphics support, so Rex
-  -- creates the pane and runs it there.
+  -- terminal-browser and mdd need a real TTY, so Rex creates the pane and
+  -- runs the command there.
   rex_api('session.new_split', {
     session_id = rex_session,
     anchor_id = window_root() or rex_block,
@@ -59,8 +60,8 @@ local function open_rex_pane(url)
     layout = {
       block = {
         flavor = 'com.superlogical.terminal.shell',
-        label = 'md-preview',
-        options = { shell = 'none', command = { vim.fn.exepath 'terminal-browser', 'open', url } },
+        label = label,
+        options = { shell = 'none', command = command },
       },
     },
   }, vim.schedule_wrap(function(out)
@@ -94,7 +95,7 @@ end
 
 function _G.mkdp_open(url)
   if in_rex then
-    open_rex_pane(url)
+    open_rex_pane({ vim.fn.exepath 'terminal-browser', 'open', url }, 'md-preview')
   else
     open_vivaldi(url)
   end
@@ -133,5 +134,21 @@ return {
       ft = 'markdown',
       desc = '[M]arkdown [P]review toggle',
     },
+    -- mdd (mddog) is macOS-only; skip the mapping where it is not installed.
+    vim.fn.executable 'mdd' == 1 and {
+      '<leader>md',
+      function()
+        local file = vim.api.nvim_buf_get_name(0)
+        if vim.bo.modified then vim.cmd 'write' end
+        if rex_session and rex_session ~= '' then
+          open_rex_pane({ vim.fn.exepath 'mdd', file }, 'mdd')
+        else
+          vim.cmd('botright vsplit | terminal mdd ' .. vim.fn.fnameescape(file))
+          vim.cmd 'startinsert'
+        end
+      end,
+      ft = 'markdown',
+      desc = '[M]arkdown preview in mdd',
+    } or nil,
   },
 }
