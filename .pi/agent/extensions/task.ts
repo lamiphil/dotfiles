@@ -37,6 +37,33 @@ import { Type } from "typebox";
 const STATE_DIR = join(process.env.XDG_STATE_HOME || join(homedir(), ".local", "state"), "pi", "tasks");
 const TASK_ID = process.env.PI_TASK_ID;
 
+const ANALYSIS_PREFIX = "/task request: ";
+
+// Copy of the master session cut just before its /task analysis turn(s), so the fork
+// never sees "I delegated this" and mistakes itself for the master.
+function forkSource(sessionFile: string, dir: string): string {
+	const lines = readFileSync(sessionFile, "utf8").split("\n").filter(Boolean);
+	const isAnalysis = (line: string) => {
+		try {
+			const r = JSON.parse(line);
+			const c = r.type === "message" && r.message?.role === "user" ? r.message.content : undefined;
+			const text = typeof c === "string" ? c : Array.isArray(c) ? c.find((x: { type?: string }) => x?.type === "text")?.text : undefined;
+			if (typeof text === "string") return text.startsWith(ANALYSIS_PREFIX) ? 1 : -1; // -1: another user turn
+		} catch {}
+		return 0;
+	};
+	let cut = -1;
+	for (let i = lines.length - 1; i > 0; i--) {
+		const k = isAnalysis(lines[i]);
+		if (k === 1) cut = i; // keep walking back over consecutive /task turns
+		else if (k === -1) break;
+	}
+	if (cut < 0) return sessionFile;
+	const out = join(dir, "fork-source.jsonl");
+	writeFileSync(out, `${lines.slice(0, cut).join("\n")}\n`);
+	return out;
+}
+
 const STOPWORDS = new Set(
 	"a an the to of for in on and or with from into at by is are be it this that we i me my our you your please can could should would need needs want let lets make check look see tell help following next about what how why do does go ahead some any all".split(" "),
 );
@@ -74,7 +101,7 @@ const LEVEL_MODELS: Record<string, Record<Level, string>> = {
 
 type Delegation = { task: string; title?: string; brief?: string; level?: Level; why?: string };
 
-const ANALYSIS = (task: string) => `/task request: ${task}
+const ANALYSIS = (task: string) => `${ANALYSIS_PREFIX}${task}
 
 Delegate this to a new task session. Do a quick analysis only: read at most what is strictly needed to judge it (for example the ticket it names). Do not start the work.
 Then call delegate_task once with:
@@ -240,7 +267,7 @@ export default function (pi: ExtensionAPI) {
 				"window", "new", "-s", REX_SESSION, name, "-c", ctx.cwd, "--focus=false", "--shell", "none", "--json", "--",
 				"/opt/homebrew/bin/fish", "-c",
 				'set -lx PI_TASK_ID $argv[1]; if test -n "$argv[4]"; exec pi --fork $argv[2] --name $argv[3] --model $argv[4]; else; exec pi --fork $argv[2] --name $argv[3]; end',
-				id, sessionFile, name, model,
+				id, forkSource(sessionFile, taskDir(id)), name, model,
 			),
 		);
 		writeMeta({ ...(readMeta(id) ?? meta), window_id: created.window_id });
@@ -277,7 +304,7 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerTool({
+	if (!TASK_ID) pi.registerTool({
 		name: "delegate_task",
 		label: "Delegate task",
 		description: "Only after a /task request: start the analysed task in a new tab at the chosen level. Call once, then stop.",
@@ -532,7 +559,10 @@ export default function (pi: ExtensionAPI) {
 
 		if (meta.started) return drainInbox(TASK_ID); // /reload or resume: don't restart the task
 		writeMeta({ ...meta, started: true });
-		const start = () => pi.sendUserMessage(`Go ahead: ${meta.brief ?? meta.task}`);
+		const start = () =>
+			pi.sendUserMessage(
+				`You are the task session in this tab, not the master. The master delegated this task to you; nobody else is working on it. Start now.\n\nGo ahead: ${meta.brief ?? meta.task}`,
+			);
 		ctx.compact({
 			customInstructions: `Keep only what is needed for this next task: ${meta.brief ?? meta.task}`,
 			onComplete: start,
