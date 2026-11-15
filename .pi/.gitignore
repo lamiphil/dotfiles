@@ -1,4 +1,6 @@
 agent/auth.json
+agent/models-store.json
+agent/pi-web-access/
 agent/sessions/
 agent/npm-global/
 agent/pi-tidy-subagents/
