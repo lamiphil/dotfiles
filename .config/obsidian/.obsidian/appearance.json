@@ -5,5 +5,6 @@
   "monospaceFontFamily": "BerkeleyMono Nerd Font Mono",
   "baseFontSize": 19,
   "accentColor": "#22c55e",
-  "baseFontSizeAction": true
+  "baseFontSizeAction": true,
+  "showRibbon": true
 }
