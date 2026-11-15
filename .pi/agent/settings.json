@@ -4,6 +4,9 @@
   "theme": "onedark-pro",
   "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "high",
+  "npmCommand": [
+    "npm"
+  ],
   "packages": [
     "npm:pi-powerline-footer",
     "npm:pi-custom-compaction",
