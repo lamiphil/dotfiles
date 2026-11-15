@@ -3,15 +3,18 @@
 ###############
 
 set -gx XDG_CONFIG_HOME "$HOME/.config"
+set -gx NPM_CONFIG_USERCONFIG "$XDG_CONFIG_HOME/npm/npmrc"
 set -gx PI_TIDY_SUBAGENT_EXECUTABLE pi
 set -gx EDITOR nvim
 set -gx LANG en_US.UTF-8
 set -gx LC_ALL en_US.UTF-8
 set -g fish_greeting
 
-# Linux-specific
-set -gx HYPRSHOT_DIR "$HOME/Pictures/"
-set -gx ADW_DISABLE_PORTAL 1
+# Linux-specific desktop integrations.
+if test (uname) = Linux
+    set -gx HYPRSHOT_DIR "$HOME/Pictures/"
+    set -gx ADW_DISABLE_PORTAL 1
+end
 
 ########
 # PATH #
@@ -24,13 +27,21 @@ else if command -q brew
     eval (brew shellenv)
 end
 
-# Local bin + nvim (Linux)
+# User-installed tools work on both macOS and Linux.
 fish_add_path "$HOME/.local/bin"
-fish_add_path /opt/nvim-linux64/bin
 
-# Go
-set -gx GOPATH /usr/local/go/go
-fish_add_path "$GOPATH/bin" /usr/local/go/bin
+# Linux-only Neovim tarball installation.
+if test (uname) = Linux; and test -d /opt/nvim-linux64/bin
+    fish_add_path /opt/nvim-linux64/bin
+end
+
+# Go: keep the workspace in the home directory; Go itself may be installed by
+# Homebrew on macOS or under /usr/local/go on Linux.
+set -gx GOPATH "$HOME/go"
+fish_add_path "$GOPATH/bin"
+if test -d /usr/local/go/bin
+    fish_add_path /usr/local/go/bin
+end
 
 # tfenv
 fish_add_path "$HOME/.tfenv/bin"
@@ -89,10 +100,14 @@ set -gx FZF_DEFAULT_OPTS '--height 40% --layout=reverse --border --preview "([[ 
 ########
 
 # Starship prompt
-starship init fish | source
+if type -q starship
+    starship init fish | source
+end
 
 # Zoxide with cd override (--cmd cd sets alias cd=__zoxide_z)
-zoxide init --cmd cd fish | source
+if type -q zoxide
+    zoxide init --cmd cd fish | source
+end
 
 # Re-define cd on top of zoxide to add auto-ls
 function cd --wraps=__zoxide_z --description "zoxide cd with auto-ls"
@@ -112,7 +127,9 @@ bind -M insert ctrl-shift-l 'clear; commandline -f repaint'
 bind -M default ctrl-shift-l 'clear; commandline -f repaint'
 
 # FZF key bindings and completions (must come after vi bindings to keep Ctrl+R)
-fzf --fish | source
+if type -q fzf
+    fzf --fish | source
+end
 
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
