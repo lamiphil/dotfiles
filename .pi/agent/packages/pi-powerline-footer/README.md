@@ -1,32 +1,52 @@
-# pi-powerline-footer overrides
+# pi-powerline-footer custom configuration
 
-The plugin reads its theme and segment presets from inside its own npm package
-directory (e.g. `/opt/homebrew/lib/node_modules/pi-powerline-footer/`). Those
-files get **wiped on `pi update` / `pi install`**, so we keep the source-of-
-truth here in dotfiles and re-apply with one command.
+Portable customizations for `pi-powerline-footer` **0.21.x**, applied after npm package updates on macOS or Linux.
+
+## Result
+
+- Top row: agent mode and path on the left; model, thinking level, and context on the right
+- Bottom row: Git and shell mode on the left; Vim mode on the right
+- Fixed rows: segments never migrate between the top and bottom bars
+- Rounded frame whose color follows Vim mode
+- Vim-colored prompt and cursor shape
+- No idle editor border lines; an active embedded working status is preserved
+- OneDark colors and thin Powerline separators
+
+## Requirements
+
+- `pi-powerline-footer` 0.21.x
+- `vim-motions-pi` 0.1.4
+- Node.js and npm (already required by Pi)
+
+No GNU-specific commands or Python installation are required. The package resolver supports Homebrew/npm paths on macOS and the standard npm/Pi package paths on Linux.
+
+## Apply
+
+Run after installing or updating either npm package:
+
+```bash
+~/.pi/agent/packages/pi-powerline-footer/apply.sh
+```
+
+Then run `/reload` in Pi or restart it.
+
+The script is idempotent and fails before writing if the installed Powerline source is unsupported. It also installs `theme.json` in the durable user override directory:
+
+```text
+${PI_CODING_AGENT_DIR:-~/.pi/agent}/extensions/powerline-footer/theme.json
+```
+
+For isolated testing, override package locations:
+
+```bash
+PI_POWERLINE_FOOTER_DIR=/path/to/pi-powerline-footer \
+VIM_MOTIONS_DIR=/path/to/vim-motions-pi \
+PI_CODING_AGENT_DIR=/tmp/pi-agent \
+~/.pi/agent/packages/pi-powerline-footer/apply.sh
+```
 
 ## Files
 
-- `theme.json`  — OneDark Pro color override (model purple, path cyan, etc.).
-- `apply.sh`    — Applies all customizations:
-  1. Drops `theme.json` into the package dir.
-  2. Patches `presets.ts` so the `default` preset puts only `model`, `thinking`,
-     and `path` on the **top row**, with everything else on the **secondary
-     (bottom) row**.
-  3. Patches `index.ts → computeResponsiveLayout()` so secondary segments stay
-     on the bottom row instead of being auto-promoted to the top when the
-     terminal is wide.
-
-## Usage
-
-After installing or updating pi-powerline-footer:
-
-```bash
-~/dotfiles/.pi/agent/packages/pi-powerline-footer/apply.sh
-```
-
-Then `/reload` in pi.
-
-The script is idempotent — running it twice is safe (the patch markers in
-`index.ts` ensure a second pass finds nothing to do, the python regex on
-`presets.ts` always rewrites the whole `default` block).
+- `apply.sh` — portable package discovery and theme installation
+- `patch.mjs` — validated, atomic source transformations for 0.21.x
+- `theme.json` — OneDark semantic colors
