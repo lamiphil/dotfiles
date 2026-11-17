@@ -35,6 +35,7 @@ defaults write "$APP_ID" Workspace.terminalFallbackFontNames -array "Noto Color 
 defaults write "$APP_ID" Workspace.terminalStartupCommand -string "/opt/homebrew/bin/fish"
 defaults write "$APP_ID" Workspace.terminalOptionKeyBehavior -string compose
 defaults write "$APP_ID" Workspace.terminalPaddingColor -string background
+defaults write "$APP_ID" Workspace.terminalCopyAnimation -bool true
 
 open -a "$APP_NAME"
 

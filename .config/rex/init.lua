@@ -22,40 +22,6 @@ rex.action {
   end,
 }
 
--- Copy mode substitute: open the focused pane's scrollback in read-only
--- Neovim, in a full-window floating layer. q closes it.
-local scrollback_script = [[
-set -l file (mktemp -t rex-scrollback)
-"$REX_BIN_DIR/rex" capture -b $argv[1] --unwrap --trim > $file
-nvim -R -c 'setlocal nomodifiable nonumber norelativenumber nolist' \
-  -c 'nnoremap <buffer> q <Cmd>qa!<CR>' + $file
-rm -f $file
-]]
-
-rex.action {
-  name = "scrollback_view",
-  title = "View Scrollback in Neovim",
-  run = function(ctx)
-    if ctx.block_id == nil then return true end
-    local _, err = rex.call("session.new_layer", {
-      session_id = ctx.session_id,
-      bounds = { 0, 0, 1, 1 },
-      focus = true,
-      layout = {
-        block = {
-          flavor = "com.superlogical.terminal.shell",
-          label = "scrollback",
-          options = {
-            shell = "none",
-            command = { "/opt/homebrew/bin/fish", "-c", scrollback_script, ctx.block_id },
-          },
-        },
-      },
-    })
-    if err ~= nil then error(err, 0) end
-    return true
-  end,
-}
 -- terminal-browser (Chromium over Kitty graphics) in a right split.
 -- session.new_split ignores the block command, so go through `rex run`.
 local rex_cli = os.getenv("HOME")
@@ -79,8 +45,69 @@ rex.action {
 }
 rex.bind(prefix .. "shift+b", "browser_split")
 
-rex.bind(prefix .. "[", "scrollback_view")
-rex.bind(prefix .. "alt+9", "scrollback_view") -- "[" on Canadian CSA
+-- Copy mode like Herdr: prefix+[ enters; Rex's vi keys apply inside.
+-- On CSA, { } are Option+7/8, which type text everywhere else, so copy
+-- mode also turns on the "copy" key mode where they jump paragraphs. Once
+-- copy mode ends, those actions are unavailable and the keys fall through.
+-- The key mode is per client but copy mode is per pane, and Lua can't see
+-- copy mode, so remember which panes are in it.
+local copy_blocks, copy_keys_on = {}, false
+
+-- Mode actions fail (and cancel the rest of the queue) when there is nothing
+-- to enter or leave, so only queue them when the state changes.
+local function set_copy_keys(on)
+  if on == copy_keys_on then return end
+  rex.client.queue(on and "client.mode.enter" or "client.mode.exit_all", on and { name = "copy" } or nil)
+  copy_keys_on = on
+end
+
+rex.action {
+  name = "copy_mode_enter",
+  title = "Enter Copy Mode",
+  run = function(ctx)
+    if ctx.block_id then copy_blocks[ctx.block_id] = true end
+    rex.client.queue("pane.copy_mode.enter")
+    set_copy_keys(true)
+    return true
+  end,
+}
+rex.bind(prefix .. "[", "copy_mode_enter")
+rex.bind(prefix .. "alt+9", "copy_mode_enter") -- "[" on Canadian CSA
+rex.unbind("shift+cmd+c") -- default copy mode entry
+rex.bind("copy/alt+7", "pane.copy_mode.move", { to = "paragraph_backward" })
+rex.bind("copy/alt+8", "pane.copy_mode.move", { to = "paragraph_forward" })
+
+-- y copies and clears the selection but stays in copy mode; Enter yanks and
+-- leaves; q/Esc leave. Selecting char, line, line clears any selection type.
+local copy_key_text = { y = "y", enter = "\r", q = "q", escape = "\27" }
+rex.action {
+  name = "copy_mode_key",
+  title = "Copy Mode Key",
+  args = { key = "string" },
+  run = function(ctx, args)
+    if not copy_blocks[ctx.block_id] then
+      -- The key mode outlived copy mode in this pane: type the key instead.
+      set_copy_keys(false)
+      local _, err = rex.block.call("com.superlogical.terminal", "write", { data = copy_key_text[args.key] })
+      if err ~= nil then error(err, 0) end
+      return true
+    end
+    if args.key == "y" then
+      rex.client.queue("pane.copy")
+      for _, mode in ipairs({ "char", "line", "line" }) do
+        rex.client.queue("pane.copy_mode.select", { mode = mode })
+      end
+      return true
+    end
+    rex.client.queue(args.key == "enter" and "pane.copy_mode.yank" or "pane.copy_mode.exit")
+    set_copy_keys(false)
+    copy_blocks[ctx.block_id] = nil
+    return true
+  end,
+}
+for key in pairs(copy_key_text) do
+  rex.bind("copy/" .. key, "copy_mode_key", { key = key })
+end
 
 rex.bind(prefix .. "c", "client.tab.new")
 rex.bind(prefix .. "shift+t", "client.tab.rename")
@@ -196,11 +223,12 @@ local function focus_direction(direction)
     -- One atomic call avoids briefly restoring the layout and resizing every terminal.
     local _, zoom_err = rex.session.zoom_block { block_id = target, zoom = true }
     if zoom_err ~= nil then error(zoom_err, 0) end
-    return
+    return target
   end
 
   local _, focus_err = rex.session.focus_block { block_id = target }
   if focus_err ~= nil then error(focus_err, 0) end
+  return target
 end
 
 local direction_keys = { left = "h", down = "j", up = "k", right = "l" }
@@ -224,7 +252,11 @@ rex.action {
         return true
       end
     end
-    focus_direction(args.direction)
+    local target = focus_direction(args.direction)
+    if target then
+      -- Copy-mode keys follow the pane that is in copy mode.
+      set_copy_keys(copy_blocks[target] == true)
+    end
     return true
   end,
 }
