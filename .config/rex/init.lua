@@ -109,6 +109,31 @@ for key in pairs(copy_key_text) do
   rex.bind("copy/" .. key, "copy_mode_key", { key = key })
 end
 
+-- Ctrl+Shift+K/J scroll Pi. Fullscreen Pi (alternate screen) scrolls itself,
+-- so it gets the key (kitty encoding; copy mode would swallow it). Regular
+-- Pi lives in the scrollback, which Rex can only scroll by pages.
+rex.action {
+  name = "pi_scroll",
+  title = "Scroll Pi",
+  args = { key = "string" },
+  run = function(_, args)
+    local term = "com.superlogical.terminal"
+    local process = rex.block.call(term, "process", {}) or {}
+    local foreground = process.foreground or {}
+    local modes = rex.block.call(term, "modes", {}) or {}
+    if foreground.argv0 == "pi" and modes.screen ~= "alternate" then
+      rex.client.queue(args.key == "k" and "client.scroll.page_up" or "client.scroll.page_down")
+      return true
+    end
+    local code = args.key == "k" and 107 or 106
+    local _, err = rex.block.call(term, "write", { data = "\27[" .. code .. ";6u" })
+    if err ~= nil then error(err, 0) end
+    return true
+  end,
+}
+rex.bind("ctrl+shift+k", "pi_scroll", { key = "k" })
+rex.bind("ctrl+shift+j", "pi_scroll", { key = "j" })
+
 rex.bind(prefix .. "c", "client.tab.new")
 rex.bind(prefix .. "shift+t", "client.tab.rename")
 rex.bind(prefix .. "shift+w", "client.tab.close")

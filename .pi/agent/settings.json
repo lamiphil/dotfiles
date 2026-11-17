@@ -91,7 +91,7 @@
     "cutEditor": "ctrl+alt+x"
   },
   "editorPaddingX": 0,
-  "tuiMode": "fullscreen",
+  "tuiMode": "regular",
   "shellCommandPrefix": "shopt -s expand_aliases\nsource ~/.bash_aliases 2>/dev/null",
   "steeringMode": "one-at-a-time",
   "doubleEscapeAction": "tree",
