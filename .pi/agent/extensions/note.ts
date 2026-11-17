@@ -314,7 +314,12 @@ export default function (pi: ExtensionAPI) {
 			if (!raw) {
 				// Fix numbering after hand edits in Obsidian before showing the list.
 				await pi.exec("python3", [`${HOME}/.agents/skills/todo/scripts/renumber.py`]);
-				const content = existsSync(TODO_FILE) ? readFileSync(TODO_FILE, "utf8").trim() : "";
+				// Leading spaces → NBSP so aligned lines aren't rendered as indented code blocks.
+				const content = existsSync(TODO_FILE)
+					? readFileSync(TODO_FILE, "utf8")
+							.trim()
+							.replace(/^ +/gm, (s) => "\u00a0".repeat(s.length))
+					: "";
 				pi.sendMessage({
 					customType: "todo-list",
 					content: content ? `${TODO_FILE.replace(HOME, "~")}\n\n${content}` : "No todos yet.",
