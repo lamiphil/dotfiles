@@ -11,7 +11,7 @@ Refresh the current session's project understanding from the customer work log. 
 
 1. Resolve the notes root:
    - Look for `notes/Customers/` in the current workspace and its ancestors.
-   - Otherwise try `$HOME/notes/Customers/`.
+   - Otherwise use `$NOTES_ROOT/Customers/` when set, else `$HOME/notes/Customers/`.
    - If neither exists, stop and report the attempted locations.
 2. List the customer directories under `Customers/`.
 3. Infer the customer from the current session context: prior discussion, repository names, customer names, and project terminology.
@@ -19,7 +19,7 @@ Refresh the current session's project understanding from the customer work log. 
 5. If no unique match exists, ask the user to select or name the customer. Never guess between plausible customers.
 6. Require `Customers/{CUSTOMER}/_log.md`. If missing, stop and report the resolved path.
 
-The working directory is normally `$HOME/workspaces/work`; do not treat its basename as the customer.
+Do not treat the cwd's basename as the customer.
 
 ## Determine the refresh boundary
 

@@ -39,7 +39,7 @@ const VAULTS: Record<string, string> = {
 
 const DEFAULT_VAULT = "personal";
 
-const TODO_FILE = `${HOME}/notes/Customers/_todo.md`;
+const TODO_FILE = `${process.env.NOTES_ROOT ?? `${HOME}/notes`}/Customers/_todo.md`;
 const STATE_DIR = `${HOME}/.pi/agent/state`;
 const STATE_FILE = join(STATE_DIR, "note-vault.txt");
 

@@ -8,8 +8,8 @@ description: Manage Philippe's todos in the single work todo list (Customers/_to
 One list for everything, one archive. Never write todos anywhere else
 (not the daily note, not per-customer files).
 
-- List: `/Users/philippe.lamy/notes/Customers/_todo.md`
-- Archive: `/Users/philippe.lamy/notes/Customers/_archive.md`
+- List: `$NOTES_ROOT/Customers/_todo.md` (fallback: `$HOME/notes/Customers/_todo.md`)
+- Archive: `$NOTES_ROOT/Customers/_archive.md`
 
 ## File format
 
@@ -20,9 +20,9 @@ Both files share the same sections: one `## <Section>` per customer, then `## Pe
 ```markdown
 ## Client A
 !!  1: ACME-298: Destroy the old hub from the pre-csp tag
- !  2: Test S2S from a Client A workstation (TCP 443 to 10.0.0.4)
+ !  2: Test S2S from a workstation (TCP 443 to 10.0.0.4)
     3: Check the Spot quota request (12 vCPU)
- X  4: Rotate the VPN PSK (waiting on: Client A network team)
+ X  4: Rotate the VPN PSK (waiting on: client network team)
 
 ## Personal
     5: Renew passport
@@ -41,7 +41,7 @@ Both files share the same sections: one `## <Section>` per customer, then `## Pe
 - A customer section exists only if `Customers/<Name>/` exists; use the folder name verbatim.
   Create the section lazily (first todo for that customer). Never create customer folders.
 - `## Personal` holds everything that is not a customer: internal work
-  (marketplace, inner tooling), the perso workspace, life admin.
+  (shared tooling), the personal workspace, life admin.
 - **Newest first**: any line you add *or change the status of* goes directly under its
   section heading; the stable sort then puts it first in its status group (so a newly
   prioritised item lands at the top of the section's priorities).
@@ -52,19 +52,19 @@ Both files share the same sections: one `## <Section>` per customer, then `## Pe
 
 ## Choosing the section
 
-1. Named by Philippe ("for Client C", "personal") → that section.
+1. Named by Philippe ("for Client A", "personal") → that section.
 2. Otherwise infer, in order:
-   - what the session is about (customer repo, ticket prefix like `BLS-`/`TPA-`, customer named in recent messages);
-   - the cwd: `~/workspaces/work/customers/<slug>/…` → the `Customers/` folder whose name matches
-     the slug case- and space-insensitively, or by prefix (`client-a` → `Client A`, `client-b` → `Client B`);
-   - `~/workspaces/perso/…` or `~/workspaces/work/inner/…` → `Personal`.
-3. Still unclear, or the slug matches no folder (e.g. `client-f`) → ask with `ask_user_question`,
+   - what the session is about (customer repo, ticket prefix, customer named in recent messages);
+   - the cwd: a `customers/<slug>/…` path → the `Customers/` folder whose name matches
+     the slug case- and space-insensitively, or by prefix;
+   - a personal workspace path, or a shared/internal tooling path → `Personal`.
+3. Still unclear, or the slug matches no folder → ask with `ask_user_question`,
    options = existing sections + Personal. Never guess silently.
 
 ## Writing the todo
 
 - English, one line, imperative verb first, as short as it can be while still actionable cold.
-- Prefix the ticket ID when known: `ACME-298: …`, `PROJ-129: …`.
+- Prefix the ticket ID when known: `ACME-298: …`, `CORP-129: …`.
 - When Philippe writes little, add only the missing *what/where* from the session
   (resource name, repo, MR number, person). No explanations, no "because", no trailing period.
 - Keep technical names, commands and IDs exactly; wrap them in backticks.
@@ -84,7 +84,7 @@ Write new lines with any number (`0:` is fine); the formatter fixes it.
 ## Changing a status
 
 Philippe asks in plain language: « 3 is urgent », « make 5 top priority »,
-« 7 is blocked until Client B sends the IDs », « 7 is unblocked », « 3 is no longer urgent ».
+« 7 is blocked until the client sends the IDs », « 7 is unblocked », « 3 is no longer urgent ».
 Map urgent/important/priority → `!`, top/most urgent/critical → `!!`. If unsure between
 `!` and `!!`, ask. Blocking without a reason → ask for it. Change the status, move the
 line directly under its heading, and keep its text otherwise unchanged.

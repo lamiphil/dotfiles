@@ -8,7 +8,6 @@ repos/tree-sitter-logstash
 .config/raycast/
 .config/fish/fish_variables
 .agents/skills/v-devops-terraform-bootstrap
-.agents/skills/work-artifact
 .kube
 .config/Bitwarden CLI/
 .config/gh/hosts.yml
@@ -20,3 +19,7 @@ repos/tree-sitter-logstash
 .agents/skills/synced/
 .agents/skills/terminal-browser
 .pi/agent/pi-web-access/
+
+# Private skills (kept locally, not tracked)
+.agents/skills/scrum
+.agents/skills/work-artifact

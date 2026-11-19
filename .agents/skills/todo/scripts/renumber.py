@@ -12,10 +12,11 @@ file and aligned: status right-aligned to 2 chars, number right-aligned to the w
 
 Accepts the old `- [ ] N - text` shape too. _archive.md: strips numbers from `- [x]` lines.
 """
+import os
 import re
 from pathlib import Path
 
-DIR = Path.home() / "notes/Customers"
+DIR = Path(os.environ.get("NOTES_ROOT", str(Path.home() / "notes"))) / "Customers"
 RANK = {"!!": 0, "!": 1, "": 2, "X": 3}
 ITEM = re.compile(
     r"^\s*(?:- \[ \]\s*)?"  # old checkbox prefix

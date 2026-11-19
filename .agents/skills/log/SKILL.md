@@ -24,7 +24,7 @@ Always start log entries with a bold timestamp:
 ## Resolve the Customer
 
 1. Look for `notes/Customers/` in the current workspace and its ancestors.
-   Otherwise try `$HOME/notes/Customers/`.
+   Otherwise use `$NOTES_ROOT/Customers/` when set, else `$HOME/notes/Customers/`.
 2. Infer the customer from the current session context: prior discussion, repository names,
    project terminology, or cwd path.
 3. Match customer names case-insensitively, tolerating spaces, hyphens, and slug forms.
@@ -67,12 +67,12 @@ Earlier entry...
 3. **Line 3 (required):** a **very concise one-line French summary** of what was
    done in this log instance. Under ~15 words. No lead-in. Verb-first phrasing
    (`Ajouté...`, `Corrigé...`, `Validé...`, `Investigué...`, `Écrit...`).
-   This line is the source of truth used by `/scrum`; treat it as a headline.
+   This line is the headline for the entry.
 4. **Optional details** below: paragraphs and/or bullet points expanding the
    summary. Add a blank line before any bullet list (Markdown rendering).
 5. **Optional `## Prochaine étape` sub-section** (recommended when relevant): a
    short next-step block placed **immediately after the entry's details**. It is
-   harvested by `/scrum` as a candidate line for `Aujourd'hui:`. Use a level-3
+   kept close to the entry it belongs to. Use a level-3
    heading so it stays scoped to the entry:
 
    ```markdown
@@ -90,9 +90,9 @@ Example:
 ```markdown
 **2026-08-19 | 14:21**
 
-Investigué le code dbt manquant du sandbox Client C.
+Investigué le code dbt manquant du sandbox client.
 
-- Le repo `client-c-data` ne contient aucun `dbt_project.yml`.
+- Le repo `client-data` ne contient aucun `dbt_project.yml`.
 - Message envoyé au collègue pour clarifier où se trouve le code.
 
 ### Prochaine étape
