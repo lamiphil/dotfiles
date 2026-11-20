@@ -8,7 +8,7 @@ Personal dotfiles for Philippe Lamy (`lamiphil`), managed with **GNU Stow**.
 - **Platforms**: Arch Linux (primary), macOS, Ubuntu/Debian
 - **Editor**: Neovim (Kickstart.nvim-based)
 - **Shell**: Bash with Starship prompt
-- **Terminal**: Ghostty (all platforms)
+- **Terminal**: Rex on macOS, Ghostty on Linux
 - **Keyboard layout**: Colemak-DH
 
 ## Repository Structure
@@ -137,7 +137,7 @@ Workspace keys use the **Colemak-DH home row** — consistent across tmux, Hyprl
 
 | Config | macOS | Linux |
 |--------|-------|-------|
-| Terminal | Ghostty | Ghostty |
+| Terminal | Rex | Ghostty |
 | Window Manager | AeroSpace | Hyprland |
 | Status bar | — | Waybar |
 | App launcher | — | Rofi |

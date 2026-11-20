@@ -317,6 +317,12 @@ rex.bind("alt+0", "type_text", { text = "]" })
 rex.bind("alt+backspace", "pane.send_key", { key = "ctrl+w" })
 rex.bind("ctrl+backspace", "pane.send_key", { key = "ctrl+w" })
 
+-- Pi shortcuts registered as ctrl+alt+<key>. Without macos-option-as-alt, the
+-- default forward of Ctrl+Option+M is a layout-dependent character, not a kitty
+-- CSI-u sequence, so Pi never matches it. Emit the sequence directly.
+rex.bind("ctrl+alt+m", "type_text", { text = "\27[109;7u" }) -- cycle agent mode
+rex.bind("ctrl+alt+p", "type_text", { text = "\27[112;7u" }) -- toggle provider
+
 -- Ghostty changes font size by two points per keypress.
 local function font_twice(action)
   return function()
