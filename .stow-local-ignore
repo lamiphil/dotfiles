@@ -13,3 +13,9 @@ scripts
 
 # Ignore repos folder
 repos
+
+# Repo docs and per-repo work log
+GLOSSARY.md
+docs
+^/_log.md
+^/LOG.md
