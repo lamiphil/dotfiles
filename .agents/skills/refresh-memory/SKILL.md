@@ -1,25 +1,20 @@
 ---
 name: refresh-memory
-description: Refreshes the current expert session with the latest customer project knowledge from `Customers/{CUSTOMER}/_log.md`. Use when the user asks to refresh memory, update project context, catch up on recent work, absorb the latest project logs, or prepare the expert session before cloning it for another task.
+description: Refreshes the current expert session with the latest project knowledge from its declared log target (a customer work log or a project LOG.md). Use when the user asks to refresh memory, update project context, catch up on recent work, absorb the latest project logs, or prepare the expert session before cloning it for another task.
 ---
 
 # Refresh Memory
 
-Refresh the current session's project understanding from the customer work log. Remain strictly read-only.
+Refresh the current session's project understanding from its log. Remain strictly read-only.
 
 ## Locate the project log
 
-1. Resolve the notes root:
-   - Look for `notes/Customers/` in the current workspace and its ancestors.
-   - Otherwise use `$NOTES_ROOT/Customers/` when set, else `$HOME/notes/Customers/`.
-   - If neither exists, stop and report the attempted locations.
-2. List the customer directories under `Customers/`.
-3. Infer the customer from the current session context: prior discussion, repository names, customer names, and project terminology.
-4. Match customer names case-insensitively and tolerate spaces, hyphens, and slug forms.
-5. If no unique match exists, ask the user to select or name the customer. Never guess between plausible customers.
-6. Require `Customers/{CUSTOMER}/_log.md`. If missing, stop and report the resolved path.
+1. Find the log target exactly as the `log` skill does ("Find the log target"): the `## Log` declaration in the nearest `AGENTS.md` / `CLAUDE.md`, an overriding outer declaration first. Never guess from paths or environment variables.
+2. When the rule needs a choice (for example which customer), infer it from the session context: prior discussion, repository names, project terminology. Match names case-insensitively, tolerating spaces, hyphens and slug forms.
+3. If no declaration exists or no unique match exists, ask the user. Never guess between plausible targets.
+4. Require the target file to exist. If missing, stop and report the resolved path.
 
-Do not treat the cwd's basename as the customer.
+Do not treat the cwd's basename as the project.
 
 ## Determine the refresh boundary
 
@@ -49,7 +44,7 @@ From newly absorbed entries, follow a directly referenced local note only when i
 - Resolve at most one hop from the log.
 - Do not recursively traverse links.
 - Do not open unrelated notes, external URLs, repositories, issue trackers, or web sources.
-- Treat `_log.md` as the primary authority; linked notes only clarify it.
+- Treat the log file as the primary authority; linked notes only clarify it.
 
 ## Reconcile knowledge
 

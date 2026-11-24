@@ -29,9 +29,10 @@
 
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, watch, writeFileSync, type FSWatcher } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { StringEnum } from "@earendil-works/pi-ai";
+import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
 const STATE_DIR = join(process.env.XDG_STATE_HOME || join(homedir(), ".local", "state"), "pi", "tasks");
@@ -62,6 +63,32 @@ function forkSource(sessionFile: string, dir: string): string {
 	const out = join(dir, "fork-source.jsonl");
 	writeFileSync(out, `${lines.slice(0, cut).join("\n")}\n`);
 	return out;
+}
+
+// Log targets come from AGENTS.md declarations, so task.ts knows no paths. During the /skill:log
+// turn the child snapshots every file a tool is about to write (edit/write path, or a *log.md
+// named in any input), then stores the lines added in <taskDir>/log-entry.md for the master.
+const LOG_FILE = /[^\s'"`]*log\.md\b/gi;
+function logPathsOf(toolName: string, input: unknown, cwd: string): string[] {
+	const out = new Set<string>();
+	const rec = (input ?? {}) as Record<string, unknown>;
+	if ((toolName === "edit" || toolName === "write") && typeof rec.path === "string") out.add(rec.path);
+	for (const m of JSON.stringify(input ?? "").matchAll(LOG_FILE)) out.add(m[0]);
+	return [...out].map((p) => resolve(cwd, p.replace(/^~(?=\/)/, homedir())));
+}
+function readFile(f: string): string {
+	return existsSync(f) ? readFileSync(f, "utf8") : "";
+}
+function addedLines(before: string, after: string): string[] {
+	const left = new Map<string, number>();
+	for (const l of before.split("\n")) left.set(l, (left.get(l) ?? 0) + 1);
+	const added: string[] = [];
+	for (const l of after.split("\n")) {
+		const n = left.get(l) ?? 0;
+		if (n > 0) left.set(l, n - 1);
+		else if (l.trim()) added.push(l);
+	}
+	return added;
 }
 
 const STOPWORDS = new Set(
@@ -378,6 +405,17 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// Show only the first line; the full text (e.g. the task's log entry) stays in the model context.
+	pi.registerMessageRenderer("task-status", (message, options, theme) => {
+		const text = typeof message.content === "string" ? message.content : message.content.map((c) => (c.type === "text" ? c.text : "")).join("");
+		const [first, ...rest] = text.split("\n");
+		const more = rest.join("\n").trim();
+		let out = theme.fg("accent", first);
+		if (more && options.expanded) out += `\n${theme.fg("dim", more)}`;
+		else if (more) out += theme.fg("dim", " · memory refreshed");
+		return new Text(out, options.outputPad, 0);
+	});
+
 	function drainStatus(id: string, master: string) {
 		const meta = readMeta(id);
 		if (!meta || meta.master !== master) return;
@@ -386,8 +424,10 @@ export default function (pi: ExtensionAPI) {
 			const body = line.replace(/^\S+ /, "");
 			if (body.startsWith("working:")) continue;
 			if (body.startsWith("closed:")) {
+				const entry = join(dir, "log-entry.md");
+				const log = existsSync(entry) ? readFileSync(entry, "utf8").trim() : "";
 				pi.sendMessage(
-					{ customType: "task-status", content: `✅ ${meta.name} settled`, display: true },
+					{ customType: "task-status", content: `✅ ${meta.name} settled${log ? `\n\nLog entry:\n${log}` : ""}`, display: true },
 					{ triggerTurn: false },
 				);
 				continue;
@@ -416,6 +456,7 @@ export default function (pi: ExtensionAPI) {
 	let pendingLog = false;
 	let logging = false;
 	let closeWhenSettled = false;
+	let logBefore: Record<string, string> | undefined;
 	let shownEmoji = "";
 
 	async function closeSelf() {
@@ -500,6 +541,11 @@ export default function (pi: ExtensionAPI) {
 			if (meta) event.systemPromptOptions.sections.task_protocol = PROTOCOL(meta);
 		});
 
+		pi.on("tool_call", async (event, ctx) => {
+			if (!logging || !logBefore) return;
+			for (const f of logPathsOf(event.toolName.toLowerCase(), event.input, ctx.cwd)) if (!(f in logBefore)) logBefore[f] = readFile(f);
+		});
+
 		pi.on("agent_start", async () => {
 			if (!logging) lastState = undefined;
 			void setTab(EMOJI.running);
@@ -509,8 +555,15 @@ export default function (pi: ExtensionAPI) {
 			if (pendingLog) {
 				pendingLog = false;
 				logging = true;
-				pi.sendUserMessage("/skill:log Write the log entry for what this task accomplished.", { expandPromptTemplates: true });
+				logBefore = {};
+				pi.sendUserMessage("/skill:log Write the log entry for what this task accomplished. Unattended run: do not ask questions.", { expandPromptTemplates: true });
 				return;
+			}
+			if (logging && logBefore) {
+				const before = logBefore;
+				const lines = Object.entries(before).flatMap(([f, old]) => addedLines(old, readFile(f)));
+				if (lines.length) appendFileSync(join(taskDir(TASK_ID), "log-entry.md"), `${lines.join("\n")}\n`);
+				logBefore = undefined;
 			}
 			logging = false;
 			if (closeWhenSettled) return void closeSelf();

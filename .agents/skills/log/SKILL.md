@@ -1,139 +1,110 @@
 ---
 name: log
-description: Add a timestamped log entry to the current customer's _log.md work journal. Summarizes recent work and appends it under the correct date heading. Use when the user invokes /log or wants to log progress, document decisions, or capture what was accomplished.
+description: Add a timestamped log entry for recent work to the log target declared in AGENTS.md (a work log in a notes vault, or a project LOG.md in a repo). Use when the user invokes /log or wants to log progress, document decisions, or capture what was accomplished.
 ---
 
-# Log Entry Skill
+# Log
 
-Add timestamped log entries summarizing recent work to the current customer's `_log.md`.
+Write a short, timestamped entry about recent work into each **log target** the work belongs to.
+Logs are for the user, not for the repository's users.
 
-## Language and Style
+## Find the log target
 
-- Write in **French** (Québec), concise, first person (`Je...`, `J'ai...`, `Je vais...`).
-- Keep technical terms in English when they are tool names or clearer as-is (`API`, `Docker`, `TUI`, etc.).
-- Avoid overly formal or generic summaries.
+The log target comes only from a **log declaration** in an `AGENTS.md` (or `CLAUDE.md`). Never
+guess it from paths, folder names or environment variables.
 
-## Timestamp Format
+1. List the folders the work happened in: the session cwd and every repository or folder that
+   tools read or changed in this session.
+2. For each folder, read the `AGENTS.md` / `CLAUDE.md` files from that folder up to `$HOME`
+   (use the copies already in context, including `<repo_instructions>` blocks; read the others).
+3. Find each file's `## Log` section. The **nearest** declaration wins, unless an outer one says
+   it overrides inner files: then the outer one wins for everything below it.
+4. A declaration gives:
+   - **target**: a path (relative to the declaring folder) or a rule (for example "the customer's
+     `Customers/{CUSTOMER}/_log.md`");
+   - **language**;
+   - **visibility**: `private` or `public`. When the visibility is missing, treat it as `public`.
+5. Group the work by log target. Write **one entry per target**, holding only the work done for
+   that target. Never put work from one target into another.
+6. When the rule needs a choice (for example which customer), infer it from the session: earlier
+   discussion, repository names, project terms. Match names case-insensitively, tolerating spaces,
+   hyphens and slug forms. If no unique match exists, ask. Never guess.
+7. **No declaration** covers the work: ask the user where to log. If the request says the run is
+   unattended, do not ask: write nothing and reply `No log target declared; nothing logged.`
+   The same applies when a choice in step 6 is ambiguous in an unattended run.
 
-Always start log entries with a bold timestamp:
+## Public logs
 
-```
-**YYYY-MM-DD | HH:MM**
-```
+A public log is readable by anyone. Before writing to a target with visibility `public`, check
+the entry and remove:
 
-## Resolve the Customer
+- names of employers, customers, colleagues or any other person or company tied to them;
+- non-public identifiers: IDs, hostnames, IPs, emails, internal URLs, tenant or account
+  numbers, and absolute home paths (`/Users/...`, `/home/...`, `~/...` outside the repo);
+- secrets, tokens and credentials;
+- private life: health, money, feelings, relationships.
 
-1. Look for `notes/Customers/` in the current workspace and its ancestors.
-   Otherwise use `$NOTES_ROOT/Customers/` when set, else `$HOME/notes/Customers/`.
-2. Infer the customer from the current session context: prior discussion, repository names,
-   project terminology, or cwd path.
-3. Match customer names case-insensitively, tolerating spaces, hyphens, and slug forms.
-4. If no unique match exists, **ask the user** to select or name the customer. Never guess.
-5. Target file: `Customers/{CUSTOMER}/_log.md`.
+Keep only the technical what and why. Refer to things by their role ("the work notes vault",
+"a customer repository"). Re-check the final text once more before writing. Private targets
+skip this section.
 
-## Log File Structure
+## Entry format
 
-The `_log.md` file uses **date headings newest-first**, with timestamped entries beneath each
-date. A short topic summary follows each date heading.
-
-Example structure:
+All targets use the same format, written in the target's language.
 
 ```markdown
----
-customer: client-c
-type: log
-tags: [client-c, log, infra]
----
-# Client C - Journal de travail
+**YYYY-MM-DD | HH:MM**
 
-## 2026-08-19 - Code dbt non versionne
+One-line headline, verb-first, under ~15 words.
+
+- Optional detail
+- Optional detail
+
+### <Next step heading>
+
+- Verb-first action, under ~15 words.
+```
+
+- Line 1: bold local timestamp. Line 2: blank. Line 3: the headline, with no lead-in.
+- Details are optional; put a blank line before any bullet list.
+- The next-step block is optional, one or two bullets, directly after the entry's details.
+  Heading by language: French `### Prochaine étape`, English `### Next step`.
+- Keep tool and technical names as they are (`API`, `Docker`, `TUI`).
+- French: Québec French, first person (`J'ai...`), verbs like `Ajouté`, `Corrigé`, `Validé`.
+- English: first person, past tense, verbs like `Added`, `Fixed`, `Checked`.
+
+## File structure
+
+Date sections are **newest first**. Each date heading has a short topic:
+
+```markdown
+# <Title>
+
+## 2026-08-19 - <Topic>
 
 **2026-08-19 | 14:21**
-Description of work done...
+...
 
-- Bullet point details
-- More details
-
-## 2026-08-18 - Integration MCP
-
-**2026-08-18 | 08:37**
-Earlier entry...
+## 2026-08-18 - <Topic>
+...
 ```
 
-## Log Entry Format
+Placement:
 
-1. **Line 1:** bold timestamp `**YYYY-MM-DD | HH:MM**`.
-2. **Line 2:** blank.
-3. **Line 3 (required):** a **very concise one-line French summary** of what was
-   done in this log instance. Under ~15 words. No lead-in. Verb-first phrasing
-   (`Ajouté...`, `Corrigé...`, `Validé...`, `Investigué...`, `Écrit...`).
-   This line is the headline for the entry.
-4. **Optional details** below: paragraphs and/or bullet points expanding the
-   summary. Add a blank line before any bullet list (Markdown rendering).
-5. **Optional `## Prochaine étape` sub-section** (recommended when relevant): a
-   short next-step block placed **immediately after the entry's details**. It is
-   kept close to the entry it belongs to. Use a level-3
-   heading so it stays scoped to the entry:
+1. Today's date heading exists: add the entry at the **end** of that date section (before the
+   next `## YYYY-MM-DD` heading or the end of the file).
+2. No heading for today: add `## YYYY-MM-DD - <Topic>` **above** all date headings, below any
+   frontmatter and the `#` title.
+3. Never reorder or change existing entries.
 
-   ```markdown
-   ### Prochaine étape
-
-   - <verb-first action, ≤ 15 words>
-   ```
-
-   One or two bullets max. Same French, verb-first, condensed style as the
-   headline.
-6. **Date heading topic:** include a short topic in `## YYYY-MM-DD - Topic`.
-
-Example:
-
-```markdown
-**2026-08-19 | 14:21**
-
-Investigué le code dbt manquant du sandbox client.
-
-- Le repo `client-data` ne contient aucun `dbt_project.yml`.
-- Message envoyé au collègue pour clarifier où se trouve le code.
-
-### Prochaine étape
-
-- Reconstruire le projet dbt à partir des colonnes de `exp_projets`.
-```
-
-## Placement Rules
-
-1. **Same date exists:** Insert the new entry at the **end** of the existing date section
-   (before the next `## YYYY-MM-DD` heading or end of file).
-2. **New date (today):** Create a new `## YYYY-MM-DD - Topic` heading and insert it
-   **above** all existing date headings (newest-first order), but below the frontmatter
-   and top-level `#` title.
-3. Never reorder or modify existing entries.
-
-## Creating a Missing `_log.md`
-
-If `_log.md` does not exist for the resolved customer, create it with:
-
-```markdown
----
-customer: <slug>
-type: log
-tags: [<slug>, log]
----
-# <Customer Name> - Journal de travail
-
-## YYYY-MM-DD - Topic
-
-**YYYY-MM-DD | HH:MM**
-<entry content>
-```
-
-The `<slug>` is the lowercased, hyphenated customer name.
+Missing file: create it with a `#` title and the first entry. Title: French `# <Name> - Journal de
+travail`, English `# <Name> - Log`. Add frontmatter only when the declaration asks for it.
 
 ## Process
 
-1. Determine current timestamp
-2. Review conversation context to summarize recent work
-3. Resolve the customer (see above)
-4. Read `Customers/{CUSTOMER}/_log.md` (or create if missing)
-5. Append the log entry under the correct date heading
-6. Confirm to user what was logged and where
+1. Get the current local timestamp (`date '+%Y-%m-%d | %H:%M'`).
+2. Summarize the session's recent work.
+3. Find the log targets (see above).
+4. For each target: read the file, write the entry with the edit or write tool (so the change is
+   tracked), applying the public rules when needed.
+5. Never commit. Reply with one line per target: the path and the headline.
