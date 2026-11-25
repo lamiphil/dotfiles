@@ -22,7 +22,6 @@ dotfiles/
 │   ├── hypr/               # Hyprland WM (Linux)
 │   ├── aerospace/          # AeroSpace WM (macOS)
 │   ├── waybar/             # Status bar (Linux)
-│   ├── opencode/           # OpenCode AI tool (MCP servers)
 │   ├── yazi/               # File manager
 │   ├── k9s/                # Kubernetes TUI
 │   ├── rofi/               # App launcher (Linux)
@@ -37,7 +36,6 @@ dotfiles/
 ├── .bash_functions         # Shell functions (yazi, AWS)
 ├── .gitconfig              # Git user + short aliases
 ├── starship.toml           # Starship prompt (k8s context, cloud, git)
-├── .agents/                # AI agent skills
 ├── scripts/                # Platform install scripts (not stowed)
 └── wallpapers/             # Desktop wallpapers (not stowed)
 ```
@@ -149,7 +147,7 @@ Workspace keys use the **Colemak-DH home row** — consistent across tmux, Hyprl
 **Containers/K8s**: Docker, kubectl, k9s, Terraform
 **Cloud**: AWS CLI (with SSO functions), GitHub CLI
 **Terminal**: Tmux, Starship, Yazi, Television
-**AI**: OpenCode (with Grafana, GitHub, Linear MCP servers)
+**AI**: see the agents repo
 
 ## Making Changes
 
@@ -189,23 +187,12 @@ chore(opencode): add config for Grafana & GitHub MCPs
 refactor(tmux): split keybinds into separate file
 ```
 
-See also: `.agents/skills/commit/SKILL.md`, `.agents/skills/gh/SKILL.md`, `.agents/skills/mr/SKILL.md`.
+## Agent setup
 
-## AI Agent Skills
-
-Custom skills in `.agents/skills/`:
-
-| Skill | Purpose |
-|-------|---------|
-| `commit` | Git commit with conventional commits format |
-| `explorer` | Codebase exploration and teaching |
-| `log` | Progress logging to notes |
-| `pull` | Git pull across repos |
-| `find-skills` | Discover and install skills from skills.sh |
-| `skill-creator` | Create new skills |
-| `logging-best-practices` | Wide events / canonical log lines patterns |
-
-Each skill has a `SKILL.md` with frontmatter (name, description, tools) and instructions.
+Skills, global instructions and the Pi, Claude Code, Codex and OpenCode config
+live in the agents repo (`lamiphil/agents`, cloned next to this one). Host
+settings that only launch agents (Neovim `opencode.lua`, Fish `claude` alias)
+stay here.
 
 ## Command syntax
 
@@ -215,5 +202,5 @@ Each skill has a `SKILL.md` with frontmatter (name, description, tools) and inst
 ## Global rules
 
 Global rules (action policy, communication style, questions, how to write) live in
-`.pi/agent/AGENTS.md`, which Pi, Claude Code and Codex all share through symlinks.
-This file is the dotfiles repo guide only; it is not deployed to `$HOME`.
+the agents repo at `pi/agent/AGENTS.md`, which Pi, Claude Code and Codex share
+through symlinks. This file is the dotfiles repo guide only; it is not deployed to `$HOME`.

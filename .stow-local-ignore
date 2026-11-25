@@ -21,3 +21,10 @@ docs
 
 # Repo guide stays in the repo
 ^/AGENTS.md
+
+# Agent setup lives in the agents repo
+^/.agents
+^/.pi
+^/.claude
+^/.codex
+^/.config/opencode

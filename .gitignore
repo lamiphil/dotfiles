@@ -7,7 +7,6 @@ repos/tree-sitter-logstash
 .config/yarn/
 .config/raycast/
 .config/fish/fish_variables
-.agents/skills/v-devops-terraform-bootstrap
 .kube
 .config/Bitwarden CLI/
 .config/gh/hosts.yml
@@ -15,14 +14,12 @@ repos/tree-sitter-logstash
 .config/obsidian/.obsidian/workspace.json
 .config/obsidian/_config/attachments/
 
-# Machine-local agent state
-.agents/skills/synced/
-.agents/skills/terminal-browser
-.pi/agent/pi-web-access/
-
-# Private skills (kept locally, not tracked)
-.agents/skills/scrum
-.agents/skills/work-artifact
+# Agent setup lives in the agents repo (lamiphil/agents)
+.agents/
+.pi/
+.claude/
+.codex/
+.config/opencode/
 
 # Personal work log at repo root (never tracked)
 /_log.md

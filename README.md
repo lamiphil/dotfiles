@@ -16,7 +16,7 @@ Personal dotfiles for Arch Linux and macOS — managed with [GNU Stow](https://w
 | **Cloud** | AWS CLI (with SSO helpers), GitHub CLI, Terraform |
 | **Window Manager** | [AeroSpace](https://github.com/nikitabobko/AeroSpace) (macOS), [Hyprland](https://hyprland.org) (Linux) |
 | **Theming** | [Pywal](https://github.com/dylanaraps/pywal), [lsd](https://github.com/lsd-rs/lsd) |
-| **AI** | [OpenCode](https://opencode.ai) |
+| **AI** | Agent setup lives in [lamiphil/agents](https://github.com/lamiphil/agents) |
 
 ## Repository Structure
 
@@ -30,7 +30,6 @@ dotfiles/
 ├── .gitconfig                # Git user & aliases
 ├── starship.toml             # Starship prompt config
 ├── .config/                  # Custom config files
-├── .agents/skills/           # AI agent skills
 ├── scripts/                  # Platform-specific install scripts
 └── wallpapers/               # Desktop wallpapers
 ```
@@ -100,6 +99,13 @@ stow .
 ```
 
 This symlinks everything to `$HOME`, except files listed in `.stow-local-ignore` (scripts, README, git metadata, etc.).
+
+The agent setup (skills, global instructions, Pi, Claude Code, Codex and OpenCode config) lives in [lamiphil/agents](https://github.com/lamiphil/agents):
+
+```bash
+git clone git@github.com:lamiphil/agents.git ~/workspaces/perso/repos/agents
+~/workspaces/perso/repos/agents/install.sh
+```
 
 ### 6. Claude Code MCP Servers
 
