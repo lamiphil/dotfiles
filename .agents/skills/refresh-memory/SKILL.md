@@ -1,6 +1,6 @@
 ---
 name: refresh-memory
-description: Refreshes the current expert session with the latest project knowledge from its declared log target (a customer work log or a project LOG.md). Use when the user asks to refresh memory, update project context, catch up on recent work, absorb the latest project logs, or prepare the expert session before cloning it for another task.
+description: Refreshes the current expert session with the latest project knowledge from its declared log target (a customer work log or a project _log.md). Use when the user asks to refresh memory, update project context, catch up on recent work, absorb the latest project logs, or prepare the expert session before cloning it for another task.
 ---
 
 # Refresh Memory

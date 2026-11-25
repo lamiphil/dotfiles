@@ -1,6 +1,6 @@
 ---
 name: log
-description: Add a timestamped log entry for recent work to the log target declared in AGENTS.md (a work log in a notes vault, or a project LOG.md in a repo). Use when the user invokes /log or wants to log progress, document decisions, or capture what was accomplished.
+description: Add a timestamped log entry for recent work to the log target declared in AGENTS.md (a work log in a notes vault, or a project _log.md in a repo). Use when the user invokes /log or wants to log progress, document decisions, or capture what was accomplished.
 ---
 
 # Log

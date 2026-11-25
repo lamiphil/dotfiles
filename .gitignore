@@ -23,3 +23,6 @@ repos/tree-sitter-logstash
 # Private skills (kept locally, not tracked)
 .agents/skills/scrum
 .agents/skills/work-artifact
+
+# Personal work log at repo root (never tracked)
+/_log.md
