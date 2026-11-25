@@ -49,11 +49,24 @@ A customer's private `_log.md` in the Vooban notes vault. All Vooban work logs h
 _Avoid_: customer log, journal
 
 **Project log**:
-A `LOG.md` at the root of one of Philippe's personal repositories. It is written for Philippe, not for the repository's users.
+A `_log.md` at the root of one of Philippe's personal repositories. It is written for Philippe, not for the repository's users.
 _Avoid_: repo log, changelog
 
 **Public log**:
 A log target declared public. Every entry follows the safety rules: no people or company names, no non-public identifiers or paths, no secrets, no private life.
+
+## Todos
+
+**Workspace**:
+A top folder where sessions start, such as the Vooban workspace or the personal workspace. Its `AGENTS.md` declares where its log and todo list are.
+_Avoid_: project, environment
+
+**Todo list**:
+The one list of open todos for a workspace, with its archive of done items. Lists never mix: a session uses only the list of the workspace it started in.
+_Avoid_: todo file, global todo
+
+**Todo declaration**:
+A statement in an `AGENTS.md` that gives a workspace's todo list, its archive, its sections rule and whether it syncs through git. The nearest `AGENTS.md` wins; without one, no todo is written.
 
 ## Setup
 

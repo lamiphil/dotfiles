@@ -9,11 +9,12 @@
  *                        Persists across sessions. Updates the powerline
  *                        status segment.
  *
- * /todo <text>           Shortcut for the `todo` skill (Customers/_todo.md in
- *                        the notes vault). Sends `/skill:todo <text>`; the
- *                        reply ends with the whole file.
+ * /todo <text>           Shortcut for the `todo` skill (the todo list declared
+ *                        in the cwd's AGENTS.md `## Todo`). Sends
+ *                        `/skill:todo <text>`; the reply ends with the whole file.
  *
- * /todo                  (no args) → print Customers/_todo.md, no model call.
+ * /todo                  (no args) → print the declared list, no model call
+ *                        (`git pull --ff-only` first when it declares Sync: git).
  *
  * Daily notes use the existing template:
  *
@@ -39,7 +40,7 @@ const VAULTS: Record<string, string> = {
 
 const DEFAULT_VAULT = "personal";
 
-const TODO_FILE = `${process.env.NOTES_ROOT ?? `${HOME}/notes`}/Customers/_todo.md`;
+const TODO_SCRIPTS = `${HOME}/.agents/skills/todo/scripts`;
 const STATE_DIR = `${HOME}/.pi/agent/state`;
 const STATE_FILE = join(STATE_DIR, "note-vault.txt");
 
@@ -305,26 +306,39 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
-	// /todo is a shortcut for the `todo` skill (Customers/_todo.md in the notes vault):
-	// the model infers the customer and adds context, so no direct file write here.
+	// /todo is a shortcut for the `todo` skill (the list declared for the cwd):
+	// the model infers the section and adds context, so no direct file write here.
 	pi.registerCommand("todo", {
-		description: "Show Customers/_todo.md, or add/complete a todo via the todo skill",
+		description: "Show the cwd's todo list, or add/complete a todo via the todo skill",
 		handler: async (rawArgs, ctx) => {
 			const raw = (rawArgs ?? "").trim();
 			if (!raw) {
+				const show = (content: string) =>
+					pi.sendMessage({ customType: "todo-list", content, display: true });
+				const found = await pi.exec("python3", [`${TODO_SCRIPTS}/resolve.py`, ctx.cwd]);
+				if (found.code !== 0) {
+					show((found.stdout || found.stderr).trim() || "No todo list declared here.");
+					return;
+				}
+				const todo = JSON.parse(found.stdout) as { list: string; archive: string; sync: string };
+				let warning = "";
+				if (todo.sync === "git") {
+					const pull = await pi.exec("git", ["pull", "--ff-only", "-q"], {
+						cwd: dirname(todo.list),
+						timeout: 5000,
+					});
+					if (pull.code !== 0 || pull.killed)
+						warning = `⚠ git pull failed, list may be stale: ${(pull.stderr || "timeout").trim().split("\n")[0]}\n\n`;
+				}
 				// Fix numbering after hand edits in Obsidian before showing the list.
-				await pi.exec("python3", [`${HOME}/.agents/skills/todo/scripts/renumber.py`]);
+				await pi.exec("python3", [`${TODO_SCRIPTS}/renumber.py`, todo.list, todo.archive]);
 				// Leading spaces → NBSP so aligned lines aren't rendered as indented code blocks.
-				const content = existsSync(TODO_FILE)
-					? readFileSync(TODO_FILE, "utf8")
+				const content = existsSync(todo.list)
+					? readFileSync(todo.list, "utf8")
 							.trim()
 							.replace(/^ +/gm, (s) => "\u00a0".repeat(s.length))
 					: "";
-				pi.sendMessage({
-					customType: "todo-list",
-					content: content ? `${TODO_FILE.replace(HOME, "~")}\n\n${content}` : "No todos yet.",
-					display: true,
-				});
+				show(`${warning}${todo.list.replace(HOME, "~")}\n\n${content || "No todos yet."}`);
 				return;
 			}
 			// The marker tells the skill to print the whole file at the end.

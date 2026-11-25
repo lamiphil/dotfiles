@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 """Format _todo.md and _archive.md. Idempotent.
 
-_todo.md: every non-blank line under a `## ` heading is an open item. Each section is
-sorted by status (!! → ! → none → X, stable), then items are numbered 1..N across the
-file and aligned: status right-aligned to 2 chars, number right-aligned to the widest.
+_todo.md: `## ` customer sections; inside a section, `### ` main-task headings group
+subtasks. Every other non-blank line is an open item. Each block (a section's standalone
+items, or one main task) is sorted by status (!! → ! → none → X, stable); standalone items
+come before main tasks, whose order is kept. Items are numbered 1..N across the file and
+aligned: status right-aligned to 2 chars, number right-aligned to the widest.
 
+    ## Client B
     !!  1: Fix the prod DNS
-     !  2: Tighten GitLab rules
-        3: Explore KEDA autoscaling
-     X 10: Prepare prod (waiting on: prod subscription)
+        2: Explore KEDA autoscaling
+
+    ### CORP-129: Prod environment
+     !  3: Create prod tfvars
+     X 10: Apply prod (waiting on: prod subscription)
 
 Accepts the old `- [ ] N - text` shape too. _archive.md: strips numbers from `- [x]` lines.
-"""
-import os
-import re
-from pathlib import Path
 
-DIR = Path(os.environ.get("NOTES_ROOT", str(Path.home() / "notes"))) / "Customers"
+Usage: renumber.py <list> <archive>  (paths from resolve.py)
+"""
+import re
+import sys
+from pathlib import Path
 RANK = {"!!": 0, "!": 1, "": 2, "X": 3}
 ITEM = re.compile(
     r"^\s*(?:- \[ \]\s*)?"  # old checkbox prefix
@@ -36,27 +41,42 @@ def rewrite(path, fn):
 
 
 def todo(lines):
-    head, sections = [], []  # sections: [heading, [(status, text)]]
+    # sections: [heading, standalone items, [[subheading, items], ...]]
+    head, sections = [], []
     for line in lines:
         if line.startswith("## "):
-            sections.append([line, []])
+            sections.append([line, [], []])
         elif not line.strip():
             continue
         elif not sections:
             head.append(line)
+        elif line.startswith("### "):
+            sections[-1][2].append([line, []])
         else:
             m = ITEM.match(line)
-            sections[-1][1].append((m["st"] or "", m["text"]))
-    for s in sections:
-        s[1].sort(key=lambda it: RANK[it[0]])
-    total = sum(len(items) for _, items in sections)
-    w = len(str(total))
+            item = (m["st"] or "", m["text"])
+            groups = sections[-1][2]
+            (groups[-1][1] if groups else sections[-1][1]).append(item)
+
+    blocks = [items for _, items, groups in sections for items in [items] + [g[1] for g in groups]]
+    for items in blocks:
+        items.sort(key=lambda it: RANK[it[0]])
+    w = len(str(sum(len(b) for b in blocks)))
+
     out, n = head + ([""] if head else []), 0
-    for heading, items in sections:
-        out.append(heading)
+
+    def emit(items):
+        nonlocal n
         for st, text in items:
             n += 1
             out.append(f"{st:>2} {n:>{w}}: {text}")
+
+    for heading, items, groups in sections:
+        out.append(heading)
+        emit(items)
+        for sub, sub_items in groups:
+            out += ["", sub]
+            emit(sub_items)
         out.append("")
     return out
 
@@ -65,5 +85,7 @@ def archive(lines):
     return [re.sub(r"^- \[x\] (\d+\s*-\s*)?", "- [x] ", l) for l in lines]
 
 
-rewrite(DIR / "_todo.md", todo)
-rewrite(DIR / "_archive.md", archive)
+if len(sys.argv) != 3:
+    sys.exit("usage: renumber.py <list> <archive>")
+rewrite(Path(sys.argv[1]), todo)
+rewrite(Path(sys.argv[2]), archive)
