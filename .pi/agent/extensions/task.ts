@@ -299,8 +299,21 @@ export default function (pi: ExtensionAPI) {
 		);
 		writeMeta({ ...(readMeta(id) ?? meta), window_id: created.window_id });
 		await rex("window", "move", "-s", REX_SESSION, created.window_id, "--after", anchor.window_id);
+		// The tab closes itself if pi exits (crash at startup): tell the master instead of a silent "Started".
+		setTimeout(async () => {
+			try {
+				const windows: Window[] = (await sessionView(REX_SESSION)).windows ?? [];
+				const m = readMeta(id);
+				if (!m || m.closed || windows.some((w) => w.window_id === created.window_id)) return;
+				writeMeta({ ...m, closed: new Date().toISOString() });
+				pi.sendMessage(
+					{ customType: "task-status", content: `⚠️ "${name}": its Rex tab exited right after starting (pi crashed; see ~/.pi/agent/pi-tui-crash.log). Run /task again.`, display: true },
+					{ triggerTurn: false },
+				);
+			} catch {}
+		}, 20_000);
 		const lvl = d.level ? `${LEVEL_ICON[d.level]} ${d.level}` : "same level";
-		return `Started "${name}" (${lvl}, ${model.split("/").pop()})${d.why ? `: ${d.why}` : ""}`;
+		return `Started "${name}" in a new Rex tab (${lvl}, ${model.split("/").pop()})${d.why ? `: ${d.why}` : ""}`;
 	}
 
 	// Filled by delegate_task, spawned once the master's turn settles so the fork sees a complete session.
