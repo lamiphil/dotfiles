@@ -2,8 +2,8 @@
  * Claude-specific brevity reinforcement.
  *
  * Claude models tend toward explanatory responses. The rules live only in
- * APPEND_SYSTEM.md <communication_style>; this appends a one-line reminder at
- * the end of the prompt (recency) for Claude providers only.
+ * ~/.pi/agent/AGENTS.md <communication_style>; this appends a one-line reminder
+ * at the end of the prompt (recency) for Claude providers only.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";

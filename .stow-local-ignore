@@ -18,4 +18,6 @@ repos
 GLOSSARY.md
 docs
 ^/_log.md
-^/LOG.md
+
+# Repo guide stays in the repo
+^/AGENTS.md

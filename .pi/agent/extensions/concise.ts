@@ -1,6 +1,6 @@
 /**
  * Concise mode toggle — pi defaults to terse responses (driven by
- * ~/.pi/agent/APPEND_SYSTEM.md). Prefixing a prompt with `?v ` strips the
+ * ~/.pi/agent/AGENTS.md <communication_style>). Prefixing a prompt with `?v ` strips the
  * prefix and injects a one-turn system-prompt suffix that overrides the
  * brevity rules for that turn only.
  */
