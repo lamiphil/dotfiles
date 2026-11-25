@@ -343,7 +343,7 @@ if (!get(files.index).includes("[pi-config patch:rounded-powerline-v021]")) {
 
     const layout = getResponsiveLayout(width, theme);
     return layout.topContent
-      ? [powerlineBorder("╭") + layout.topContent + powerlineBorder("╮")]
+      ? [powerlineBorder("╭") + truncateToWidth(layout.topContent, width - 2, "…") + powerlineBorder("╮")]
       : [];
   }
 
@@ -353,7 +353,7 @@ if (!get(files.index).includes("[pi-config patch:rounded-powerline-v021]")) {
     const rows = getResponsiveLayout(width, theme).secondaryLines;
     return rows.map((row, index) => {
       const last = index === rows.length - 1;
-      return powerlineBorder(last ? "╰" : "│") + row + powerlineBorder(last ? "╯" : "│");
+      return powerlineBorder(last ? "╰" : "│") + truncateToWidth(row, width - 2, "…") + powerlineBorder(last ? "╯" : "│");
     });
   }`,
     "rounded Powerline rendering",
